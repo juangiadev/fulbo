@@ -1,32 +1,33 @@
-import { MatchStatus, PlayerRole } from '@shared/enums';
-import type { MatchContract, PlayerContract } from '@shared/contracts';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, Navigate, useParams } from 'react-router-dom';
-import { sileo } from 'sileo';
-import { ContentSpinner } from '../../components/ContentSpinner';
+import { MatchStatus, PlayerRole } from "@shared/enums";
+import type { MatchContract, PlayerContract } from "@shared/contracts";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { sileo } from "sileo";
+import { ContentSpinner } from "../../components/ContentSpinner";
 import {
   MatchPlayersTableBuilder,
   type MatchPlayersTableBuilderRef,
-} from '../../components/MatchPlayersTableBuilder';
-import { apiClient } from '../../api/client';
-import { useAppContext } from '../../state/AppContext';
-import buttonStyles from '../../styles/Button.module.css';
-import styles from './TournamentMatchDetailPage.module.css';
+} from "../../components/MatchPlayersTableBuilder";
+import { apiClient } from "../../api/client";
+import { useAppContext } from "../../state/AppContext";
+import buttonStyles from "../../styles/Button.module.css";
+import styles from "./TournamentMatchDetailPage.module.css";
 
 export function TournamentMatchEditPage() {
+  const navigate = useNavigate();
   const { tournamentId, matchId } = useParams();
   const { data, getMyRole } = useAppContext();
   const [matches, setMatches] = useState<MatchContract[]>([]);
   const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [status, setStatus] = useState<MatchStatus>(MatchStatus.PENDING);
-  const [stageDraft, setStageDraft] = useState('');
-  const [placeNameDraft, setPlaceNameDraft] = useState('');
-  const [placeUrlDraft, setPlaceUrlDraft] = useState('');
-  const [kickoffAtDraft, setKickoffAtDraft] = useState('');
+  const [stageDraft, setStageDraft] = useState("");
+  const [placeNameDraft, setPlaceNameDraft] = useState("");
+  const [placeUrlDraft, setPlaceUrlDraft] = useState("");
+  const [kickoffAtDraft, setKickoffAtDraft] = useState("");
   const [tableSummary, setTableSummary] = useState({
-    teamAColor: '#0b2818',
-    teamBColor: '#f2f2f2',
+    teamAColor: "#0b2818",
+    teamBColor: "#f2f2f2",
     teamAGoals: 0,
     teamBGoals: 0,
   });
@@ -35,19 +36,22 @@ export function TournamentMatchEditPage() {
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
   const role = tournamentId ? getMyRole(tournamentId) : null;
-  const canEdit = [PlayerRole.OWNER, PlayerRole.ADMIN].includes(role ?? PlayerRole.USER);
+  const canEdit = [PlayerRole.OWNER, PlayerRole.ADMIN].includes(
+    role ?? PlayerRole.USER,
+  );
 
   useEffect(() => {
     if (!tournamentId) {
       return;
     }
-    void Promise.all([apiClient.getMatches(tournamentId), apiClient.getPlayers(tournamentId)]).then(
-      ([nextMatches, nextPlayers]) => {
-        setMatches(nextMatches);
-        setPlayers(nextPlayers);
-        setIsLoaded(true);
-      },
-    );
+    void Promise.all([
+      apiClient.getMatches(tournamentId),
+      apiClient.getPlayers(tournamentId),
+    ]).then(([nextMatches, nextPlayers]) => {
+      setMatches(nextMatches);
+      setPlayers(nextPlayers);
+      setIsLoaded(true);
+    });
   }, [tournamentId]);
 
   const selectedMatch = useMemo(
@@ -61,23 +65,35 @@ export function TournamentMatchEditPage() {
     }
 
     const date = new Date(selectedMatch.kickoffAt);
-    const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+    const localDate = new Date(
+      date.getTime() - date.getTimezoneOffset() * 60000,
+    )
       .toISOString()
       .slice(0, 16);
 
     setStatus(selectedMatch.status);
     setStageDraft(selectedMatch.stage);
     setPlaceNameDraft(selectedMatch.placeName);
-    setPlaceUrlDraft(selectedMatch.placeUrl ?? '');
+    setPlaceUrlDraft(selectedMatch.placeUrl ?? "");
     setKickoffAtDraft(localDate);
   }, [selectedMatch]);
 
-  if (!tournamentId || !matchId || !tournament || tournament.membershipStatus === 'PENDING') {
+  if (
+    !tournamentId ||
+    !matchId ||
+    !tournament ||
+    tournament.membershipStatus === "PENDING"
+  ) {
     return <Navigate replace to="/tournaments" />;
   }
 
   if (!canEdit) {
-    return <Navigate replace to={`/tournaments/${tournamentId}/partidos/${matchId}`} />;
+    return (
+      <Navigate
+        replace
+        to={`/tournaments/${tournamentId}/partidos/${matchId}`}
+      />
+    );
   }
 
   if (!isLoaded) {
@@ -85,7 +101,10 @@ export function TournamentMatchEditPage() {
       <section className={styles.section}>
         <div className={styles.headerRow}>
           <h2>Editar partido</h2>
-          <Link className={buttonStyles.ghost} to={`/tournaments/${tournamentId}/partidos`}>
+          <Link
+            className={buttonStyles.ghost}
+            to={`/tournaments/${tournamentId}/partidos`}
+          >
             Volver
           </Link>
         </div>
@@ -102,7 +121,10 @@ export function TournamentMatchEditPage() {
     <section className={styles.section}>
       <div className={styles.headerRow}>
         <h2>Editar partido</h2>
-        <Link className={buttonStyles.ghost} to={`/tournaments/${tournamentId}/partidos`}>
+        <Link
+          className={buttonStyles.ghost}
+          to={`/tournaments/${tournamentId}/partidos`}
+        >
           Volver
         </Link>
       </div>
@@ -111,27 +133,44 @@ export function TournamentMatchEditPage() {
         <div className={styles.inlineControls}>
           <label>
             Cancha
-            <input onChange={(event) => setStageDraft(event.target.value)} value={stageDraft} />
+            <input
+              onChange={(event) => setStageDraft(event.target.value)}
+              value={stageDraft}
+            />
           </label>
           <label>
             Lugar
-            <input onChange={(event) => setPlaceNameDraft(event.target.value)} value={placeNameDraft} />
+            <input
+              onChange={(event) => setPlaceNameDraft(event.target.value)}
+              value={placeNameDraft}
+            />
           </label>
         </div>
         <div className={styles.inlineControls}>
           <label>
             URL
-            <input onChange={(event) => setPlaceUrlDraft(event.target.value)} placeholder="https://..." value={placeUrlDraft} />
+            <input
+              onChange={(event) => setPlaceUrlDraft(event.target.value)}
+              placeholder="https://..."
+              value={placeUrlDraft}
+            />
           </label>
           <label>
             Fecha y hora
-            <input onChange={(event) => setKickoffAtDraft(event.target.value)} type="datetime-local" value={kickoffAtDraft} />
+            <input
+              onChange={(event) => setKickoffAtDraft(event.target.value)}
+              type="datetime-local"
+              value={kickoffAtDraft}
+            />
           </label>
         </div>
         <div className={styles.inlineControls}>
           <label>
             Estado
-            <select onChange={(event) => setStatus(event.target.value as MatchStatus)} value={status}>
+            <select
+              onChange={(event) => setStatus(event.target.value as MatchStatus)}
+              value={status}
+            >
               <option value={MatchStatus.PENDING}>Pendiente</option>
               <option value={MatchStatus.FINISHED}>Finalizado</option>
             </select>
@@ -152,14 +191,22 @@ export function TournamentMatchEditPage() {
         <table className={styles.resultTable}>
           <thead>
             <tr>
-              <th style={{ backgroundColor: `${tableSummary.teamAColor}26` }}>Team A</th>
-              <th style={{ backgroundColor: `${tableSummary.teamBColor}26` }}>Team B</th>
+              <th style={{ backgroundColor: `${tableSummary.teamAColor}26` }}>
+                Team A
+              </th>
+              <th style={{ backgroundColor: `${tableSummary.teamBColor}26` }}>
+                Team B
+              </th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style={{ backgroundColor: `${tableSummary.teamAColor}12` }}>{tableSummary.teamAGoals}</td>
-              <td style={{ backgroundColor: `${tableSummary.teamBColor}12` }}>{tableSummary.teamBGoals}</td>
+              <td style={{ backgroundColor: `${tableSummary.teamAColor}12` }}>
+                {tableSummary.teamAGoals}
+              </td>
+              <td style={{ backgroundColor: `${tableSummary.teamBColor}12` }}>
+                {tableSummary.teamBGoals}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -171,7 +218,7 @@ export function TournamentMatchEditPage() {
         onClick={async () => {
           const kickoffDate = new Date(kickoffAtDraft);
           if (Number.isNaN(kickoffDate.getTime())) {
-            sileo.warning({ title: 'La fecha del partido no es valida' });
+            sileo.warning({ title: "La fecha del partido no es valida" });
             return;
           }
 
@@ -187,14 +234,24 @@ export function TournamentMatchEditPage() {
                   kickoffAt: kickoffDate.toISOString(),
                 });
                 await tableRef.current?.saveLineup();
-                setMatches((previous) => previous.map((item) => (item.id === updated.id ? updated : item)));
+                setMatches((previous) =>
+                  previous.map((item) =>
+                    item.id === updated.id ? updated : item,
+                  ),
+                );
               })(),
               {
-                loading: { title: 'Guardando partido...' },
-                success: { title: 'Partido actualizado' },
-                error: { title: 'No se pudo guardar el partido' },
+                loading: { title: "Guardando partido..." },
+                success: { title: "Partido actualizado" },
+                error: { title: "No se pudo guardar el partido" },
               },
             );
+            await sileo.success({ title: "Partido actualizado" });
+            navigate(`/tournaments/${tournamentId}/partidos`, {
+              replace: true,
+            });
+          } catch {
+            sileo.error({ title: "No se pudo guardar el partido" });
           } finally {
             setIsSavingAll(false);
           }

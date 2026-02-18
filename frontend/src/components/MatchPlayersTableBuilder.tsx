@@ -1,9 +1,20 @@
-import type { PlayerContract, PlayerTeamContract, TeamContract } from '@shared/contracts';
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
-import { sileo } from 'sileo';
-import { apiClient } from '../api/client';
-import buttonStyles from '../styles/Button.module.css';
-import styles from './MatchPlayersTableBuilder.module.css';
+import type {
+  PlayerContract,
+  PlayerTeamContract,
+  TeamContract,
+} from "@shared/contracts";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useState,
+} from "react";
+import { sileo } from "sileo";
+import { apiClient } from "../api/client";
+import buttonStyles from "../styles/Button.module.css";
+import styles from "./MatchPlayersTableBuilder.module.css";
 
 interface RowItem {
   id: string;
@@ -43,26 +54,38 @@ const createRows = (playersPerTeam: number): RowItem[] =>
 const withAlpha = (hex: string, alpha: string): string =>
   /^#[0-9a-fA-F]{6}$/.test(hex) ? `${hex}${alpha}` : hex;
 
-function splitTeams(teams: TeamContract[]): { teamA: TeamContract | null; teamB: TeamContract | null } {
-  const byNameA = teams.find((team) => team.name === 'Team A') ?? null;
-  const byNameB = teams.find((team) => team.name === 'Team B') ?? null;
+function splitTeams(teams: TeamContract[]): {
+  teamA: TeamContract | null;
+  teamB: TeamContract | null;
+} {
+  const byNameA = teams.find((team) => team.name === "Team A") ?? null;
+  const byNameB = teams.find((team) => team.name === "Team B") ?? null;
   const fallbackA = byNameA ?? teams[0] ?? null;
-  const fallbackB = byNameB ?? teams.find((team) => team.id !== fallbackA?.id) ?? null;
+  const fallbackB =
+    byNameB ?? teams.find((team) => team.id !== fallbackA?.id) ?? null;
   return { teamA: fallbackA, teamB: fallbackB };
 }
 
-export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, MatchPlayersTableBuilderProps>(
-  function MatchPlayersTableBuilder(
-    { players, canEdit, matchId, showSaveButton = true, onSummaryChange }: MatchPlayersTableBuilderProps,
-    ref,
-  ) {
+export const MatchPlayersTableBuilder = forwardRef<
+  MatchPlayersTableBuilderRef,
+  MatchPlayersTableBuilderProps
+>(function MatchPlayersTableBuilder(
+  {
+    players,
+    canEdit,
+    matchId,
+    showSaveButton = true,
+    onSummaryChange,
+  }: MatchPlayersTableBuilderProps,
+  ref,
+) {
   const [playersPerTeam, setPlayersPerTeam] = useState<number>(5);
   const [rows, setRows] = useState<RowItem[]>(createRows(5));
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [availablePlayerIds, setAvailablePlayerIds] = useState<string[]>([]);
-  const [teamAColor, setTeamAColor] = useState('#0b2818');
-  const [teamBColor, setTeamBColor] = useState('#f2f2f2');
+  const [teamAColor, setTeamAColor] = useState("#0b2818");
+  const [teamBColor, setTeamBColor] = useState("#f2f2f2");
   const [isSaving, setIsSaving] = useState(false);
 
   const getPlayerLabel = (player: PlayerContract): string => {
@@ -82,7 +105,9 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
       if (selectedPlayerIds.includes(player.id)) {
         return false;
       }
-      return `${player.name} ${player.nickname ?? ''}`.toLowerCase().includes(query);
+      return `${player.name} ${player.nickname ?? ""}`
+        .toLowerCase()
+        .includes(query);
     });
   }, [players, search, selectedPlayerIds]);
 
@@ -97,11 +122,15 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
 
     void apiClient.getTeamsByMatch(matchId).then((teams) => {
       const { teamA, teamB } = splitTeams(teams);
-      const teamARows = ((teamA?.playerTeams as PlayerTeamContract[] | undefined) ?? []).map((item) => ({
+      const teamARows = (
+        (teamA?.playerTeams as PlayerTeamContract[] | undefined) ?? []
+      ).map((item) => ({
         playerId: item.playerId,
         goals: item.goals,
       }));
-      const teamBRows = ((teamB?.playerTeams as PlayerTeamContract[] | undefined) ?? []).map((item) => ({
+      const teamBRows = (
+        (teamB?.playerTeams as PlayerTeamContract[] | undefined) ?? []
+      ).map((item) => ({
         playerId: item.playerId,
         goals: item.goals,
       }));
@@ -123,12 +152,12 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
       setPlayersPerTeam(count);
       setSelectedPlayerIds(assignedIds);
       setAvailablePlayerIds([]);
-      setTeamAColor(teamA?.color ?? '#0b2818');
-      setTeamBColor(teamB?.color ?? '#f2f2f2');
+      setTeamAColor(teamA?.color ?? "#0b2818");
+      setTeamBColor(teamB?.color ?? "#f2f2f2");
     });
   }, [matchId]);
 
-  const movePlayer = (playerId: string, rowId: string, side: 'A' | 'B') => {
+  const movePlayer = (playerId: string, rowId: string, side: "A" | "B") => {
     if (!selectedPlayerIds.includes(playerId)) {
       return;
     }
@@ -152,7 +181,7 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
         return previousRows;
       }
 
-      if (side === 'A') {
+      if (side === "A") {
         displacedPlayerId = targetRow.teamAPlayerId;
         targetRow.teamAPlayerId = playerId;
         if (targetRow.teamBPlayerId === playerId) {
@@ -179,13 +208,19 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
   };
 
   const removePlayer = (playerId: string) => {
-    setSelectedPlayerIds((previous) => previous.filter((id) => id !== playerId));
-    setAvailablePlayerIds((previous) => previous.filter((id) => id !== playerId));
+    setSelectedPlayerIds((previous) =>
+      previous.filter((id) => id !== playerId),
+    );
+    setAvailablePlayerIds((previous) =>
+      previous.filter((id) => id !== playerId),
+    );
     setRows((previousRows) =>
       previousRows.map((row) => ({
         ...row,
-        teamAPlayerId: row.teamAPlayerId === playerId ? null : row.teamAPlayerId,
-        teamBPlayerId: row.teamBPlayerId === playerId ? null : row.teamBPlayerId,
+        teamAPlayerId:
+          row.teamAPlayerId === playerId ? null : row.teamAPlayerId,
+        teamBPlayerId:
+          row.teamBPlayerId === playerId ? null : row.teamBPlayerId,
       })),
     );
   };
@@ -207,40 +242,48 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
       const effectiveMatchId = matchIdOverride ?? matchId;
 
       if (!effectiveMatchId) {
-      sileo.warning({ title: 'Primero crea el partido para guardar equipos y goles' });
-      return;
-    }
-
-    const desiredA = rows
-      .filter((row) => row.teamAPlayerId)
-      .map((row) => ({ playerId: row.teamAPlayerId as string, goals: row.teamAGoals }));
-    const desiredB = rows
-      .filter((row) => row.teamBPlayerId)
-      .map((row) => ({ playerId: row.teamBPlayerId as string, goals: row.teamBGoals }));
-
-    const persistLineup = async () => {
-      await apiClient.upsertMatchLineup(effectiveMatchId, {
-        teamAColor,
-        teamBColor,
-        teamA: desiredA,
-        teamB: desiredB,
-      });
-    };
-
-    setIsSaving(true);
-    try {
-      if (withToast) {
-        await sileo.promise(persistLineup(), {
-          loading: { title: 'Guardando jugadores y goles...' },
-          success: { title: 'Partido actualizado' },
-          error: { title: 'No se pudo guardar la tabla del partido' },
+        sileo.warning({
+          title: "Primero crea el partido para guardar equipos y goles",
         });
-      } else {
-        await persistLineup();
+        return;
       }
-    } finally {
-      setIsSaving(false);
-    }
+
+      const desiredA = rows
+        .filter((row) => row.teamAPlayerId)
+        .map((row) => ({
+          playerId: row.teamAPlayerId as string,
+          goals: row.teamAGoals,
+        }));
+      const desiredB = rows
+        .filter((row) => row.teamBPlayerId)
+        .map((row) => ({
+          playerId: row.teamBPlayerId as string,
+          goals: row.teamBGoals,
+        }));
+
+      const persistLineup = async () => {
+        await apiClient.upsertMatchLineup(effectiveMatchId, {
+          teamAColor,
+          teamBColor,
+          teamA: desiredA,
+          teamB: desiredB,
+        });
+      };
+
+      setIsSaving(true);
+      try {
+        if (withToast) {
+          await sileo.promise(persistLineup(), {
+            loading: { title: "Guardando jugadores y goles..." },
+            success: { title: "Partido actualizado" },
+            error: { title: "No se pudo guardar la tabla del partido" },
+          });
+        } else {
+          await persistLineup();
+        }
+      } finally {
+        setIsSaving(false);
+      }
     },
     [matchId, rows, teamAColor, teamBColor],
   );
@@ -249,7 +292,8 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
     ref,
     () => ({
       saveLineup: async () => saveLineup(false),
-      saveLineupForMatch: async (targetMatchId: string) => saveLineup(false, targetMatchId),
+      saveLineupForMatch: async (targetMatchId: string) =>
+        saveLineup(false, targetMatchId),
     }),
     [saveLineup],
   );
@@ -303,9 +347,12 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
                 );
 
                 setAvailablePlayerIds(cappedAvailableIds);
-                setSelectedPlayerIds([...nextAssignedIds, ...cappedAvailableIds]);
+                setSelectedPlayerIds([
+                  ...nextAssignedIds,
+                  ...cappedAvailableIds,
+                ]);
 
-                setSearch('');
+                setSearch("");
 
                 return nextRows;
               });
@@ -320,7 +367,9 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
             disabled={!canEdit}
             onChange={(event) => {
               if (event.target.value === teamBColor) {
-                sileo.warning({ title: 'El color de Team A y Team B no puede ser igual' });
+                sileo.warning({
+                  title: "El color de Team A y Team B no puede ser igual",
+                });
                 return;
               }
               setTeamAColor(event.target.value);
@@ -335,7 +384,9 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
             disabled={!canEdit}
             onChange={(event) => {
               if (event.target.value === teamAColor) {
-                sileo.warning({ title: 'El color de Team A y Team B no puede ser igual' });
+                sileo.warning({
+                  title: "El color de Team A y Team B no puede ser igual",
+                });
                 return;
               }
               setTeamBColor(event.target.value);
@@ -370,7 +421,9 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
                   return;
                 }
                 if (selectedPlayerIds.length >= maxSelectedPlayers) {
-                  sileo.warning({ title: 'No puedes agregar mas jugadores para este partido' });
+                  sileo.warning({
+                    title: "No puedes agregar mas jugadores para este partido",
+                  });
                   return;
                 }
                 setSelectedPlayerIds((previous) => [...previous, player.id]);
@@ -381,7 +434,9 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
               {getPlayerLabel(player)}
             </button>
           ))}
-          {filteredPlayers.length === 0 ? <p className={styles.muted}>No hay resultados para la busqueda.</p> : null}
+          {filteredPlayers.length === 0 ? (
+            <p className={styles.muted}>No hay resultados para la busqueda.</p>
+          ) : null}
         </div>
       ) : null}
 
@@ -392,7 +447,7 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
             draggable={canEdit}
             key={player.id}
             onDragStart={(event) => {
-              event.dataTransfer.setData('text/player-id', player.id);
+              event.dataTransfer.setData("text/player-id", player.id);
             }}
           >
             <span>{getPlayerLabel(player)}</span>
@@ -415,20 +470,32 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
         <table className={styles.table}>
           <thead>
             <tr>
-              <th style={{ backgroundColor: withAlpha(teamAColor, '26') }}>Goles</th>
-              <th style={{ backgroundColor: withAlpha(teamAColor, '26') }}>Team A</th>
-              <th style={{ backgroundColor: withAlpha(teamBColor, '26') }}>Team B</th>
-              <th style={{ backgroundColor: withAlpha(teamBColor, '26') }}>Goles</th>
+              <th style={{ backgroundColor: withAlpha(teamAColor, "26") }}>
+                Goles
+              </th>
+              <th style={{ backgroundColor: withAlpha(teamAColor, "26") }}>
+                Team A
+              </th>
+              <th style={{ backgroundColor: withAlpha(teamBColor, "26") }}>
+                Team B
+              </th>
+              <th style={{ backgroundColor: withAlpha(teamBColor, "26") }}>
+                Goles
+              </th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row) => {
-              const teamAPlayer = players.find((player) => player.id === row.teamAPlayerId);
-              const teamBPlayer = players.find((player) => player.id === row.teamBPlayerId);
+              const teamAPlayer = players.find(
+                (player) => player.id === row.teamAPlayerId,
+              );
+              const teamBPlayer = players.find(
+                (player) => player.id === row.teamBPlayerId,
+              );
 
               return (
                 <tr key={row.id}>
-                  <td style={{ backgroundColor: withAlpha(teamAColor, '12') }}>
+                  <td style={{ backgroundColor: withAlpha(teamAColor, "12") }}>
                     <input
                       disabled={!canEdit}
                       min={0}
@@ -436,7 +503,12 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
                         const goals = Number(event.target.value);
                         setRows((previousRows) =>
                           previousRows.map((item) =>
-                            item.id === row.id ? { ...item, teamAGoals: Number.isNaN(goals) ? 0 : goals } : item,
+                            item.id === row.id
+                              ? {
+                                  ...item,
+                                  teamAGoals: Number.isNaN(goals) ? 0 : goals,
+                                }
+                              : item,
                           ),
                         );
                       }}
@@ -444,7 +516,7 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
                       value={row.teamAGoals}
                     />
                   </td>
-                  <td style={{ backgroundColor: withAlpha(teamAColor, '12') }}>
+                  <td style={{ backgroundColor: withAlpha(teamAColor, "12") }}>
                     <div
                       className={styles.dropZone}
                       onDragOver={(event) => {
@@ -457,8 +529,9 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
                           return;
                         }
                         event.preventDefault();
-                        const playerId = event.dataTransfer.getData('text/player-id');
-                        movePlayer(playerId, row.id, 'A');
+                        const playerId =
+                          event.dataTransfer.getData("text/player-id");
+                        movePlayer(playerId, row.id, "A");
                       }}
                     >
                       {teamAPlayer ? (
@@ -466,7 +539,10 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
                           className={styles.playerChip}
                           draggable={canEdit}
                           onDragStart={(event) => {
-                            event.dataTransfer.setData('text/player-id', teamAPlayer.id);
+                            event.dataTransfer.setData(
+                              "text/player-id",
+                              teamAPlayer.id,
+                            );
                           }}
                         >
                           <span>{getPlayerLabel(teamAPlayer)}</span>
@@ -483,11 +559,11 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
                           ) : null}
                         </div>
                       ) : (
-                        'Arrastra jugador'
+                        "Arrastra jugador"
                       )}
                     </div>
                   </td>
-                  <td style={{ backgroundColor: withAlpha(teamBColor, '12') }}>
+                  <td style={{ backgroundColor: withAlpha(teamBColor, "12") }}>
                     <div
                       className={styles.dropZone}
                       onDragOver={(event) => {
@@ -500,8 +576,9 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
                           return;
                         }
                         event.preventDefault();
-                        const playerId = event.dataTransfer.getData('text/player-id');
-                        movePlayer(playerId, row.id, 'B');
+                        const playerId =
+                          event.dataTransfer.getData("text/player-id");
+                        movePlayer(playerId, row.id, "B");
                       }}
                     >
                       {teamBPlayer ? (
@@ -509,7 +586,10 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
                           className={styles.playerChip}
                           draggable={canEdit}
                           onDragStart={(event) => {
-                            event.dataTransfer.setData('text/player-id', teamBPlayer.id);
+                            event.dataTransfer.setData(
+                              "text/player-id",
+                              teamBPlayer.id,
+                            );
                           }}
                         >
                           <span>{getPlayerLabel(teamBPlayer)}</span>
@@ -526,11 +606,11 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
                           ) : null}
                         </div>
                       ) : (
-                        'Arrastra jugador'
+                        "Arrastra jugador"
                       )}
                     </div>
                   </td>
-                  <td style={{ backgroundColor: withAlpha(teamBColor, '12') }}>
+                  <td style={{ backgroundColor: withAlpha(teamBColor, "12") }}>
                     <input
                       disabled={!canEdit}
                       min={0}
@@ -538,7 +618,12 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
                         const goals = Number(event.target.value);
                         setRows((previousRows) =>
                           previousRows.map((item) =>
-                            item.id === row.id ? { ...item, teamBGoals: Number.isNaN(goals) ? 0 : goals } : item,
+                            item.id === row.id
+                              ? {
+                                  ...item,
+                                  teamBGoals: Number.isNaN(goals) ? 0 : goals,
+                                }
+                              : item,
                           ),
                         );
                       }}
@@ -569,5 +654,4 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
       ) : null}
     </section>
   );
-  },
-);
+});

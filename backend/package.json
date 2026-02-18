@@ -14,7 +14,7 @@
     "migration:revert": "pnpm run typeorm migration:revert",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "pnpm run build && node dist/backend/src/database/run-migrations.js && node dist/backend/src/main.js",
-    "start:dev": "concurrently -k -n BUILD,RUN \"nest build --watch\" \"nodemon --watch dist/backend/src --exec node dist/backend/src/main.js\"",
+    "start:dev": "concurrently -k -n BUILD,RUN \"nest build --watch\" \"nodemon --watch dist/backend/src --exec 'node dist/backend/src/main.js'\"",
     "start:debug": "nest build --watch",
     "start:prod": "node dist/backend/src/database/run-migrations.js && node dist/backend/src/main.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
