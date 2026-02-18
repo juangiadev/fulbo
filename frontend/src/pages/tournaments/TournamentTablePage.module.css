@@ -21,7 +21,7 @@
   width: 100%;
   border-collapse: collapse;
   min-width: 760px;
-  font-size: 1.08rem;
+  font-size: 1.14rem;
 }
 
 .table th,
@@ -39,8 +39,8 @@
 
 .avatar,
 .avatarFallback {
-  width: 38px;
-  height: 38px;
+  width: 53px;
+  height: 53px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.25);
   object-fit: cover;
@@ -49,7 +49,7 @@
 .avatarFallback {
   display: grid;
   place-items: center;
-  font-size: 0.78rem;
+  font-size: 0.92rem;
   text-transform: uppercase;
   color: var(--secondary);
   background: rgba(255, 255, 255, 0.06);
