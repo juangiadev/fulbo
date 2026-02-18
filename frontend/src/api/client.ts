@@ -13,9 +13,65 @@ const DEV_AUTH0_ID_STORAGE_KEY = 'fulbo-dev-auth0-id';
 const DEV_AUTH_BYPASS_ENABLED = import.meta.env.VITE_DEV_AUTH_BYPASS === 'true';
 
 let accessTokenProvider: (() => Promise<string | null>) | null = null;
+let cachedAccessToken: string | null = null;
+let cachedAccessTokenExpiresAtMs = 0;
+let inFlightTokenRequest: Promise<string | null> | null = null;
 
 export function setAccessTokenProvider(provider: (() => Promise<string | null>) | null): void {
   accessTokenProvider = provider;
+  cachedAccessToken = null;
+  cachedAccessTokenExpiresAtMs = 0;
+  inFlightTokenRequest = null;
+}
+
+function getTokenExpirationMs(token: string): number {
+  try {
+    const [, payload] = token.split('.');
+    if (!payload) {
+      return 0;
+    }
+
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+    const parsed = JSON.parse(window.atob(padded)) as { exp?: number };
+    return parsed.exp ? parsed.exp * 1000 : 0;
+  } catch {
+    return 0;
+  }
+}
+
+async function getAccessToken(): Promise<string | null> {
+  const now = Date.now();
+  if (cachedAccessToken && cachedAccessTokenExpiresAtMs - now > 30_000) {
+    return cachedAccessToken;
+  }
+
+  if (!accessTokenProvider) {
+    return null;
+  }
+
+  if (inFlightTokenRequest) {
+    return inFlightTokenRequest;
+  }
+
+  inFlightTokenRequest = accessTokenProvider()
+    .then((token) => {
+      if (!token) {
+        cachedAccessToken = null;
+        cachedAccessTokenExpiresAtMs = 0;
+        return null;
+      }
+
+      cachedAccessToken = token;
+      cachedAccessTokenExpiresAtMs = getTokenExpirationMs(token);
+      return token;
+    })
+    .catch(() => null)
+    .finally(() => {
+      inFlightTokenRequest = null;
+    });
+
+  return inFlightTokenRequest;
 }
 
 export function getDevAuth0Id(): string {
@@ -27,7 +83,7 @@ export function setDevAuth0Id(value: string): void {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const token = accessTokenProvider ? await accessTokenProvider().catch(() => null) : null;
+  const token = await getAccessToken();
   const headers = new Headers(init?.headers ?? {});
 
   if (!headers.has('Content-Type') && init?.body) {

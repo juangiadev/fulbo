@@ -23,10 +23,12 @@ createRoot(document.getElementById("root")!).render(
         authorizationParams={{
           audience: auth0Audience,
           redirect_uri: auth0RedirectUri,
+          scope: 'openid profile email offline_access',
         }}
         cacheLocation="localstorage"
         clientId={auth0ClientId}
         domain={auth0Domain}
+        useRefreshTokensFallback
         useRefreshTokens
       >
         <AppProvider>
