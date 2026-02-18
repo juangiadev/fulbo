@@ -5,6 +5,7 @@ import { FAVORITE_TEAMS } from '@shared/favorite-teams';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
+import { ContentSpinner } from '../../components/ContentSpinner';
 import { apiClient } from '../../api/client';
 import { useAppContext } from '../../state/AppContext';
 import buttonStyles from '../../styles/Button.module.css';
@@ -16,12 +17,14 @@ export function TournamentPlayerDetailsPage() {
   const { tournamentId, playerId } = useParams();
   const { data, getMyRole } = useAppContext();
   const [players, setPlayers] = useState<PlayerContract[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [claimCode, setClaimCode] = useState('');
   const [claimCodeExpiresAt, setClaimCodeExpiresAt] = useState<string | null>(null);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
   const role = tournamentId ? getMyRole(tournamentId) : null;
+  const isAdmin = [PlayerRole.OWNER, PlayerRole.ADMIN].includes(role ?? PlayerRole.USER);
   const canManageCodes = [PlayerRole.OWNER, PlayerRole.ADMIN].includes(role ?? PlayerRole.USER);
 
   useEffect(() => {
@@ -29,7 +32,11 @@ export function TournamentPlayerDetailsPage() {
       return;
     }
 
-    void apiClient.getPlayers(tournamentId).then(setPlayers);
+    queueMicrotask(() => setIsLoading(true));
+    void apiClient
+      .getPlayers(tournamentId)
+      .then(setPlayers)
+      .finally(() => setIsLoading(false));
   }, [tournamentId]);
 
   const player = useMemo(
@@ -64,6 +71,20 @@ export function TournamentPlayerDetailsPage() {
     return <Navigate replace to="/tournaments" />;
   }
 
+  if (isLoading) {
+    return (
+      <section className={styles.section}>
+        <div className={styles.headerRow}>
+          <h2>Informacion del jugador</h2>
+          <Link className={buttonStyles.ghost} to={`/tournaments/${tournamentId}/players`}>
+            Volver
+          </Link>
+        </div>
+        <ContentSpinner />
+      </section>
+    );
+  }
+
   if (!player) {
     return null;
   }
@@ -88,6 +109,13 @@ export function TournamentPlayerDetailsPage() {
         <p className={styles.meta}>Preferencia: {displayPreferenceLabel}</p>
         <p className={styles.meta}>Rol: {player.role}</p>
         <p className={styles.meta}>Vinculado: {player.userId ? 'Si' : 'No'}</p>
+        {isAdmin ? (
+          <>
+            <p className={styles.meta}>Habilidad: {player.ability ?? 'Sin habilidad'}</p>
+            <p className={styles.meta}>Lesion: {player.injury ?? 'Sin lesion'}</p>
+            <p className={styles.meta}>Faltas: {player.misses}</p>
+          </>
+        ) : null}
       </article>
 
       {canManageCodes && !player.userId ? (

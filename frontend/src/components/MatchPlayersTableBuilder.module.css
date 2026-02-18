@@ -52,6 +52,27 @@
   padding: 0.25rem 0.55rem;
   background: rgba(255, 255, 255, 0.08);
   cursor: grab;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.removeChipButton {
+  margin-left: auto;
+  border: none;
+  background: #b91c1c;
+  color: #fff;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0;
 }
 
 .tableWrap {

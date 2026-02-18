@@ -55,8 +55,8 @@ export class Player {
   })
   role: PlayerRole;
 
-  @Column({ type: 'smallint', default: 10 })
-  ability: number;
+  @Column({ type: 'smallint', nullable: true })
+  ability: number | null;
 
   @Column({ type: 'text', nullable: true })
   injury: string | null;

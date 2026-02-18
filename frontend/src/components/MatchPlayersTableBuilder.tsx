@@ -65,6 +65,11 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
   const [teamBColor, setTeamBColor] = useState('#f2f2f2');
   const [isSaving, setIsSaving] = useState(false);
 
+  const getPlayerLabel = (player: PlayerContract): string => {
+    const baseName = player.nickname ?? player.name;
+    return player.ability ? `${player.ability} · ${baseName}` : baseName;
+  };
+
   const maxSelectedPlayers = playersPerTeam * 2;
 
   const filteredPlayers = useMemo(() => {
@@ -171,6 +176,18 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
       }
       return nextAvailable;
     });
+  };
+
+  const removePlayer = (playerId: string) => {
+    setSelectedPlayerIds((previous) => previous.filter((id) => id !== playerId));
+    setAvailablePlayerIds((previous) => previous.filter((id) => id !== playerId));
+    setRows((previousRows) =>
+      previousRows.map((row) => ({
+        ...row,
+        teamAPlayerId: row.teamAPlayerId === playerId ? null : row.teamAPlayerId,
+        teamBPlayerId: row.teamBPlayerId === playerId ? null : row.teamBPlayerId,
+      })),
+    );
   };
 
   const teamAGoalsSum = rows.reduce((total, row) => total + row.teamAGoals, 0);
@@ -406,7 +423,7 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
               }}
               type="button"
             >
-              {player.nickname ?? player.name}
+              {getPlayerLabel(player)}
             </button>
           ))}
           {filteredPlayers.length === 0 ? <p className={styles.muted}>No hay resultados para la busqueda.</p> : null}
@@ -423,7 +440,18 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
               event.dataTransfer.setData('text/player-id', player.id);
             }}
           >
-            {player.nickname ?? player.name}
+            <span>{getPlayerLabel(player)}</span>
+            {canEdit ? (
+              <button
+                aria-label="Quitar jugador"
+                className={styles.removeChipButton}
+                onClick={() => removePlayer(player.id)}
+                onMouseDown={(event) => event.preventDefault()}
+                type="button"
+              >
+                ×
+              </button>
+            ) : null}
           </div>
         ))}
       </div>
@@ -486,7 +514,18 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
                             event.dataTransfer.setData('text/player-id', teamAPlayer.id);
                           }}
                         >
-                          {teamAPlayer.nickname ?? teamAPlayer.name}
+                          <span>{getPlayerLabel(teamAPlayer)}</span>
+                          {canEdit ? (
+                            <button
+                              aria-label="Quitar jugador"
+                              className={styles.removeChipButton}
+                              onClick={() => removePlayer(teamAPlayer.id)}
+                              onMouseDown={(event) => event.preventDefault()}
+                              type="button"
+                            >
+                              ×
+                            </button>
+                          ) : null}
                         </div>
                       ) : (
                         'Arrastra jugador'
@@ -518,7 +557,18 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
                             event.dataTransfer.setData('text/player-id', teamBPlayer.id);
                           }}
                         >
-                          {teamBPlayer.nickname ?? teamBPlayer.name}
+                          <span>{getPlayerLabel(teamBPlayer)}</span>
+                          {canEdit ? (
+                            <button
+                              aria-label="Quitar jugador"
+                              className={styles.removeChipButton}
+                              onClick={() => removePlayer(teamBPlayer.id)}
+                              onMouseDown={(event) => event.preventDefault()}
+                              type="button"
+                            >
+                              ×
+                            </button>
+                          ) : null}
                         </div>
                       ) : (
                         'Arrastra jugador'

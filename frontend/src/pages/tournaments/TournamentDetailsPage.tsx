@@ -59,6 +59,7 @@ export function TournamentDetailsPage() {
   const { data, getMyRole, loadTournaments, updateTournament } = useAppContext();
   const [summary, setSummary] = useState<TournamentSummaryContract | null>(null);
   const [players, setPlayers] = useState<PlayerContract[]>([]);
+  const [isLoadingBanners, setIsLoadingBanners] = useState(true);
   const [isEditingTournament, setIsEditingTournament] = useState(false);
   const [isSavingTournament, setIsSavingTournament] = useState(false);
   const [nameDraft, setNameDraft] = useState<string | null>(null);
@@ -75,6 +76,7 @@ export function TournamentDetailsPage() {
       return;
     }
 
+    queueMicrotask(() => setIsLoadingBanners(true));
     void Promise.all([apiClient.getTournamentSummary(tournamentId), apiClient.getPlayers(tournamentId)])
       .then(([nextSummary, nextPlayers]) => {
         setSummary(nextSummary);
@@ -83,7 +85,8 @@ export function TournamentDetailsPage() {
       .catch(() => {
         setSummary(null);
         setPlayers([]);
-      });
+      })
+      .finally(() => setIsLoadingBanners(false));
   }, [tournamentId]);
 
   const tournament = useMemo(
@@ -272,18 +275,31 @@ export function TournamentDetailsPage() {
       </article>
 
       <div className={styles.bannerGrid}>
-        <Banner
-          imageUrl={tournament.leaderBannerImageUrl || leaderAutoImage}
-          player={leader}
-          statText={leader ? `Puntos: ${leader.points}` : 'Sin actividad en el torneo'}
-          title="Puntero"
-        />
-        <Banner
-          imageUrl={tournament.scorerBannerImageUrl || scorerAutoImage}
-          player={topScorer}
-          statText={topScorer ? `Goles: ${topScorer.goals}` : 'Sin actividad en el torneo'}
-          title="Pichichi"
-        />
+        {isLoadingBanners ? (
+          <>
+            <article className={`${styles.banner} ${styles.bannerLoading}`}>
+              <span aria-hidden="true" className={styles.bannerSpinner} />
+            </article>
+            <article className={`${styles.banner} ${styles.bannerLoading}`}>
+              <span aria-hidden="true" className={styles.bannerSpinner} />
+            </article>
+          </>
+        ) : (
+          <>
+            <Banner
+              imageUrl={tournament.leaderBannerImageUrl || leaderAutoImage}
+              player={leader}
+              statText={leader ? `Puntos: ${leader.points}` : 'Sin actividad en el torneo'}
+              title="Puntero"
+            />
+            <Banner
+              imageUrl={tournament.scorerBannerImageUrl || scorerAutoImage}
+              player={topScorer}
+              statText={topScorer ? `Goles: ${topScorer.goals}` : 'Sin actividad en el torneo'}
+              title="Pichichi"
+            />
+          </>
+        )}
       </div>
     </section>
   );

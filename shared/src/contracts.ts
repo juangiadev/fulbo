@@ -30,7 +30,7 @@ export interface PlayerContract {
   favoriteTeamSlug: string | null;
   displayPreference: DisplayPreference;
   role: PlayerRole;
-  ability: number;
+  ability: number | null;
   injury: string | null;
   misses: number;
   createdAt: string;

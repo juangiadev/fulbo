@@ -70,7 +70,7 @@ export class InitialSchema1739836800000 implements MigrationInterface {
         "favoriteTeamSlug" character varying,
         "displayPreference" "players_displaypreference_enum" NOT NULL DEFAULT 'IMAGE',
         "role" "players_role_enum" NOT NULL DEFAULT 'USER',
-        "ability" smallint NOT NULL DEFAULT 10,
+        "ability" smallint,
         "injury" text,
         "misses" integer NOT NULL DEFAULT 0,
         "claimCodeHash" character varying,

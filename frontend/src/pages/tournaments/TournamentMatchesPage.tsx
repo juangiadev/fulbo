@@ -3,6 +3,7 @@ import type { MatchContract } from '@shared/contracts';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
+import { ContentSpinner } from '../../components/ContentSpinner';
 import { apiClient } from '../../api/client';
 import { useAppContext } from '../../state/AppContext';
 import buttonStyles from '../../styles/Button.module.css';
@@ -13,6 +14,7 @@ export function TournamentMatchesPage() {
   const { data, getMyRole } = useAppContext();
   const [matches, setMatches] = useState<MatchContract[]>([]);
   const [deletingMatchId, setDeletingMatchId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
   const role = tournamentId ? getMyRole(tournamentId) : null;
@@ -23,7 +25,11 @@ export function TournamentMatchesPage() {
     if (!tournamentId) {
       return;
     }
-    void apiClient.getMatches(tournamentId).then(setMatches);
+    setIsLoading(true);
+    void apiClient
+      .getMatches(tournamentId)
+      .then(setMatches)
+      .finally(() => setIsLoading(false));
   }, [tournamentId]);
 
   const orderedMatches = useMemo(
@@ -54,10 +60,10 @@ export function TournamentMatchesPage() {
         </div>
       </div>
 
-      {orderedMatches.length === 0 ? <p className={styles.meta}>No hay partidos creados para este torneo.</p> : null}
+      {!isLoading && orderedMatches.length === 0 ? <p className={styles.meta}>No hay partidos creados para este torneo.</p> : null}
 
       <div className={styles.matchesList}>
-        {orderedMatches.map((match) => (
+        {isLoading ? <ContentSpinner /> : orderedMatches.map((match) => (
           <article className={styles.matchCard} key={match.id}>
             <div>
               <h3>{match.stage}</h3>

@@ -92,7 +92,7 @@ export class PlayersService {
       favoriteTeamSlug: dto.favoriteTeamSlug ?? user.favoriteTeamSlug,
       displayPreference: dto.displayPreference ?? user.displayPreference,
       role: dto.role ?? PlayerRole.USER,
-      ability: dto.ability ?? 10,
+      ability: dto.ability ?? null,
       injury: dto.injury ?? null,
       misses: dto.misses ?? 0,
     });
@@ -130,7 +130,7 @@ export class PlayersService {
         favoriteTeamSlug: dto.favoriteTeamSlug ?? null,
         displayPreference: DisplayPreference.IMAGE,
         role: PlayerRole.USER,
-        ability: dto.ability ?? 5,
+        ability: dto.ability ?? null,
         injury: dto.injury ?? null,
         misses: dto.misses ?? 0,
         claimCodeHash: this.hashClaimCode(claimCode),
@@ -163,12 +163,49 @@ export class PlayersService {
       throw new ForbiddenException('You are not allowed to edit this player');
     }
 
-    if (
-      actor.role !== PlayerRole.OWNER &&
-      dto.role &&
-      dto.role !== target.role
-    ) {
-      throw new ForbiddenException('Only owners can change elevated roles');
+    if (dto.role && dto.role !== target.role) {
+      if (actor.role === PlayerRole.ADMIN) {
+        if (dto.role === PlayerRole.OWNER) {
+          throw new ForbiddenException('Only owners can assign owner role');
+        }
+
+        if (![PlayerRole.ADMIN, PlayerRole.USER].includes(dto.role)) {
+          throw new ForbiddenException('Invalid role change');
+        }
+      } else if (actor.role !== PlayerRole.OWNER) {
+        throw new ForbiddenException('Only admins or owners can change roles');
+      }
+
+      if (
+        actor.role === PlayerRole.OWNER &&
+        dto.role === PlayerRole.OWNER &&
+        actor.id !== target.id
+      ) {
+        const [updatedTarget] =
+          await this.playersRepository.manager.transaction(async (manager) => {
+            const actorInTournament = await manager.findOne(Player, {
+              where: { id: actor.id, tournamentId },
+            });
+
+            const targetInTournament = await manager.findOne(Player, {
+              where: { id: target.id, tournamentId },
+            });
+
+            if (!actorInTournament || !targetInTournament) {
+              throw new NotFoundException('Player not found');
+            }
+
+            actorInTournament.role = PlayerRole.USER;
+            targetInTournament.role = PlayerRole.OWNER;
+
+            const savedActor = await manager.save(actorInTournament);
+            const savedTarget = await manager.save(targetInTournament);
+
+            return [savedTarget, savedActor] as const;
+          });
+
+        return updatedTarget;
+      }
     }
 
     const safeDto = { ...dto };

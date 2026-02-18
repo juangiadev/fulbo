@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { PlayerRole } from '@shared/enums';
 import { Link } from 'react-router-dom';
 import { sileo } from 'sileo';
+import { ContentSpinner } from '../../components/ContentSpinner';
 import { useAppContext } from '../../state/AppContext';
 import buttonStyles from '../../styles/Button.module.css';
 import styles from './TournamentsPage.module.css';
@@ -14,9 +15,11 @@ const visibilityLabel: Record<string, string> = {
 export function TournamentsPage() {
   const { data, deleteTournament, getMyRole, loadTournaments } = useAppContext();
   const [deletingTournamentId, setDeletingTournamentId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    void loadTournaments();
+    setIsLoading(true);
+    void loadTournaments().finally(() => setIsLoading(false));
   }, [loadTournaments]);
 
   return (
@@ -38,7 +41,7 @@ export function TournamentsPage() {
       </div>
 
       <div className={styles.tournamentsList}>
-        {data.tournaments.map((tournament) => (
+        {isLoading ? <ContentSpinner /> : data.tournaments.map((tournament) => (
           <article key={tournament.id} className={`${styles.card} ${styles.tournamentRow}`}>
             <div>
               <p className={styles.chip}>{visibilityLabel[tournament.visibility] ?? tournament.visibility}</p>

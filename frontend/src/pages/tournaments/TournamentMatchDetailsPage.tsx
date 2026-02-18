@@ -2,6 +2,7 @@ import { MatchStatus } from '@shared/enums';
 import type { MatchContract, PlayerContract, PlayerTeamContract, TeamContract } from '@shared/contracts';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
+import { ContentSpinner } from '../../components/ContentSpinner';
 import { MatchPlayersTableReadonly } from '../../components/MatchPlayersTableReadonly';
 import { apiClient } from '../../api/client';
 import { useAppContext } from '../../state/AppContext';
@@ -76,7 +77,17 @@ export function TournamentMatchDetailsPage() {
   }
 
   if (!isLoaded) {
-    return null;
+    return (
+      <section className={styles.section}>
+        <div className={styles.headerRow}>
+          <h2>Partido</h2>
+          <Link className={buttonStyles.ghost} to={`/tournaments/${tournamentId}/partidos`}>
+            Volver
+          </Link>
+        </div>
+        <ContentSpinner />
+      </section>
+    );
   }
 
   if (!selectedMatch) {
@@ -95,7 +106,16 @@ export function TournamentMatchDetailsPage() {
       <article className={styles.card}>
         <p className={styles.meta}>Cancha: {selectedMatch.stage}</p>
         <p className={styles.meta}>Lugar: {selectedMatch.placeName}</p>
-        <p className={styles.meta}>URL: {selectedMatch.placeUrl ?? 'Sin URL'}</p>
+        <p className={styles.meta}>
+          URL:{' '}
+          {selectedMatch.placeUrl ? (
+            <a className={styles.link} href={selectedMatch.placeUrl} rel="noreferrer" target="_blank">
+              {selectedMatch.placeUrl}
+            </a>
+          ) : (
+            'Sin URL'
+          )}
+        </p>
         <p className={styles.meta}>Fecha: {new Date(selectedMatch.kickoffAt).toLocaleString('es-AR')}</p>
         <p className={styles.meta}>Estado: {selectedMatch.status === MatchStatus.PENDING ? 'Pendiente' : 'Finalizado'}</p>
       </article>

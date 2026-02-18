@@ -3,6 +3,7 @@ import type { MatchContract, PlayerContract } from '@shared/contracts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
+import { ContentSpinner } from '../../components/ContentSpinner';
 import {
   MatchPlayersTableBuilder,
   type MatchPlayersTableBuilderRef,
@@ -80,7 +81,17 @@ export function TournamentMatchEditPage() {
   }
 
   if (!isLoaded) {
-    return null;
+    return (
+      <section className={styles.section}>
+        <div className={styles.headerRow}>
+          <h2>Editar partido</h2>
+          <Link className={buttonStyles.ghost} to={`/tournaments/${tournamentId}/partidos`}>
+            Volver
+          </Link>
+        </div>
+        <ContentSpinner />
+      </section>
+    );
   }
 
   if (!selectedMatch) {

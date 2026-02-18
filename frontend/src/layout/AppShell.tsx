@@ -1,6 +1,6 @@
 import { DisplayPreference } from '@shared/enums';
 import { useEffect, useRef, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 import { FAVORITE_TEAMS } from '@shared/favorite-teams';
 import { sileo } from 'sileo';
 import { useAppContext } from '../state/AppContext';
@@ -9,9 +9,9 @@ import styles from './AppShell.module.css';
 
 function FulboLogo() {
   return (
-    <div aria-label="Fulbo">
+    <Link aria-label="Ir a torneos" to="/tournaments">
       <img alt="Balon" className={styles.logoBall} src="/fulbo_logo.png" />
-    </div>
+    </Link>
   );
 }
 

@@ -3,6 +3,7 @@ import type { PlayerContract } from '@shared/contracts';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
+import { ContentSpinner } from '../../components/ContentSpinner';
 import { apiClient } from '../../api/client';
 import { useAppContext } from '../../state/AppContext';
 import buttonStyles from '../../styles/Button.module.css';
@@ -14,6 +15,7 @@ export function TournamentPlayersPage() {
   const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [search, setSearch] = useState('');
   const [deletingPlayerId, setDeletingPlayerId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
   const role = tournamentId ? getMyRole(tournamentId) : null;
@@ -25,7 +27,11 @@ export function TournamentPlayersPage() {
     if (!tournamentId) {
       return;
     }
-    void apiClient.getPlayers(tournamentId).then(setPlayers);
+    setIsLoading(true);
+    void apiClient
+      .getPlayers(tournamentId)
+      .then(setPlayers)
+      .finally(() => setIsLoading(false));
   }, [tournamentId]);
 
   const filteredPlayers = useMemo(() => {
@@ -71,7 +77,7 @@ export function TournamentPlayersPage() {
       />
 
       <div className={styles.playersList}>
-        {filteredPlayers.map((player) => (
+        {isLoading ? <ContentSpinner /> : filteredPlayers.map((player) => (
           <article className={styles.playerCard} key={player.id}>
             <div>
               <h3>{player.nickname ?? player.name}</h3>

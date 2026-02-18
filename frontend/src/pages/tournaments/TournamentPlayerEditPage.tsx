@@ -12,7 +12,7 @@ import styles from './TournamentPlayerEditPage.module.css';
 export function TournamentPlayerEditPage() {
   const navigate = useNavigate();
   const { tournamentId, playerId } = useParams();
-  const { currentUser, getMyRole } = useAppContext();
+  const { currentUser, getMyRole, loadTournaments } = useAppContext();
   const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -20,7 +20,8 @@ export function TournamentPlayerEditPage() {
   const [nickname, setNickname] = useState('');
   const [favoriteTeamSlug, setFavoriteTeamSlug] = useState('');
   const [displayPreference, setDisplayPreference] = useState<DisplayPreference>(DisplayPreference.IMAGE);
-  const [ability, setAbility] = useState<number>(5);
+  const [playerRole, setPlayerRole] = useState<PlayerRole>(PlayerRole.USER);
+  const [ability, setAbility] = useState('');
   const [injury, setInjury] = useState('');
   const [misses, setMisses] = useState<number>(0);
 
@@ -36,6 +37,10 @@ export function TournamentPlayerEditPage() {
   }, [tournamentId]);
 
   const player = useMemo(() => players.find((item) => item.id === playerId), [players, playerId]);
+  const myPlayer = useMemo(
+    () => players.find((item) => item.userId === currentUser.id) ?? null,
+    [players, currentUser.id],
+  );
 
   useEffect(() => {
     if (!player) {
@@ -46,7 +51,8 @@ export function TournamentPlayerEditPage() {
     setNickname(player.nickname ?? '');
     setFavoriteTeamSlug(player.favoriteTeamSlug ?? '');
     setDisplayPreference(player.displayPreference);
-    setAbility(player.ability);
+    setPlayerRole(player.role);
+    setAbility(player.ability?.toString() ?? '');
     setInjury(player.injury ?? '');
     setMisses(player.misses);
   }, [player]);
@@ -64,6 +70,7 @@ export function TournamentPlayerEditPage() {
   }
 
   const canEditThisPlayer = isAdmin || player.userId === currentUser.id;
+  const canAssignOwner = role === PlayerRole.OWNER && myPlayer?.id !== player.id;
   if (!canEditThisPlayer) {
     return <Navigate replace to={`/tournaments/${tournamentId}/players`} />;
   }
@@ -91,9 +98,10 @@ export function TournamentPlayerEditPage() {
             };
 
             if (isAdmin) {
-              payload.ability = ability;
+              payload.ability = ability.trim() ? Number(ability) : null;
               payload.injury = injury.trim() || null;
               payload.misses = misses;
+              payload.role = playerRole;
             }
 
             await sileo.promise(apiClient.updatePlayer(tournamentId, player.id, payload), {
@@ -101,6 +109,8 @@ export function TournamentPlayerEditPage() {
               success: { title: 'Jugador actualizado' },
               error: { title: 'No se pudo actualizar el jugador' },
             });
+
+            await loadTournaments();
 
             navigate(`/tournaments/${tournamentId}/players`, { replace: true });
           } finally {
@@ -144,15 +154,23 @@ export function TournamentPlayerEditPage() {
         {isAdmin ? (
           <>
             <label>
+              Rol
+              <select onChange={(event) => setPlayerRole(event.target.value as PlayerRole)} value={playerRole}>
+                <option value={PlayerRole.USER}>Usuario</option>
+                <option value={PlayerRole.ADMIN}>Admin</option>
+                {canAssignOwner ? <option value={PlayerRole.OWNER}>Owner</option> : null}
+              </select>
+            </label>
+
+            <label>
               Habilidad
-              <input
-                max={10}
-                min={1}
-                onChange={(event) => setAbility(Number(event.target.value))}
-                required
-                type="number"
-                value={ability}
-              />
+                <input
+                  max={10}
+                  min={1}
+                  onChange={(event) => setAbility(event.target.value)}
+                  type="number"
+                  value={ability}
+                />
             </label>
 
             <label>
