@@ -85,6 +85,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
   display: grid;
   place-items: center;
   z-index: 40;
@@ -93,41 +94,49 @@
 .profileModal {
   width: min(420px, 92vw);
   border: 1px solid var(--secondary);
-  border-radius: 14px;
-  background: #113321;
-  padding: 1rem;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #133c28, #0f2f20);
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.35);
+  padding: 1.5rem;
+  font-size: 1.2rem;
 }
 
 .profileHint {
-  margin: 0.4rem 0 0;
+  margin: 0.55rem 0 0;
   color: var(--text-soft);
+  line-height: 1.4;
+  font-size: 1.06rem;
 }
 
 .profileForm {
   display: grid;
-  gap: 0.8rem;
-  margin-top: 0.7rem;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .profileForm label {
   display: grid;
-  gap: 0.35rem;
+  gap: 0.4rem;
+  font-size: 1.2rem;
+  font-weight: 600;
 }
 
 .profileForm input {
   border: 1px solid var(--secondary);
   background: transparent;
   color: var(--secondary);
-  border-radius: 8px;
-  padding: 0.45rem 0.55rem;
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  font-size: 1.2rem;
 }
 
 .profileForm select {
   border: 1px solid var(--secondary);
   background: var(--primary);
   color: var(--secondary);
-  border-radius: 8px;
-  padding: 0.45rem 0.55rem;
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  font-size: 1.2rem;
 }
 
 .teamSelectWrap {
@@ -144,12 +153,12 @@
   top: calc(100% + 0.3rem);
   left: 0;
   right: 0;
-  max-height: 190px;
+  max-height: 240px;
   overflow: auto;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #173f2b;
-  padding: 0.25rem;
+  border-radius: 12px;
+  background: #113624;
+  padding: 0.35rem;
   z-index: 15;
 }
 
@@ -162,25 +171,36 @@
   border: 0;
   background: transparent;
   color: var(--secondary);
-  padding: 0.45rem 0.55rem;
-  border-radius: 7px;
+  padding: 0.55rem 0.65rem;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 1.2rem;
 }
 
 .teamOption:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.teamOptionImageWrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
 }
 
 .teamOptionImage {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  object-fit: cover;
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
 }
 
 .profileActions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.45rem;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
 }
 
 @media (max-width: 760px) {

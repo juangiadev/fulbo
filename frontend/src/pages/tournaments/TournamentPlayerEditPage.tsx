@@ -18,6 +18,7 @@ export function TournamentPlayerEditPage() {
 
   const [name, setName] = useState('');
   const [nickname, setNickname] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [favoriteTeamSlug, setFavoriteTeamSlug] = useState('');
   const [displayPreference, setDisplayPreference] = useState<DisplayPreference>(DisplayPreference.IMAGE);
   const [playerRole, setPlayerRole] = useState<PlayerRole>(PlayerRole.USER);
@@ -49,6 +50,7 @@ export function TournamentPlayerEditPage() {
 
     setName(player.name);
     setNickname(player.nickname ?? '');
+    setImageUrl(player.imageUrl ?? '');
     setFavoriteTeamSlug(player.favoriteTeamSlug ?? '');
     setDisplayPreference(player.displayPreference);
     setPlayerRole(player.role);
@@ -93,6 +95,7 @@ export function TournamentPlayerEditPage() {
             const payload: Partial<PlayerContract> = {
               name: name.trim(),
               nickname: nickname.trim() || null,
+              imageUrl: imageUrl.trim() || null,
               favoriteTeamSlug: favoriteTeamSlug || null,
               displayPreference,
             };
@@ -126,6 +129,15 @@ export function TournamentPlayerEditPage() {
         <label>
           Apodo
           <input onChange={(event) => setNickname(event.target.value)} value={nickname} />
+        </label>
+
+        <label>
+          Foto de perfil (URL)
+          <input
+            onChange={(event) => setImageUrl(event.target.value)}
+            placeholder="https://..."
+            value={imageUrl}
+          />
         </label>
 
         <label>

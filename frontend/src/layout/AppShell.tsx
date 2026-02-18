@@ -168,7 +168,9 @@ export function AppShell() {
                           }}
                           type="button"
                         >
-                          <img alt="Escudo" className={styles.teamOptionImage} src={team.imageUrl} />
+                          <span className={styles.teamOptionImageWrap}>
+                            <img alt="Escudo" className={styles.teamOptionImage} src={team.imageUrl} />
+                          </span>
                           <span>{team.name}</span>
                         </button>
                       ))}
