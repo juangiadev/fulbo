@@ -87,10 +87,17 @@ export function TournamentTablePage() {
             <tbody>
               {summary?.standings.map((row) => (
                 <tr
-                  className={`${row.position === 1 ? styles.firstPlace : ''} ${row.position === 2 ? styles.secondPlace : ''} ${row.position === 3 ? styles.thirdPlace : ''} ${summary.topScorerPlayerId === row.playerId ? styles.topScorer : ''}`}
+                  className={`${row.position === 1 ? styles.firstPlace : ''} ${row.position === 2 ? styles.secondPlace : ''} ${row.position === 3 ? styles.thirdPlace : ''}`}
                   key={row.playerId}
                 >
-                  <td>{row.position}</td>
+                  <td>
+                    <div className={styles.positionCell}>
+                      <span>{row.position}</span>
+                      {summary.topScorerPlayerId === row.playerId ? (
+                        <img alt="Goleador" className={styles.topScorerIcon} src="/pelota-gol.png" />
+                      ) : null}
+                    </div>
+                  </td>
                   <td>
                     <div className={styles.playerCell}>
                       {(() => {

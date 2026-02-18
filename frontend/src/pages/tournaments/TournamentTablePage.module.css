@@ -37,6 +37,18 @@
   gap: 0.45rem;
 }
 
+.positionCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.topScorerIcon {
+  width: 53px;
+  height: 53px;
+  object-fit: contain;
+}
+
 .avatar,
 .avatarFallback {
   width: 53px;
@@ -65,10 +77,6 @@
 
 .thirdPlace {
   background: rgba(205, 127, 50, 0.16);
-}
-
-.topScorer {
-  box-shadow: inset 4px 0 0 #22c55e;
 }
 
 .win {
