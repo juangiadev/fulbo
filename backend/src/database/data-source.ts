@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import 'dotenv/config';
 import { DataSource } from 'typeorm';
 import { databaseEntities } from './entities';
 
@@ -8,7 +9,7 @@ if (!databaseUrl) {
   throw new Error('Missing DATABASE_URL environment variable');
 }
 
-export const AppDataSource = new DataSource({
+const AppDataSource = new DataSource({
   type: 'postgres',
   url: databaseUrl,
   entities: databaseEntities,
