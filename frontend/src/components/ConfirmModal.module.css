@@ -1,0 +1,36 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+}
+
+.modal {
+  width: min(420px, 92vw);
+  border: 1px solid var(--secondary);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #133c28, #0f2f20);
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.35);
+  padding: 1.2rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.modal h3 {
+  margin: 0;
+}
+
+.message {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.4;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}

@@ -55,6 +55,12 @@
   background: transparent;
 }
 
+.inlineControls input[type='datetime-local']::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 1;
+  cursor: pointer;
+}
+
 .inlineControls select {
   background: var(--primary);
 }
@@ -69,10 +75,12 @@
 .resultTable {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .resultTable th,
 .resultTable td {
+  width: 50%;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding: 0.65rem;
   text-align: center;

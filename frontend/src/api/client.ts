@@ -164,6 +164,8 @@ export const apiClient = {
   upsertMatchLineup: (
     matchId: string,
     input: {
+      teamAName?: string;
+      teamBName?: string;
       teamAColor?: string;
       teamBColor?: string;
       teamA: Array<{ playerId: string; goals: number }>;

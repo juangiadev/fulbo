@@ -29,7 +29,7 @@ export function TournamentTablePage() {
     if (player.displayPreference === DisplayPreference.FAVORITE_TEAM) {
       const team = FAVORITE_TEAMS.find((item) => item.slug === player.favoriteTeamSlug);
       if (team?.imageUrl) {
-        return { kind: 'image' as const, value: team.imageUrl, alt: 'Equipo' };
+        return { kind: 'team' as const, value: team.imageUrl, alt: 'Equipo' };
       }
     }
 
@@ -106,6 +106,11 @@ export function TournamentTablePage() {
                         if (visual.kind === 'image') {
                           return <img alt={visual.alt} className={styles.avatar} src={visual.value} />;
                         }
+
+                        if (visual.kind === 'team') {
+                          return <img alt={visual.alt} className={styles.avatarTeam} src={visual.value} />;
+                        }
+
                         return <span className={styles.avatarFallback}>{visual.value}</span>;
                       })()}
                       <span>{row.displayName}</span>

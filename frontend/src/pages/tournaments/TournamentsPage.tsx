@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { PlayerRole } from '@shared/enums';
 import { Link } from 'react-router-dom';
 import { sileo } from 'sileo';
+import { ConfirmModal } from '../../components/ConfirmModal';
 import { ContentSpinner } from '../../components/ContentSpinner';
 import { useAppContext } from '../../state/AppContext';
 import buttonStyles from '../../styles/Button.module.css';
@@ -15,6 +16,7 @@ const visibilityLabel: Record<string, string> = {
 export function TournamentsPage() {
   const { data, deleteTournament, getMyRole, loadTournaments } = useAppContext();
   const [deletingTournamentId, setDeletingTournamentId] = useState<string | null>(null);
+  const [confirmingTournamentId, setConfirmingTournamentId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -65,18 +67,7 @@ export function TournamentsPage() {
               {getMyRole(tournament.id) === PlayerRole.OWNER ? (
                 <button
                   className={buttonStyles.ghost}
-                  onClick={async () => {
-                    setDeletingTournamentId(tournament.id);
-                    try {
-                      await sileo.promise(deleteTournament(tournament.id), {
-                        loading: { title: 'Eliminando torneo...' },
-                        success: { title: 'Torneo eliminado' },
-                        error: { title: 'No se pudo eliminar el torneo' },
-                      });
-                    } finally {
-                      setDeletingTournamentId(null);
-                    }
-                  }}
+                  onClick={() => setConfirmingTournamentId(tournament.id)}
                   disabled={deletingTournamentId === tournament.id}
                   type="button"
                 >
@@ -87,6 +78,29 @@ export function TournamentsPage() {
           </article>
         ))}
       </div>
+
+      {confirmingTournamentId ? (
+        <ConfirmModal
+          confirmText="Eliminar"
+          isConfirming={deletingTournamentId === confirmingTournamentId}
+          message="Esta accion elimina el torneo de forma permanente."
+          onCancel={() => setConfirmingTournamentId(null)}
+          onConfirm={async () => {
+            setDeletingTournamentId(confirmingTournamentId);
+            try {
+              await sileo.promise(deleteTournament(confirmingTournamentId), {
+                loading: { title: 'Eliminando torneo...' },
+                success: { title: 'Torneo eliminado' },
+                error: { title: 'No se pudo eliminar el torneo' },
+              });
+              setConfirmingTournamentId(null);
+            } finally {
+              setDeletingTournamentId(null);
+            }
+          }}
+          title="Confirmar eliminacion"
+        />
+      ) : null}
     </section>
   );
 }

@@ -3,6 +3,7 @@ import type { MatchContract } from '@shared/contracts';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
+import { ConfirmModal } from '../../components/ConfirmModal';
 import { ContentSpinner } from '../../components/ContentSpinner';
 import { apiClient } from '../../api/client';
 import { useAppContext } from '../../state/AppContext';
@@ -14,6 +15,7 @@ export function TournamentMatchesPage() {
   const { data, getMyRole } = useAppContext();
   const [matches, setMatches] = useState<MatchContract[]>([]);
   const [deletingMatchId, setDeletingMatchId] = useState<string | null>(null);
+  const [confirmingMatchId, setConfirmingMatchId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
@@ -87,20 +89,7 @@ export function TournamentMatchesPage() {
                 <button
                   className={buttonStyles.ghost}
                   disabled={deletingMatchId === match.id}
-                  onClick={async () => {
-                    setDeletingMatchId(match.id);
-                    try {
-                      await sileo.promise(apiClient.removeMatch(match.id), {
-                        loading: { title: 'Eliminando partido...' },
-                        success: { title: 'Partido eliminado' },
-                        error: { title: 'No se pudo eliminar el partido' },
-                      });
-                      const refreshed = await apiClient.getMatches(tournamentId);
-                      setMatches(refreshed);
-                    } finally {
-                      setDeletingMatchId(null);
-                    }
-                  }}
+                  onClick={() => setConfirmingMatchId(match.id)}
                   type="button"
                 >
                   Eliminar
@@ -110,6 +99,31 @@ export function TournamentMatchesPage() {
           </article>
         ))}
       </div>
+
+      {confirmingMatchId ? (
+        <ConfirmModal
+          confirmText="Eliminar"
+          isConfirming={deletingMatchId === confirmingMatchId}
+          message="Esta accion elimina el partido y su tabla de jugadores/goles."
+          onCancel={() => setConfirmingMatchId(null)}
+          onConfirm={async () => {
+            setDeletingMatchId(confirmingMatchId);
+            try {
+              await sileo.promise(apiClient.removeMatch(confirmingMatchId), {
+                loading: { title: 'Eliminando partido...' },
+                success: { title: 'Partido eliminado' },
+                error: { title: 'No se pudo eliminar el partido' },
+              });
+              const refreshed = await apiClient.getMatches(tournamentId);
+              setMatches(refreshed);
+              setConfirmingMatchId(null);
+            } finally {
+              setDeletingMatchId(null);
+            }
+          }}
+          title="Confirmar eliminacion"
+        />
+      ) : null}
     </section>
   );
 }

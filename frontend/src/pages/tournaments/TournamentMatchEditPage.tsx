@@ -26,6 +26,8 @@ export function TournamentMatchEditPage() {
   const [placeUrlDraft, setPlaceUrlDraft] = useState("");
   const [kickoffAtDraft, setKickoffAtDraft] = useState("");
   const [tableSummary, setTableSummary] = useState({
+    teamAName: "Team A",
+    teamBName: "Team B",
     teamAColor: "#0b2818",
     teamBColor: "#f2f2f2",
     teamAGoals: 0,
@@ -191,20 +193,20 @@ export function TournamentMatchEditPage() {
         <table className={styles.resultTable}>
           <thead>
             <tr>
-              <th style={{ backgroundColor: `${tableSummary.teamAColor}26` }}>
-                Team A
+              <th style={{ backgroundColor: `${tableSummary.teamAColor}66` }}>
+                {tableSummary.teamAName}
               </th>
-              <th style={{ backgroundColor: `${tableSummary.teamBColor}26` }}>
-                Team B
+              <th style={{ backgroundColor: `${tableSummary.teamBColor}66` }}>
+                {tableSummary.teamBName}
               </th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style={{ backgroundColor: `${tableSummary.teamAColor}12` }}>
+              <td style={{ backgroundColor: `${tableSummary.teamAColor}33` }}>
                 {tableSummary.teamAGoals}
               </td>
-              <td style={{ backgroundColor: `${tableSummary.teamBColor}12` }}>
+              <td style={{ backgroundColor: `${tableSummary.teamBColor}33` }}>
                 {tableSummary.teamBGoals}
               </td>
             </tr>

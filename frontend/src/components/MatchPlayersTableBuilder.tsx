@@ -13,6 +13,7 @@ import {
 } from "react";
 import { sileo } from "sileo";
 import { apiClient } from "../api/client";
+import { ContentSpinner } from "./ContentSpinner";
 import buttonStyles from "../styles/Button.module.css";
 import styles from "./MatchPlayersTableBuilder.module.css";
 
@@ -30,6 +31,8 @@ interface MatchPlayersTableBuilderProps {
   matchId?: string;
   showSaveButton?: boolean;
   onSummaryChange?: (summary: {
+    teamAName: string;
+    teamBName: string;
     teamAColor: string;
     teamBColor: string;
     teamAGoals: number;
@@ -84,8 +87,11 @@ export const MatchPlayersTableBuilder = forwardRef<
   const [search, setSearch] = useState("");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [availablePlayerIds, setAvailablePlayerIds] = useState<string[]>([]);
+  const [teamAName, setTeamAName] = useState("Team A");
+  const [teamBName, setTeamBName] = useState("Team B");
   const [teamAColor, setTeamAColor] = useState("#0b2818");
   const [teamBColor, setTeamBColor] = useState("#f2f2f2");
+  const [isLoadingLineup, setIsLoadingLineup] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const getPlayerLabel = (player: PlayerContract): string => {
@@ -115,46 +121,91 @@ export const MatchPlayersTableBuilder = forwardRef<
     .map((playerId) => players.find((player) => player.id === playerId))
     .filter((player): player is PlayerContract => Boolean(player));
 
+  const teamAAbilitySum = useMemo(
+    () =>
+      rows.reduce((sum, row) => {
+        if (!row.teamAPlayerId) {
+          return sum;
+        }
+        const player = players.find((item) => item.id === row.teamAPlayerId);
+        return sum + (player?.ability ?? 0);
+      }, 0),
+    [players, rows],
+  );
+
+  const teamBAbilitySum = useMemo(
+    () =>
+      rows.reduce((sum, row) => {
+        if (!row.teamBPlayerId) {
+          return sum;
+        }
+        const player = players.find((item) => item.id === row.teamBPlayerId);
+        return sum + (player?.ability ?? 0);
+      }, 0),
+    [players, rows],
+  );
+
   useEffect(() => {
     if (!matchId) {
+      setIsLoadingLineup(false);
       return;
     }
 
-    void apiClient.getTeamsByMatch(matchId).then((teams) => {
-      const { teamA, teamB } = splitTeams(teams);
-      const teamARows = (
-        (teamA?.playerTeams as PlayerTeamContract[] | undefined) ?? []
-      ).map((item) => ({
-        playerId: item.playerId,
-        goals: item.goals,
-      }));
-      const teamBRows = (
-        (teamB?.playerTeams as PlayerTeamContract[] | undefined) ?? []
-      ).map((item) => ({
-        playerId: item.playerId,
-        goals: item.goals,
-      }));
+    let isActive = true;
+    setIsLoadingLineup(true);
 
-      const count = Math.max(teamARows.length, teamBRows.length, 5);
-      const nextRows = createRows(count).map((row, index) => ({
-        ...row,
-        teamAPlayerId: teamARows[index]?.playerId ?? null,
-        teamAGoals: teamARows[index]?.goals ?? 0,
-        teamBPlayerId: teamBRows[index]?.playerId ?? null,
-        teamBGoals: teamBRows[index]?.goals ?? 0,
-      }));
+    void apiClient
+      .getTeamsByMatch(matchId)
+      .then((teams) => {
+        if (!isActive) {
+          return;
+        }
 
-      const assignedIds = nextRows
-        .flatMap((row) => [row.teamAPlayerId, row.teamBPlayerId])
-        .filter((id): id is string => Boolean(id));
+        const { teamA, teamB } = splitTeams(teams);
+        const teamARows = (
+          (teamA?.playerTeams as PlayerTeamContract[] | undefined) ?? []
+        ).map((item) => ({
+          playerId: item.playerId,
+          goals: item.goals,
+        }));
+        const teamBRows = (
+          (teamB?.playerTeams as PlayerTeamContract[] | undefined) ?? []
+        ).map((item) => ({
+          playerId: item.playerId,
+          goals: item.goals,
+        }));
 
-      setRows(nextRows);
-      setPlayersPerTeam(count);
-      setSelectedPlayerIds(assignedIds);
-      setAvailablePlayerIds([]);
-      setTeamAColor(teamA?.color ?? "#0b2818");
-      setTeamBColor(teamB?.color ?? "#f2f2f2");
-    });
+        const count = Math.max(teamARows.length, teamBRows.length, 5);
+        const nextRows = createRows(count).map((row, index) => ({
+          ...row,
+          teamAPlayerId: teamARows[index]?.playerId ?? null,
+          teamAGoals: teamARows[index]?.goals ?? 0,
+          teamBPlayerId: teamBRows[index]?.playerId ?? null,
+          teamBGoals: teamBRows[index]?.goals ?? 0,
+        }));
+
+        const assignedIds = nextRows
+          .flatMap((row) => [row.teamAPlayerId, row.teamBPlayerId])
+          .filter((id): id is string => Boolean(id));
+
+        setRows(nextRows);
+        setPlayersPerTeam(count);
+        setSelectedPlayerIds(assignedIds);
+        setAvailablePlayerIds([]);
+        setTeamAName(teamA?.name ?? "Team A");
+        setTeamBName(teamB?.name ?? "Team B");
+        setTeamAColor(teamA?.color ?? "#0b2818");
+        setTeamBColor(teamB?.color ?? "#f2f2f2");
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsLoadingLineup(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
   }, [matchId]);
 
   const movePlayer = (playerId: string, rowId: string, side: "A" | "B") => {
@@ -230,12 +281,22 @@ export const MatchPlayersTableBuilder = forwardRef<
 
   useEffect(() => {
     onSummaryChange?.({
+      teamAName,
+      teamBName,
       teamAColor,
       teamBColor,
       teamAGoals: teamAGoalsSum,
       teamBGoals: teamBGoalsSum,
     });
-  }, [onSummaryChange, teamAColor, teamAGoalsSum, teamBColor, teamBGoalsSum]);
+  }, [
+    onSummaryChange,
+    teamAName,
+    teamBName,
+    teamAColor,
+    teamAGoalsSum,
+    teamBColor,
+    teamBGoalsSum,
+  ]);
 
   const saveLineup = useCallback(
     async (withToast = true, matchIdOverride?: string) => {
@@ -261,8 +322,18 @@ export const MatchPlayersTableBuilder = forwardRef<
           goals: row.teamBGoals,
         }));
 
+      if (
+        (teamAName.trim() || "Team A").toLowerCase() ===
+        (teamBName.trim() || "Team B").toLowerCase()
+      ) {
+        sileo.warning({ title: "Los nombres de equipos deben ser distintos" });
+        return;
+      }
+
       const persistLineup = async () => {
         await apiClient.upsertMatchLineup(effectiveMatchId, {
+          teamAName: teamAName.trim() || "Team A",
+          teamBName: teamBName.trim() || "Team B",
           teamAColor,
           teamBColor,
           teamA: desiredA,
@@ -285,7 +356,7 @@ export const MatchPlayersTableBuilder = forwardRef<
         setIsSaving(false);
       }
     },
-    [matchId, rows, teamAColor, teamBColor],
+    [matchId, rows, teamAName, teamBName, teamAColor, teamBColor],
   );
 
   useImperativeHandle(
@@ -300,8 +371,73 @@ export const MatchPlayersTableBuilder = forwardRef<
 
   return (
     <section className={styles.editor}>
-      <div className={styles.inlineControls}>
-        <label>
+      {matchId && isLoadingLineup ? <ContentSpinner /> : null}
+      {!isLoadingLineup ? (
+        <>
+          <div className={styles.teamControls}>
+        <div className={styles.teamPanel}>
+          <label className={styles.teamNameField}>
+            Nombre Team A
+            <input
+              disabled={!canEdit}
+              maxLength={80}
+              onChange={(event) => setTeamAName(event.target.value)}
+              value={teamAName}
+            />
+          </label>
+          <label className={styles.teamColorField}>
+            Color Team A
+            <input
+              className={styles.colorInput}
+              disabled={!canEdit}
+              onChange={(event) => {
+                if (event.target.value === teamBColor) {
+                  sileo.warning({
+                    title: "El color de Team A y Team B no puede ser igual",
+                  });
+                  return;
+                }
+                setTeamAColor(event.target.value);
+              }}
+              type="color"
+              value={teamAColor}
+            />
+          </label>
+        </div>
+
+        <div className={styles.teamPanel}>
+          <label className={styles.teamNameField}>
+            Nombre Team B
+            <input
+              disabled={!canEdit}
+              maxLength={80}
+              onChange={(event) => setTeamBName(event.target.value)}
+              value={teamBName}
+            />
+          </label>
+          <label className={styles.teamColorField}>
+            Color Team B
+            <input
+              className={styles.colorInput}
+              disabled={!canEdit}
+              onChange={(event) => {
+                if (event.target.value === teamAColor) {
+                  sileo.warning({
+                    title: "El color de Team A y Team B no puede ser igual",
+                  });
+                  return;
+                }
+                setTeamBColor(event.target.value);
+              }}
+              type="color"
+              value={teamBColor}
+            />
+          </label>
+        </div>
+          </div>
+
+          <div className={styles.searchControls}>
+        <label className={styles.playersPerTeamField}>
           Jugadores por equipo
           <input
             disabled={!canEdit}
@@ -361,44 +497,8 @@ export const MatchPlayersTableBuilder = forwardRef<
             value={playersPerTeam}
           />
         </label>
-        <label>
-          Color Team A
-          <input
-            disabled={!canEdit}
-            onChange={(event) => {
-              if (event.target.value === teamBColor) {
-                sileo.warning({
-                  title: "El color de Team A y Team B no puede ser igual",
-                });
-                return;
-              }
-              setTeamAColor(event.target.value);
-            }}
-            type="color"
-            value={teamAColor}
-          />
-        </label>
-        <label>
-          Color Team B
-          <input
-            disabled={!canEdit}
-            onChange={(event) => {
-              if (event.target.value === teamAColor) {
-                sileo.warning({
-                  title: "El color de Team A y Team B no puede ser igual",
-                });
-                return;
-              }
-              setTeamBColor(event.target.value);
-            }}
-            type="color"
-            value={teamBColor}
-          />
-        </label>
-      </div>
 
-      <div className={styles.inlineControls}>
-        <label>
+        <label className={styles.searchField}>
           Buscar jugador
           <input
             disabled={!canEdit}
@@ -407,79 +507,85 @@ export const MatchPlayersTableBuilder = forwardRef<
             value={search}
           />
         </label>
-      </div>
-
-      {search.trim() ? (
-        <div className={styles.searchResults}>
-          {filteredPlayers.map((player) => (
-            <button
-              className={styles.searchResultButton}
-              disabled={!canEdit}
-              key={player.id}
-              onClick={() => {
-                if (!canEdit) {
-                  return;
-                }
-                if (selectedPlayerIds.length >= maxSelectedPlayers) {
-                  sileo.warning({
-                    title: "No puedes agregar mas jugadores para este partido",
-                  });
-                  return;
-                }
-                setSelectedPlayerIds((previous) => [...previous, player.id]);
-                setAvailablePlayerIds((previous) => [...previous, player.id]);
-              }}
-              type="button"
-            >
-              {getPlayerLabel(player)}
-            </button>
-          ))}
-          {filteredPlayers.length === 0 ? (
-            <p className={styles.muted}>No hay resultados para la busqueda.</p>
-          ) : null}
-        </div>
-      ) : null}
-
-      <div className={styles.draggablesRow}>
-        {availablePlayers.map((player) => (
-          <div
-            className={styles.playerChip}
-            draggable={canEdit}
-            key={player.id}
-            onDragStart={(event) => {
-              event.dataTransfer.setData("text/player-id", player.id);
-            }}
-          >
-            <span>{getPlayerLabel(player)}</span>
-            {canEdit ? (
-              <button
-                aria-label="Quitar jugador"
-                className={styles.removeChipButton}
-                onClick={() => removePlayer(player.id)}
-                onMouseDown={(event) => event.preventDefault()}
-                type="button"
-              >
-                ×
-              </button>
-            ) : null}
           </div>
-        ))}
-      </div>
 
-      <div className={styles.tableWrap}>
+          {search.trim() ? (
+            <div className={styles.searchResults}>
+              {filteredPlayers.map((player) => (
+                <button
+                  className={styles.searchResultButton}
+                  disabled={!canEdit}
+                  key={player.id}
+                  onClick={() => {
+                    if (!canEdit) {
+                      return;
+                    }
+                    if (selectedPlayerIds.length >= maxSelectedPlayers) {
+                      sileo.warning({
+                        title: "No puedes agregar mas jugadores para este partido",
+                      });
+                      return;
+                    }
+                    setSelectedPlayerIds((previous) => [...previous, player.id]);
+                    setAvailablePlayerIds((previous) => [...previous, player.id]);
+                  }}
+                  type="button"
+                >
+                  {getPlayerLabel(player)}
+                </button>
+              ))}
+              {filteredPlayers.length === 0 ? (
+                <p className={styles.muted}>No hay resultados para la busqueda.</p>
+              ) : null}
+            </div>
+          ) : null}
+
+          <div className={styles.draggablesRow}>
+            {availablePlayers.map((player) => (
+              <div
+                className={styles.playerChip}
+                draggable={canEdit}
+                key={player.id}
+                onDragStart={(event) => {
+                  event.dataTransfer.setData("text/player-id", player.id);
+                }}
+              >
+                <span>{getPlayerLabel(player)}</span>
+                {canEdit ? (
+                  <button
+                    aria-label="Quitar jugador"
+                    className={styles.removeChipButton}
+                    onClick={() => removePlayer(player.id)}
+                    onMouseDown={(event) => event.preventDefault()}
+                    type="button"
+                  >
+                    ×
+                  </button>
+                ) : null}
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.tableWrap}>
         <table className={styles.table}>
+          <colgroup>
+            <col className={styles.goalsCol} />
+            <col className={styles.teamCol} />
+            <col className={styles.teamCol} />
+            <col className={styles.goalsCol} />
+          </colgroup>
           <thead>
             <tr>
-              <th style={{ backgroundColor: withAlpha(teamAColor, "26") }}>
+              <th className={styles.goalsCol} style={{ backgroundColor: withAlpha(teamAColor, "66") }}>
                 Goles
               </th>
-              <th style={{ backgroundColor: withAlpha(teamAColor, "26") }}>
-                Team A
+              <th className={styles.teamACol} style={{ backgroundColor: withAlpha(teamAColor, "66") }}>
+                {(teamAName.trim() || "Team A") + ` (${teamAAbilitySum})`}
               </th>
-              <th style={{ backgroundColor: withAlpha(teamBColor, "26") }}>
-                Team B
+              <th style={{ backgroundColor: withAlpha(teamBColor, "66") }}>
+                {(teamBName.trim() || "Team B") + ` (${teamBAbilitySum})`}
               </th>
-              <th style={{ backgroundColor: withAlpha(teamBColor, "26") }}>
+              <th className={styles.goalsCol} style={{ backgroundColor: withAlpha(teamBColor, "66") }}>
                 Goles
               </th>
             </tr>
@@ -495,8 +601,9 @@ export const MatchPlayersTableBuilder = forwardRef<
 
               return (
                 <tr key={row.id}>
-                  <td style={{ backgroundColor: withAlpha(teamAColor, "12") }}>
+                  <td className={styles.goalsCol} style={{ backgroundColor: withAlpha(teamAColor, "33") }}>
                     <input
+                      className={styles.goalsInput}
                       disabled={!canEdit}
                       min={0}
                       onChange={(event) => {
@@ -516,7 +623,7 @@ export const MatchPlayersTableBuilder = forwardRef<
                       value={row.teamAGoals}
                     />
                   </td>
-                  <td style={{ backgroundColor: withAlpha(teamAColor, "12") }}>
+                  <td className={styles.teamACol} style={{ backgroundColor: withAlpha(teamAColor, "33") }}>
                     <div
                       className={styles.dropZone}
                       onDragOver={(event) => {
@@ -563,7 +670,7 @@ export const MatchPlayersTableBuilder = forwardRef<
                       )}
                     </div>
                   </td>
-                  <td style={{ backgroundColor: withAlpha(teamBColor, "12") }}>
+                  <td style={{ backgroundColor: withAlpha(teamBColor, "33") }}>
                     <div
                       className={styles.dropZone}
                       onDragOver={(event) => {
@@ -610,8 +717,9 @@ export const MatchPlayersTableBuilder = forwardRef<
                       )}
                     </div>
                   </td>
-                  <td style={{ backgroundColor: withAlpha(teamBColor, "12") }}>
+                  <td className={styles.goalsCol} style={{ backgroundColor: withAlpha(teamBColor, "33") }}>
                     <input
+                      className={styles.goalsInput}
                       disabled={!canEdit}
                       min={0}
                       onChange={(event) => {
@@ -636,21 +744,23 @@ export const MatchPlayersTableBuilder = forwardRef<
             })}
           </tbody>
         </table>
-      </div>
+          </div>
 
-      {matchId && showSaveButton ? (
-        <div className={styles.actions}>
-          <button
-            className={buttonStyles.primary}
-            disabled={!canEdit || isSaving}
-            onClick={() => {
-              void saveLineup();
-            }}
-            type="button"
-          >
-            Guardar tabla
-          </button>
-        </div>
+          {matchId && showSaveButton ? (
+            <div className={styles.actions}>
+              <button
+                className={buttonStyles.primary}
+                disabled={!canEdit || isSaving}
+                onClick={() => {
+                  void saveLineup();
+                }}
+                type="button"
+              >
+                Guardar tabla
+              </button>
+            </div>
+          ) : null}
+        </>
       ) : null}
     </section>
   );

@@ -9,6 +9,7 @@
   width: 100%;
   border-collapse: collapse;
   min-width: 760px;
+  table-layout: fixed;
 }
 
 .table th,
@@ -16,6 +17,19 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding: 0.6rem;
   text-align: left;
+}
+
+.goalsCol {
+  width: 10%;
+  text-align: center !important;
+}
+
+.teamCol {
+  width: 40%;
+}
+
+.teamACol {
+  text-align: right !important;
 }
 
 .muted {

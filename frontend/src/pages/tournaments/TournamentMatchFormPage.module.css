@@ -49,6 +49,12 @@
   background: transparent;
 }
 
+.form input[type='datetime-local']::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 1;
+  cursor: pointer;
+}
+
 .form select {
   background: var(--primary);
 }

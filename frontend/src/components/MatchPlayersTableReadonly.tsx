@@ -44,6 +44,8 @@ export function MatchPlayersTableReadonly({ matchId, players }: MatchPlayersTabl
     }));
 
     return {
+      teamAName: teamA?.name ?? 'Team A',
+      teamBName: teamB?.name ?? 'Team B',
       teamAColor: teamA?.color ?? '#0b2818',
       teamBColor: teamB?.color ?? '#f2f2f2',
       rows,
@@ -58,25 +60,31 @@ export function MatchPlayersTableReadonly({ matchId, players }: MatchPlayersTabl
   return (
     <div className={styles.tableWrap}>
       <table className={styles.table}>
+        <colgroup>
+          <col className={styles.goalsCol} />
+          <col className={styles.teamCol} />
+          <col className={styles.teamCol} />
+          <col className={styles.goalsCol} />
+        </colgroup>
         <thead>
           <tr>
-            <th style={{ backgroundColor: withAlpha(data.teamAColor, '26') }}>Goles</th>
-            <th style={{ backgroundColor: withAlpha(data.teamAColor, '26') }}>Team A</th>
-            <th style={{ backgroundColor: withAlpha(data.teamBColor, '26') }}>Team B</th>
-            <th style={{ backgroundColor: withAlpha(data.teamBColor, '26') }}>Goles</th>
+            <th className={styles.goalsCol} style={{ backgroundColor: withAlpha(data.teamAColor, '66') }}>Goles</th>
+            <th className={styles.teamACol} style={{ backgroundColor: withAlpha(data.teamAColor, '66') }}>{data.teamAName}</th>
+            <th style={{ backgroundColor: withAlpha(data.teamBColor, '66') }}>{data.teamBName}</th>
+            <th className={styles.goalsCol} style={{ backgroundColor: withAlpha(data.teamBColor, '66') }}>Goles</th>
           </tr>
         </thead>
         <tbody>
           {data.rows.map((row, index) => (
             <tr key={`readonly-row-${index + 1}`}>
-              <td style={{ backgroundColor: withAlpha(data.teamAColor, '12') }}>{row.teamA?.goals ?? 0}</td>
-              <td style={{ backgroundColor: withAlpha(data.teamAColor, '12') }}>
+              <td className={styles.goalsCol} style={{ backgroundColor: withAlpha(data.teamAColor, '33') }}>{row.teamA?.goals ?? 0}</td>
+              <td className={styles.teamACol} style={{ backgroundColor: withAlpha(data.teamAColor, '33') }}>
                 {row.teamA?.player?.nickname ?? row.teamA?.player?.name ?? '-'}
               </td>
-              <td style={{ backgroundColor: withAlpha(data.teamBColor, '12') }}>
+              <td style={{ backgroundColor: withAlpha(data.teamBColor, '33') }}>
                 {row.teamB?.player?.nickname ?? row.teamB?.player?.name ?? '-'}
               </td>
-              <td style={{ backgroundColor: withAlpha(data.teamBColor, '12') }}>{row.teamB?.goals ?? 0}</td>
+              <td className={styles.goalsCol} style={{ backgroundColor: withAlpha(data.teamBColor, '33') }}>{row.teamB?.goals ?? 0}</td>
             </tr>
           ))}
         </tbody>

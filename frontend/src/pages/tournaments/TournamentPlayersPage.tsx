@@ -3,6 +3,7 @@ import type { PlayerContract } from '@shared/contracts';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
+import { ConfirmModal } from '../../components/ConfirmModal';
 import { ContentSpinner } from '../../components/ContentSpinner';
 import { apiClient } from '../../api/client';
 import { useAppContext } from '../../state/AppContext';
@@ -15,6 +16,7 @@ export function TournamentPlayersPage() {
   const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [search, setSearch] = useState('');
   const [deletingPlayerId, setDeletingPlayerId] = useState<string | null>(null);
+  const [confirmingPlayerId, setConfirmingPlayerId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
@@ -105,20 +107,7 @@ export function TournamentPlayersPage() {
                 <button
                   className={buttonStyles.ghost}
                   disabled={deletingPlayerId === player.id}
-                  onClick={async () => {
-                    setDeletingPlayerId(player.id);
-                    try {
-                      await sileo.promise(apiClient.removePlayer(tournamentId, player.id), {
-                        loading: { title: 'Eliminando jugador...' },
-                        success: { title: 'Jugador eliminado' },
-                        error: { title: 'No se pudo eliminar el jugador' },
-                      });
-                      const fresh = await apiClient.getPlayers(tournamentId);
-                      setPlayers(fresh);
-                    } finally {
-                      setDeletingPlayerId(null);
-                    }
-                  }}
+                  onClick={() => setConfirmingPlayerId(player.id)}
                   type="button"
                 >
                   Eliminar
@@ -128,6 +117,31 @@ export function TournamentPlayersPage() {
           </article>
         ))}
       </div>
+
+      {confirmingPlayerId ? (
+        <ConfirmModal
+          confirmText="Eliminar"
+          isConfirming={deletingPlayerId === confirmingPlayerId}
+          message="Esta accion elimina el jugador del torneo."
+          onCancel={() => setConfirmingPlayerId(null)}
+          onConfirm={async () => {
+            setDeletingPlayerId(confirmingPlayerId);
+            try {
+              await sileo.promise(apiClient.removePlayer(tournamentId, confirmingPlayerId), {
+                loading: { title: 'Eliminando jugador...' },
+                success: { title: 'Jugador eliminado' },
+                error: { title: 'No se pudo eliminar el jugador' },
+              });
+              const fresh = await apiClient.getPlayers(tournamentId);
+              setPlayers(fresh);
+              setConfirmingPlayerId(null);
+            } finally {
+              setDeletingPlayerId(null);
+            }
+          }}
+          title="Confirmar eliminacion"
+        />
+      ) : null}
     </section>
   );
 }

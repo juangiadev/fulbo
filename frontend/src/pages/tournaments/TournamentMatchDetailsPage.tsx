@@ -65,6 +65,8 @@ export function TournamentMatchDetailsPage() {
     );
 
     return {
+      teamAName: teamA?.name ?? 'Team A',
+      teamBName: teamB?.name ?? 'Team B',
       teamAColor: teamA?.color ?? '#0b2818',
       teamBColor: teamB?.color ?? '#f2f2f2',
       teamAGoals,
@@ -126,14 +128,14 @@ export function TournamentMatchDetailsPage() {
         <table className={styles.resultTable}>
           <thead>
             <tr>
-              <th style={{ backgroundColor: `${resultSummary.teamAColor}26` }}>Team A</th>
-              <th style={{ backgroundColor: `${resultSummary.teamBColor}26` }}>Team B</th>
+              <th style={{ backgroundColor: `${resultSummary.teamAColor}66` }}>{resultSummary.teamAName}</th>
+              <th style={{ backgroundColor: `${resultSummary.teamBColor}66` }}>{resultSummary.teamBName}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style={{ backgroundColor: `${resultSummary.teamAColor}12` }}>{resultSummary.teamAGoals}</td>
-              <td style={{ backgroundColor: `${resultSummary.teamBColor}12` }}>{resultSummary.teamBGoals}</td>
+              <td style={{ backgroundColor: `${resultSummary.teamAColor}33` }}>{resultSummary.teamAGoals}</td>
+              <td style={{ backgroundColor: `${resultSummary.teamBColor}33` }}>{resultSummary.teamBGoals}</td>
             </tr>
           </tbody>
         </table>

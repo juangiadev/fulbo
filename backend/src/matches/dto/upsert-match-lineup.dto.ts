@@ -4,6 +4,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  MaxLength,
   Matches,
   Min,
   ValidateNested,
@@ -20,6 +21,16 @@ class LineupEntryDto {
 }
 
 export class UpsertMatchLineupDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  teamAName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  teamBName?: string;
+
   @IsOptional()
   @IsString()
   @Matches(/^#[0-9a-fA-F]{6}$/)

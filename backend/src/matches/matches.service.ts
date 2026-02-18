@@ -144,6 +144,15 @@ export class MatchesService {
       }
     }
 
+    const normalizedTeamAName = (dto.teamAName ?? 'Team A').trim() || 'Team A';
+    const normalizedTeamBName = (dto.teamBName ?? 'Team B').trim() || 'Team B';
+
+    if (
+      normalizedTeamAName.toLowerCase() === normalizedTeamBName.toLowerCase()
+    ) {
+      throw new BadRequestException('Team names must be different');
+    }
+
     await this.matchesRepository.manager.transaction(async (manager) => {
       const teamsRepo = manager.getRepository(Team);
       const playerTeamsRepo = manager.getRepository(PlayerTeam);
@@ -151,6 +160,7 @@ export class MatchesService {
       const existingTeams = await teamsRepo.find({
         where: { matchId },
         relations: { playerTeams: true },
+        order: { createdAt: 'ASC' },
       });
 
       const findTeamByName = (name: string): Team | null =>
@@ -160,10 +170,18 @@ export class MatchesService {
       let teamB = findTeamByName('Team B');
 
       if (!teamA) {
+        teamA = existingTeams[0] ?? null;
+      }
+
+      if (!teamB) {
+        teamB = existingTeams.find((team) => team.id !== teamA?.id) ?? null;
+      }
+
+      if (!teamA) {
         teamA = await teamsRepo.save(
           teamsRepo.create({
             matchId,
-            name: 'Team A',
+            name: normalizedTeamAName,
             color: dto.teamAColor ?? null,
             result: TeamResult.PENDING,
           }),
@@ -174,7 +192,7 @@ export class MatchesService {
         teamB = await teamsRepo.save(
           teamsRepo.create({
             matchId,
-            name: 'Team B',
+            name: normalizedTeamBName,
             color: dto.teamBColor ?? null,
             result: TeamResult.PENDING,
           }),
@@ -209,8 +227,8 @@ export class MatchesService {
       teamB.color = dto.teamBColor ?? teamB.color;
       teamA.result = teamAResult;
       teamB.result = teamBResult;
-      teamA.name = 'Team A';
-      teamB.name = 'Team B';
+      teamA.name = normalizedTeamAName;
+      teamB.name = normalizedTeamBName;
 
       await Promise.all([teamsRepo.save(teamA), teamsRepo.save(teamB)]);
 
