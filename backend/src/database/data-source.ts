@@ -1,0 +1,20 @@
+import 'reflect-metadata';
+import { DataSource } from 'typeorm';
+import { databaseEntities } from './entities';
+
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error('Missing DATABASE_URL environment variable');
+}
+
+export const AppDataSource = new DataSource({
+  type: 'postgres',
+  url: databaseUrl,
+  entities: databaseEntities,
+  migrations: [`${__dirname}/migrations/*{.ts,.js}`],
+  synchronize: false,
+  logging: process.env.NODE_ENV !== 'production',
+});
+
+export default AppDataSource;

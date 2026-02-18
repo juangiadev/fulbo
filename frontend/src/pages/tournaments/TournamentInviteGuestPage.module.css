@@ -1,0 +1,48 @@
+.section {
+  display: grid;
+  gap: 1rem;
+  max-width: 620px;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  display: grid;
+  gap: 0.7rem;
+}
+
+.form {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.form input {
+  border: 1px solid var(--secondary);
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
+  background: transparent;
+  color: var(--secondary);
+}
+
+.codeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.codeLabel,
+.meta {
+  margin: 0;
+  color: var(--text-soft);
+}

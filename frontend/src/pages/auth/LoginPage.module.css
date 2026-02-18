@@ -1,0 +1,16 @@
+.loginPage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.loginCard {
+  width: min(440px, 92vw);
+  border: 1px solid var(--secondary);
+  border-radius: 18px;
+  padding: 1.6rem;
+  display: grid;
+  gap: 0.8rem;
+  background: rgba(255, 255, 255, 0.03);
+}

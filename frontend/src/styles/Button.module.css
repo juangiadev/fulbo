@@ -1,0 +1,25 @@
+.primary {
+  border: 1px solid var(--secondary);
+  border-radius: 10px;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  font: inherit;
+  background: var(--secondary);
+  color: var(--primary);
+}
+
+.ghost {
+  border: 1px solid var(--secondary);
+  border-radius: 10px;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  font: inherit;
+  background: transparent;
+  color: var(--secondary);
+}
+
+.primary:disabled,
+.ghost:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

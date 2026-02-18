@@ -1,0 +1,47 @@
+.section {
+  display: grid;
+  gap: 1rem;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.meta {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.requestsList {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.requestCard {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.actions {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 220px;
+}
+
+.actions select {
+  border: 1px solid var(--secondary);
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
+  color: var(--secondary);
+  background: var(--primary);
+}

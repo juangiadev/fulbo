@@ -1,0 +1,24 @@
+.tableWrap {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: auto;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.6rem;
+  text-align: left;
+}
+
+.muted {
+  margin: 0;
+  color: var(--text-soft);
+}

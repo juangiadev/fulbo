@@ -1,0 +1,63 @@
+.section {
+  display: grid;
+  gap: 1rem;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.searchInput {
+  border: 1px solid var(--secondary);
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
+  background: transparent;
+  color: var(--secondary);
+}
+
+.playersList {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.playerCard {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.meta {
+  margin: 0.2rem 0 0;
+  color: var(--text-soft);
+}
+
+.guestBadge {
+  width: fit-content;
+  margin: 0.35rem 0 0;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid #facc15;
+  color: #fde68a;
+  font-size: 0.78rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}

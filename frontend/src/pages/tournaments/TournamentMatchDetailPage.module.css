@@ -1,0 +1,73 @@
+.section {
+  display: grid;
+  gap: 1rem;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  display: grid;
+  gap: 0.45rem;
+}
+
+.meta {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.inlineControls {
+  margin-top: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.6rem;
+}
+
+.inlineControls label {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.inlineControls input,
+.inlineControls select {
+  border: 1px solid var(--secondary);
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
+  color: var(--secondary);
+}
+
+.inlineControls input {
+  background: transparent;
+}
+
+.inlineControls select {
+  background: var(--primary);
+}
+
+.resultTableWrap {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: auto;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.resultTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.resultTable th,
+.resultTable td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.65rem;
+  text-align: center;
+}

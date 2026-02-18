@@ -1,0 +1,1078 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://excalidraw.com",
+  "elements": [
+    {
+      "id": "i_hai2Cv9ad-pwZ67ef4q",
+      "type": "text",
+      "x": 250.85123546561817,
+      "y": -906.2023863527199,
+      "width": 939.5792846679688,
+      "height": 350,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a0",
+      "roundness": null,
+      "seed": 347164092,
+      "version": 983,
+      "versionNonce": 1220547844,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771291862481,
+      "link": null,
+      "locked": false,
+      "text": "USERS\n\nLog in with be handle with Auth0.\nWe will have the user information in our own database.\n\nWill have the following data:\n- Name\n- Created_at\n- Modified_at\n- Finished_at\n- Nickname\n- Favorite team (a favorite team a user can choose between a list of teams defined in the app)\n- Image (a image the user con upload)\n- Display Preference: image or favorite team",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "USERS\n\nLog in with be handle with Auth0.\nWe will have the user information in our own database.\n\nWill have the following data:\n- Name\n- Created_at\n- Modified_at\n- Finished_at\n- Nickname\n- Favorite team (a favorite team a user can choose between a list of teams defined in the app)\n- Image (a image the user con upload)\n- Display Preference: image or favorite team",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "TI5oYbaslcTmdFpImsKut",
+      "type": "rectangle",
+      "x": 196.39029796561817,
+      "y": -952.2180113527199,
+      "width": 1062.85546875,
+      "height": 442.08854489380167,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a1",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 2047622148,
+      "version": 630,
+      "versionNonce": 1837028484,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "id": "0dXmzTZ42jRYxjQEv3q_N",
+          "type": "arrow"
+        },
+        {
+          "id": "G5tZhqJUojNkljqiwASa4",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771291862481,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "2wVYb1IgD9CaoRSmxazgD",
+      "type": "text",
+      "x": 2038.1589756486433,
+      "y": 204.699731019483,
+      "width": 518.4796142578125,
+      "height": 250,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a4",
+      "roundness": null,
+      "seed": 1746117892,
+      "version": 2216,
+      "versionNonce": 1370708412,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771291803296,
+      "link": null,
+      "locked": false,
+      "text": "Tournament\n\nWill have the following data:\n- Name\n- Created_at\n- Modified_at\n- Finished_at\n- Visibility (public or private)\n- Image (upload by a player with role owner or admin)\n",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Tournament\n\nWill have the following data:\n- Name\n- Created_at\n- Modified_at\n- Finished_at\n- Visibility (public or private)\n- Image (upload by a player with role owner or admin)\n",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "ifpq5P8e87yv16XD1G6Ab",
+      "type": "rectangle",
+      "x": 2000.929901398497,
+      "y": 166.7784134971546,
+      "width": 739.5039062500001,
+      "height": 310.73158478825576,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a5",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 2078303364,
+      "version": 1798,
+      "versionNonce": 472730884,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "id": "QckIqDftWqaD28e8EHG4j",
+          "type": "arrow"
+        },
+        {
+          "id": "G7kA-9wT1rQWPzVIEDk9z",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771292227860,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "GvzzxBkVTdSFA1rYMYyuW",
+      "type": "text",
+      "x": 406.82902183738247,
+      "y": 50.50596102574514,
+      "width": 673.7595825195312,
+      "height": 525,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a6",
+      "roundness": null,
+      "seed": 739874108,
+      "version": 2165,
+      "versionNonce": 1230512772,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771291482547,
+      "link": null,
+      "locked": false,
+      "text": "Player\n\nOne user is a player inside a Tournament.\nOne user can't have more than one player per Tournament\n\nWill have the user information by default and the following data:\n- Name (user name by default, can be changed)\n- Nickname (user nickname by default, can be changed)\n- Favorite team (user data by default, can be changed)\n- Image (user data by default, can be changed)\n- Display Preference: (user data by default, can be changed)\n\n- User ID (relation with user)\n- Tournament ID (relation with Tournament)\n- Role:\n        Owner -> Creator of the Tournament\n        Admin -> Are define by Owner\n        User    \n- Ability (number between 1 to 10, measure the ability the player has)\n- Injury (string that describe of a player has any injury)\n- Misses (how many times a player miss a match)",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Player\n\nOne user is a player inside a Tournament.\nOne user can't have more than one player per Tournament\n\nWill have the user information by default and the following data:\n- Name (user name by default, can be changed)\n- Nickname (user nickname by default, can be changed)\n- Favorite team (user data by default, can be changed)\n- Image (user data by default, can be changed)\n- Display Preference: (user data by default, can be changed)\n\n- User ID (relation with user)\n- Tournament ID (relation with Tournament)\n- Role:\n        Owner -> Creator of the Tournament\n        Admin -> Are define by Owner\n        User    \n- Ability (number between 1 to 10, measure the ability the player has)\n- Injury (string that describe of a player has any injury)\n- Misses (how many times a player miss a match)",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "dvCwKNpjJsGnx54-TDrkJ",
+      "type": "rectangle",
+      "x": 359.1281337794069,
+      "y": 21.388246028917138,
+      "width": 807.6947130784449,
+      "height": 593.0118337905006,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a7",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 187403708,
+      "version": 1831,
+      "versionNonce": 32367876,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "id": "0dXmzTZ42jRYxjQEv3q_N",
+          "type": "arrow"
+        },
+        {
+          "id": "QckIqDftWqaD28e8EHG4j",
+          "type": "arrow"
+        },
+        {
+          "id": "2Dpk4hiMKXlri3CUlVZ8-",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771292981528,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "0dXmzTZ42jRYxjQEv3q_N",
+      "type": "arrow",
+      "x": 727.4013031794772,
+      "y": -511.20348654324016,
+      "width": 2.1325445453886687,
+      "height": 526.5917325721573,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a8",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1067074108,
+      "version": 2172,
+      "versionNonce": 456762372,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771291862481,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -2.1325445453886687,
+          526.5917325721573
+        ]
+      ],
+      "startBinding": {
+        "elementId": "TI5oYbaslcTmdFpImsKut",
+        "mode": "inside",
+        "fixedPoint": [
+          0.4996079154942571,
+          0.9975705769879654
+        ]
+      },
+      "endBinding": {
+        "elementId": "dvCwKNpjJsGnx54-TDrkJ",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.4524227754425972,
+          0.4524227754425972
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "mK-E7Y4n0Z5_AQm3_f3-k",
+      "type": "text",
+      "x": -629.6500516936397,
+      "y": -1009.6939799328765,
+      "width": 531.9596557617188,
+      "height": 525,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a9",
+      "roundness": null,
+      "seed": 134497540,
+      "version": 804,
+      "versionNonce": 1153838780,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771291866905,
+      "link": null,
+      "locked": false,
+      "text": "Favorite Teams list (will be bigger):\n\n- San Lorenzo\n- River\n- Boca\n- Independiente\n- Racing\n- Velez\n- Chicago\n- Roma\n- Napoli\n- Milan\n- Inter\n- Barcelona\n- Real Madrid\n- PSG\n- Manchester City\n- Manchester United\n- Liverpool\n\nEach team will be the name, slug and url to team image",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Favorite Teams list (will be bigger):\n\n- San Lorenzo\n- River\n- Boca\n- Independiente\n- Racing\n- Velez\n- Chicago\n- Roma\n- Napoli\n- Milan\n- Inter\n- Barcelona\n- Real Madrid\n- PSG\n- Manchester City\n- Manchester United\n- Liverpool\n\nEach team will be the name, slug and url to team image",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "BYCV_XpebQZAwRrB9DRBv",
+      "type": "rectangle",
+      "x": -685.0441076094545,
+      "y": -1057.2304032899792,
+      "width": 662.2196372664405,
+      "height": 652.1234057569674,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aA",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1610555908,
+      "version": 362,
+      "versionNonce": 1711863612,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "id": "G5tZhqJUojNkljqiwASa4",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771291866905,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "G5tZhqJUojNkljqiwASa4",
+      "type": "arrow",
+      "x": 190.39029796561817,
+      "y": -731.1287873935694,
+      "width": 207.2147683086322,
+      "height": 0.02516509001202394,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aB",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 2128688316,
+      "version": 522,
+      "versionNonce": 1423880124,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771291866905,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -207.2147683086322,
+          0.02516509001202394
+        ]
+      ],
+      "startBinding": {
+        "elementId": "TI5oYbaslcTmdFpImsKut",
+        "mode": "orbit",
+        "fixedPoint": [
+          0,
+          0.5001
+        ]
+      },
+      "endBinding": {
+        "elementId": "BYCV_XpebQZAwRrB9DRBv",
+        "mode": "orbit",
+        "fixedPoint": [
+          1,
+          0.5001
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "QckIqDftWqaD28e8EHG4j",
+      "type": "arrow",
+      "x": 1165.0800889226398,
+      "y": 321.47019618020636,
+      "width": 829.8498124758571,
+      "height": 0.7000215569193529,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aC",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 68275972,
+      "version": 2036,
+      "versionNonce": 1656560316,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771291803297,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          829.8498124758571,
+          0.7000215569193529
+        ]
+      ],
+      "startBinding": {
+        "elementId": "dvCwKNpjJsGnx54-TDrkJ",
+        "mode": "inside",
+        "fixedPoint": [
+          0.9978423061250832,
+          0.5060302898732747
+        ]
+      },
+      "endBinding": {
+        "elementId": "ifpq5P8e87yv16XD1G6Ab",
+        "mode": "orbit",
+        "fixedPoint": [
+          0,
+          0.5001
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "Ah8ee20wMFw73Z-H6aGR0",
+      "type": "text",
+      "x": 815.174650845503,
+      "y": -404.19753472129855,
+      "width": 1067.2991943359375,
+      "height": 325,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aF",
+      "roundness": null,
+      "seed": 264165436,
+      "version": 227,
+      "versionNonce": 1801536188,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771291449248,
+      "link": null,
+      "locked": false,
+      "text": "RELATION BETWEEN USER AND PLAYER\n\nA player with role USER can do:\n- Change his own name, nickname, favorite team, image, display preference.\n\nA player with role ADMIN can do:\n- All the things a player with role USER can do.\n- Change other player's with role USER information (name, nickname, favorite team, image, display preference).\n- Also can modify any player with role USER ability, injury and misses.\n\nA player with role OWNER can do:\n- All the things the player with role ADMIN do.\n- Change any player with any role information.",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "RELATION BETWEEN USER AND PLAYER\n\nA player with role USER can do:\n- Change his own name, nickname, favorite team, image, display preference.\n\nA player with role ADMIN can do:\n- All the things a player with role USER can do.\n- Change other player's with role USER information (name, nickname, favorite team, image, display preference).\n- Also can modify any player with role USER ability, injury and misses.\n\nA player with role OWNER can do:\n- All the things the player with role ADMIN do.\n- Change any player with any role information.",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "sGNjSRrlRqDMEadevILPH",
+      "type": "text",
+      "x": 1229.2949557249653,
+      "y": 101.72815532617051,
+      "width": 704.839599609375,
+      "height": 150,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aG",
+      "roundness": null,
+      "seed": 1085136900,
+      "version": 200,
+      "versionNonce": 728047748,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771291872579,
+      "link": null,
+      "locked": false,
+      "text": "RELATION BETWEEN PLAYER AND TOURNAMENT\n\nRead -> player can see tournaments he is part of\nCreate -> any player can create a Tournament\nUpdate -> only owners and admins can update a Tournament information\nDelete -> only owners can delete a Tournament (soft delete)",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "RELATION BETWEEN PLAYER AND TOURNAMENT\n\nRead -> player can see tournaments he is part of\nCreate -> any player can create a Tournament\nUpdate -> only owners and admins can update a Tournament information\nDelete -> only owners can delete a Tournament (soft delete)",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "yOWmvGQufYSy-kPCnkbyr",
+      "type": "text",
+      "x": 1937.7230918262385,
+      "y": 853.7972560139838,
+      "width": 870.1793823242188,
+      "height": 300,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aH",
+      "roundness": null,
+      "seed": 1449141892,
+      "version": 645,
+      "versionNonce": 1410861116,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771292234568,
+      "link": null,
+      "locked": false,
+      "text": "Matches\n\nA tournament can have one or more matches.\nA player can only be one time on a match.\n\nWill have the following data:\n- Place (name of the place where the match will take place)\n- Place URL (a link to the information of the place, could be a link to google place page.)\n- Date (Need day and time, e.g. Sunday 20hs)\n- Tournament ID (relation with tournament)\n- State (pending/finished)\n- Best player award (MVP).",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Matches\n\nA tournament can have one or more matches.\nA player can only be one time on a match.\n\nWill have the following data:\n- Place (name of the place where the match will take place)\n- Place URL (a link to the information of the place, could be a link to google place page.)\n- Date (Need day and time, e.g. Sunday 20hs)\n- Tournament ID (relation with tournament)\n- State (pending/finished)\n- Best player award (MVP).",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "RcvUeVW_5iAiDgs1Pvp-8",
+      "type": "rectangle",
+      "x": 1829.675506867072,
+      "y": 790.1526896256805,
+      "width": 1085.2952279235067,
+      "height": 426.91060297759896,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aI",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 972138044,
+      "version": 293,
+      "versionNonce": 905196676,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "id": "G7kA-9wT1rQWPzVIEDk9z",
+          "type": "arrow"
+        },
+        {
+          "id": "7Pve-VgL42PIHTDz1g_jn",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771292826575,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "G7kA-9wT1rQWPzVIEDk9z",
+      "type": "arrow",
+      "x": 2370.7461601073874,
+      "y": 483.50999828541035,
+      "width": 0.49465265105664,
+      "height": 306.9663809297224,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aJ",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1344433796,
+      "version": 356,
+      "versionNonce": 296233276,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771292234568,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -0.49465265105664,
+          306.9663809297224
+        ]
+      ],
+      "startBinding": {
+        "elementId": "ifpq5P8e87yv16XD1G6Ab",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.5001,
+          1
+        ]
+      },
+      "endBinding": {
+        "elementId": "RcvUeVW_5iAiDgs1Pvp-8",
+        "mode": "inside",
+        "fixedPoint": [
+          0.49809119830328724,
+          0.000758213984835602
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "gNVku9KtNeIp1oRCpy_YL",
+      "type": "text",
+      "x": 2499.533129483566,
+      "y": 561.6638049823205,
+      "width": 636.3397216796875,
+      "height": 100,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aK",
+      "roundness": null,
+      "seed": 677339836,
+      "version": 195,
+      "versionNonce": 883433276,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771292355073,
+      "link": null,
+      "locked": false,
+      "text": "RELATION BETWEEN TOURNAMENT AND MATCH\n\nPlayer with role OWNER or ADMIN can create or modify a match.\nOnly owner can delete a match.",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "RELATION BETWEEN TOURNAMENT AND MATCH\n\nPlayer with role OWNER or ADMIN can create or modify a match.\nOnly owner can delete a match.",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "f6BJxT0rLA6EypW4WQu26",
+      "type": "text",
+      "x": 2073.834532709884,
+      "y": 1524.0338210497368,
+      "width": 614.9796752929688,
+      "height": 275,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aL",
+      "roundness": null,
+      "seed": 2107316412,
+      "version": 358,
+      "versionNonce": 1606240260,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771292831917,
+      "link": null,
+      "locked": false,
+      "text": "Team\n\nA match must have 2 teams. (mandatory)\nBoth teams of a match must have the same number of players.\n\nWill have the following data:\n- Match ID (relation with match)\n- Name\n- Image\n- Winner/Looser\n- Colour",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Team\n\nA match must have 2 teams. (mandatory)\nBoth teams of a match must have the same number of players.\n\nWill have the following data:\n- Match ID (relation with match)\n- Name\n- Image\n- Winner/Looser\n- Colour",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "6NnHdbzAtZftiKGxCc6-q",
+      "type": "rectangle",
+      "x": 1955.6027403319679,
+      "y": 1470.0501096211756,
+      "width": 840.9733885834728,
+      "height": 371.9742262995064,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aM",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 885990716,
+      "version": 248,
+      "versionNonce": 2145744516,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "id": "7Pve-VgL42PIHTDz1g_jn",
+          "type": "arrow"
+        },
+        {
+          "id": "FjU2s8VDBmEYGBcilpOGY",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771292973855,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "7Pve-VgL42PIHTDz1g_jn",
+      "type": "arrow",
+      "x": 2372.508863518039,
+      "y": 1223.0632926032795,
+      "width": 3.575367707846908,
+      "height": 240.98681701789587,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aN",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 234366468,
+      "version": 266,
+      "versionNonce": 1690703620,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771292831917,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          3.575367707846908,
+          240.98681701789587
+        ]
+      ],
+      "startBinding": {
+        "elementId": "RcvUeVW_5iAiDgs1Pvp-8",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.5001,
+          1
+        ]
+      },
+      "endBinding": {
+        "elementId": "6NnHdbzAtZftiKGxCc6-q",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.5001,
+          0
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "LjiGyKBTtfuZm0KksrVsv",
+      "type": "text",
+      "x": 484.8784342879316,
+      "y": 1560.8283715324642,
+      "width": 519.899658203125,
+      "height": 175,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aO",
+      "roundness": null,
+      "seed": 316392836,
+      "version": 596,
+      "versionNonce": 1788236092,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771292988341,
+      "link": null,
+      "locked": false,
+      "text": "Player By Team (relation between players and teams)\n\nWill have the following data:\n- Player ID (relation with player)\n- Team ID (relation with team)\n- Goals (number)\n- Injury (string)",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Player By Team (relation between players and teams)\n\nWill have the following data:\n- Player ID (relation with player)\n- Team ID (relation with team)\n- Goals (number)\n- Injury (string)",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "HEuz30O0-PoNihQfhBBBa",
+      "type": "rectangle",
+      "x": 394.8255845656191,
+      "y": 1487.1588702170236,
+      "width": 716.4278577706835,
+      "height": 353.48492596247274,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aP",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 905466372,
+      "version": 425,
+      "versionNonce": 1387317692,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "id": "FjU2s8VDBmEYGBcilpOGY",
+          "type": "arrow"
+        },
+        {
+          "id": "2Dpk4hiMKXlri3CUlVZ8-",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771292988341,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "FjU2s8VDBmEYGBcilpOGY",
+      "type": "arrow",
+      "x": 1109.6156924063048,
+      "y": 1656.5548549408409,
+      "width": 849.4774922623335,
+      "height": 6.749869354348448,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aQ",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 108012292,
+      "version": 519,
+      "versionNonce": 837300796,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771292988341,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          849.4774922623335,
+          6.749869354348448
+        ]
+      ],
+      "startBinding": {
+        "elementId": "HEuz30O0-PoNihQfhBBBa",
+        "mode": "inside",
+        "fixedPoint": [
+          0.9977140057966282,
+          0.4792169970546381
+        ]
+      },
+      "endBinding": {
+        "elementId": "6NnHdbzAtZftiKGxCc6-q",
+        "mode": "inside",
+        "fixedPoint": [
+          0.004150481316120688,
+          0.519537648069221
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "2Dpk4hiMKXlri3CUlVZ8-",
+      "type": "arrow",
+      "x": 753.1794684538607,
+      "y": 1481.1588702170234,
+      "width": 9.804238857057157,
+      "height": 860.7587903976056,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aR",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1131238660,
+      "version": 526,
+      "versionNonce": 1998490300,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771292988341,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          9.804238857057157,
+          -860.7587903976056
+        ]
+      ],
+      "startBinding": {
+        "elementId": "HEuz30O0-PoNihQfhBBBa",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.5001,
+          0
+        ]
+      },
+      "endBinding": {
+        "elementId": "dvCwKNpjJsGnx54-TDrkJ",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.5001,
+          1
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    }
+  ],
+  "appState": {
+    "gridSize": 20,
+    "gridStep": 5,
+    "gridModeEnabled": false,
+    "viewBackgroundColor": "#ffffff",
+    "lockedMultiSelections": {}
+  },
+  "files": {}
+}

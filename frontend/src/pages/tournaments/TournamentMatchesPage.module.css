@@ -1,0 +1,62 @@
+.section {
+  display: grid;
+  gap: 1rem;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.matchesList {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.matchCard {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.meta {
+  margin: 0.2rem 0 0;
+  color: var(--text-soft);
+}
+
+.pendingBadge,
+.finishedBadge {
+  width: fit-content;
+  margin: 0.35rem 0 0;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+}
+
+.pendingBadge {
+  border: 1px solid #facc15;
+  color: #fde68a;
+}
+
+.finishedBadge {
+  border: 1px solid #22c55e;
+  color: #86efac;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}

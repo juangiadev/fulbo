@@ -1,0 +1,191 @@
+.appShell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0rem auto;
+  width: min(980px, 92vw);
+}
+
+.brandWrap {
+  display: flex;
+  align-items: center;
+}
+
+.logoBall {
+  width: 8rem;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.navLinks a {
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.activeLink {
+  border-color: var(--secondary) !important;
+}
+
+.topbarUser {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.avatarBtn {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  border: 1px solid var(--secondary);
+  background: transparent;
+  color: var(--secondary);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.avatarImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.userDropdown {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  width: 170px;
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #103121;
+  z-index: 20;
+}
+
+.pageWrap {
+  width: min(980px, 92vw);
+  margin: 1.4rem auto 2rem;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 40;
+}
+
+.profileModal {
+  width: min(420px, 92vw);
+  border: 1px solid var(--secondary);
+  border-radius: 14px;
+  background: #113321;
+  padding: 1rem;
+}
+
+.profileHint {
+  margin: 0.4rem 0 0;
+  color: var(--text-soft);
+}
+
+.profileForm {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 0.7rem;
+}
+
+.profileForm label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.profileForm input {
+  border: 1px solid var(--secondary);
+  background: transparent;
+  color: var(--secondary);
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+}
+
+.profileForm select {
+  border: 1px solid var(--secondary);
+  background: var(--primary);
+  color: var(--secondary);
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+}
+
+.teamSelectWrap {
+  position: relative;
+  width: 100%;
+}
+
+.teamSelectWrap input {
+  width: 100%;
+}
+
+.teamSelectList {
+  position: absolute;
+  top: calc(100% + 0.3rem);
+  left: 0;
+  right: 0;
+  max-height: 190px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #173f2b;
+  padding: 0.25rem;
+  z-index: 15;
+}
+
+.teamOption {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: var(--secondary);
+  padding: 0.45rem 0.55rem;
+  border-radius: 7px;
+}
+
+.teamOption:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.teamOptionImage {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.profileActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

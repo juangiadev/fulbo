@@ -1,0 +1,36 @@
+.section {
+  display: grid;
+  gap: 1rem;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  display: grid;
+  gap: 0.7rem;
+}
+
+.form {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.form input {
+  border: 1px solid var(--secondary);
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
+  background: transparent;
+  color: var(--secondary);
+}

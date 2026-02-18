@@ -1,0 +1,39 @@
+.section {
+  display: grid;
+  gap: 1rem;
+  max-width: 640px;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  display: grid;
+  gap: 0.6rem;
+}
+
+.meta {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.codeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.codeLabel {
+  margin: 0;
+  font-weight: 700;
+  color: #c2f0d7;
+}

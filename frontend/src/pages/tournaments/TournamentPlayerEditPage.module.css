@@ -1,0 +1,45 @@
+.section {
+  display: grid;
+  gap: 1rem;
+  max-width: 640px;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.form {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  display: grid;
+  gap: 0.7rem;
+}
+
+.form label {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.form input,
+.form select {
+  border: 1px solid var(--secondary);
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
+  color: var(--secondary);
+  background: transparent;
+}
+
+.form select {
+  background: var(--primary);
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
