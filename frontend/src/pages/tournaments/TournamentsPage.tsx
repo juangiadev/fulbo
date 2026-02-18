@@ -53,24 +53,18 @@ export function TournamentsPage() {
             </div>
             <div className={styles.rowActions}>
               {tournament.membershipStatus === 'MEMBER' ? (
-                <Link aria-label="Ver torneo" className={styles.iconBtn} title="Ver torneo" to={`/tournaments/${tournament.id}`}>
-                  <svg fill="none" height="18" viewBox="0 0 24 24" width="18">
-                    <path d="M2 12s3.8-6 10-6 10 6 10 6-3.8 6-10 6S2 12 2 12z" stroke="currentColor" strokeWidth="2" />
-                    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-                  </svg>
+                <Link className={buttonStyles.ghost} to={`/tournaments/${tournament.id}`}>
+                  Ver
                 </Link>
               ) : null}
               {[PlayerRole.OWNER, PlayerRole.ADMIN].includes(getMyRole(tournament.id) ?? PlayerRole.USER) ? (
-                <Link aria-label="Editar torneo" className={styles.iconBtn} title="Editar torneo" to={`/tournaments/${tournament.id}/edit`}>
-                  <svg fill="none" height="18" viewBox="0 0 24 24" width="18">
-                    <path d="M4 20l4.5-1 10-10-3.5-3.5-10 10L4 20z" stroke="currentColor" strokeWidth="2" />
-                  </svg>
+                <Link className={buttonStyles.ghost} to={`/tournaments/${tournament.id}/edit`}>
+                  Editar
                 </Link>
               ) : null}
               {getMyRole(tournament.id) === PlayerRole.OWNER ? (
                 <button
-                  aria-label="Eliminar torneo"
-                  className={`${styles.iconBtn} ${styles.dangerIcon}`}
+                  className={buttonStyles.ghost}
                   onClick={async () => {
                     setDeletingTournamentId(tournament.id);
                     try {
@@ -84,12 +78,9 @@ export function TournamentsPage() {
                     }
                   }}
                   disabled={deletingTournamentId === tournament.id}
-                  title="Eliminar torneo"
                   type="button"
                 >
-                  <svg fill="none" height="18" viewBox="0 0 24 24" width="18">
-                    <path d="M5 7h14M9 7V5h6v2m-8 0l1 12h8l1-12" stroke="currentColor" strokeWidth="2" />
-                  </svg>
+                  Eliminar
                 </button>
               ) : null}
             </div>
