@@ -1,9 +1,12 @@
 import { PlayerRole } from '@shared/enums';
 import type { PlayerContract } from '@shared/contracts';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
-import { MatchPlayersTableBuilder } from '../../components/MatchPlayersTableBuilder';
+import {
+  MatchPlayersTableBuilder,
+  type MatchPlayersTableBuilderRef,
+} from '../../components/MatchPlayersTableBuilder';
 import { apiClient } from '../../api/client';
 import { useAppContext } from '../../state/AppContext';
 import buttonStyles from '../../styles/Button.module.css';
@@ -20,6 +23,7 @@ export function TournamentMatchFormPage() {
   const [stage, setStage] = useState('');
   const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const tableRef = useRef<MatchPlayersTableBuilderRef | null>(null);
 
   useEffect(() => {
     void loadTournaments();
@@ -54,42 +58,7 @@ export function TournamentMatchFormPage() {
         </Link>
       </div>
 
-      <form
-        className={styles.form}
-        onSubmit={async (event) => {
-          event.preventDefault();
-          if (!canCreate) {
-            sileo.warning({ title: 'No tienes permisos para crear partidos' });
-            return;
-          }
-
-          const kickoffDate = new Date(kickoffAt);
-
-          if (Number.isNaN(kickoffDate.getTime())) {
-            sileo.warning({ title: 'La fecha del partido no es valida' });
-            return;
-          }
-
-          const payload = {
-            placeName: placeName.trim(),
-            kickoffAt: kickoffDate.toISOString(),
-            stage: stage.trim(),
-            ...(placeUrl.trim() ? { placeUrl: placeUrl.trim() } : {}),
-          };
-
-          setIsSubmitting(true);
-          try {
-            await sileo.promise(apiClient.createMatch(tournamentId, payload), {
-              loading: { title: 'Creando partido...' },
-              success: { title: 'Partido creado' },
-              error: { title: 'No se pudo crear el partido' },
-            });
-            navigate(`/tournaments/${tournamentId}/partidos`, { replace: true });
-          } finally {
-            setIsSubmitting(false);
-          }
-        }}
-      >
+      <article className={styles.form}>
         <label>
           Cancha
           <input onChange={(event) => setStage(event.target.value)} required value={stage} />
@@ -118,26 +87,63 @@ export function TournamentMatchFormPage() {
             value={kickoffAt}
           />
         </label>
-
-        <div className={styles.actions}>
-          <button
-            className={buttonStyles.ghost}
-            disabled={isSubmitting}
-            onClick={() => navigate(`/tournaments/${tournamentId}/partidos`)}
-            type="button"
-          >
-            Cancelar
-          </button>
-          <button className={buttonStyles.primary} disabled={isSubmitting || !canCreate} type="submit">
-            Crear
-          </button>
-        </div>
-      </form>
+      </article>
 
       <article className={styles.card}>
         <h3>Jugadores y goles</h3>
-        <MatchPlayersTableBuilder canEdit={canCreate} players={players} />
+        <MatchPlayersTableBuilder
+          canEdit={canCreate}
+          players={players}
+          ref={tableRef}
+          showSaveButton={false}
+        />
       </article>
+
+      <button
+        className={buttonStyles.primary}
+        disabled={isSubmitting || !canCreate}
+        onClick={async () => {
+          if (!canCreate) {
+            sileo.warning({ title: 'No tienes permisos para crear partidos' });
+            return;
+          }
+
+          const kickoffDate = new Date(kickoffAt);
+
+          if (Number.isNaN(kickoffDate.getTime())) {
+            sileo.warning({ title: 'La fecha del partido no es valida' });
+            return;
+          }
+
+          const payload = {
+            placeName: placeName.trim(),
+            kickoffAt: kickoffDate.toISOString(),
+            stage: stage.trim(),
+            ...(placeUrl.trim() ? { placeUrl: placeUrl.trim() } : {}),
+          };
+
+          setIsSubmitting(true);
+          try {
+            await sileo.promise(
+              (async () => {
+                const createdMatch = await apiClient.createMatch(tournamentId, payload);
+                await tableRef.current?.saveLineupForMatch(createdMatch.id);
+              })(),
+              {
+                loading: { title: 'Guardando partido...' },
+                success: { title: 'Partido creado' },
+                error: { title: 'No se pudo crear el partido' },
+              },
+            );
+            navigate(`/tournaments/${tournamentId}/partidos`, { replace: true });
+          } finally {
+            setIsSubmitting(false);
+          }
+        }}
+        type="button"
+      >
+        Guardar cambios
+      </button>
     </section>
   );
 }

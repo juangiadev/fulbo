@@ -12,6 +12,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthUser } from '../auth/auth.types';
 import { CreateMatchDto } from './dto/create-match.dto';
+import { UpsertMatchLineupDto } from './dto/upsert-match-lineup.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
 import { MatchesService } from './matches.service';
 
@@ -41,6 +42,15 @@ export class MatchesController {
     @Body() dto: UpdateMatchDto,
   ) {
     return this.matchesService.update(matchId, user.sub, dto);
+  }
+
+  @Post('matches/:matchId/lineup')
+  upsertLineup(
+    @Param('matchId') matchId: string,
+    @CurrentUser() user: AuthUser,
+    @Body() dto: UpsertMatchLineupDto,
+  ) {
+    return this.matchesService.upsertLineup(matchId, user.sub, dto);
   }
 
   @Delete('matches/:matchId')

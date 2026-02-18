@@ -161,6 +161,19 @@ export const apiClient = {
       method: 'POST',
       body: JSON.stringify(input),
     }),
+  upsertMatchLineup: (
+    matchId: string,
+    input: {
+      teamAColor?: string;
+      teamBColor?: string;
+      teamA: Array<{ playerId: string; goals: number }>;
+      teamB: Array<{ playerId: string; goals: number }>;
+    },
+  ) =>
+    request<{ success: true }>(`/matches/${matchId}/lineup`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
   updateMatch: (
     matchId: string,
     input: {

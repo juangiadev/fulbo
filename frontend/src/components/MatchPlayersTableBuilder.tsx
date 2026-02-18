@@ -1,5 +1,4 @@
 import type { PlayerContract, PlayerTeamContract, TeamContract } from '@shared/contracts';
-import { TeamResult } from '@shared/enums';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { sileo } from 'sileo';
 import { apiClient } from '../api/client';
@@ -29,6 +28,7 @@ interface MatchPlayersTableBuilderProps {
 
 export interface MatchPlayersTableBuilderRef {
   saveLineup: () => Promise<void>;
+  saveLineupForMatch: (targetMatchId: string) => Promise<void>;
 }
 
 const createRows = (playersPerTeam: number): RowItem[] =>
@@ -202,8 +202,11 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
     });
   }, [onSummaryChange, teamAColor, teamAGoalsSum, teamBColor, teamBGoalsSum]);
 
-  const saveLineup = useCallback(async (withToast = true) => {
-    if (!matchId) {
+  const saveLineup = useCallback(
+    async (withToast = true, matchIdOverride?: string) => {
+      const effectiveMatchId = matchIdOverride ?? matchId;
+
+      if (!effectiveMatchId) {
       sileo.warning({ title: 'Primero crea el partido para guardar equipos y goles' });
       return;
     }
@@ -215,100 +218,13 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
       .filter((row) => row.teamBPlayerId)
       .map((row) => ({ playerId: row.teamBPlayerId as string, goals: row.teamBGoals }));
 
-    const teamATotalGoals = desiredA.reduce((total, item) => total + item.goals, 0);
-    const teamBTotalGoals = desiredB.reduce((total, item) => total + item.goals, 0);
-
-    let teamAResult = TeamResult.PENDING;
-    let teamBResult = TeamResult.PENDING;
-
-    if (desiredA.length > 0 || desiredB.length > 0) {
-      if (teamATotalGoals > teamBTotalGoals) {
-        teamAResult = TeamResult.WINNER;
-        teamBResult = TeamResult.LOSER;
-      } else if (teamBTotalGoals > teamATotalGoals) {
-        teamAResult = TeamResult.LOSER;
-        teamBResult = TeamResult.WINNER;
-      } else {
-        teamAResult = TeamResult.DRAW;
-        teamBResult = TeamResult.DRAW;
-      }
-    }
-
     const persistLineup = async () => {
-      const currentTeams = await apiClient.getTeamsByMatch(matchId);
-      let { teamA, teamB } = splitTeams(currentTeams);
-
-      if (!teamA) {
-        teamA = await apiClient.createTeam(matchId, {
-          name: 'Team A',
-          result: TeamResult.PENDING,
-          color: teamAColor,
-        });
-      }
-      if (!teamB) {
-        teamB = await apiClient.createTeam(matchId, {
-          name: 'Team B',
-          result: TeamResult.PENDING,
-          color: teamBColor,
-        });
-      }
-
-      await Promise.all([
-        apiClient.updateTeam(teamA.id, {
-          name: 'Team A',
-          color: teamAColor,
-          result: teamAResult,
-        }),
-        apiClient.updateTeam(teamB.id, {
-          name: 'Team B',
-          color: teamBColor,
-          result: teamBResult,
-        }),
-      ]);
-
-      const refreshedTeams = await apiClient.getTeamsByMatch(matchId);
-      const refreshed = splitTeams(refreshedTeams);
-      const refreshedA = refreshed.teamA;
-      const refreshedB = refreshed.teamB;
-
-      if (!refreshedA || !refreshedB) {
-        throw new Error('No se pudieron preparar los equipos del partido');
-      }
-
-      const existingA = (refreshedA.playerTeams as PlayerTeamContract[] | undefined) ?? [];
-      const existingB = (refreshedB.playerTeams as PlayerTeamContract[] | undefined) ?? [];
-
-      const syncTeam = async (
-        teamId: string,
-        desired: Array<{ playerId: string; goals: number }>,
-        existing: PlayerTeamContract[],
-      ) => {
-        const existingByPlayerId = new Map(existing.map((item) => [item.playerId, item]));
-
-        for (const item of desired) {
-          const found = existingByPlayerId.get(item.playerId);
-          if (!found) {
-            await apiClient.createPlayerTeam(teamId, {
-              playerId: item.playerId,
-              goals: item.goals,
-            });
-            continue;
-          }
-          if (found.goals !== item.goals) {
-            await apiClient.updatePlayerTeam(found.id, { goals: item.goals });
-          }
-        }
-
-        const desiredIds = new Set(desired.map((item) => item.playerId));
-        for (const current of existing) {
-          if (!desiredIds.has(current.playerId)) {
-            await apiClient.removePlayerTeam(current.id);
-          }
-        }
-      };
-
-      await syncTeam(refreshedA.id, desiredA, existingA);
-      await syncTeam(refreshedB.id, desiredB, existingB);
+      await apiClient.upsertMatchLineup(effectiveMatchId, {
+        teamAColor,
+        teamBColor,
+        teamA: desiredA,
+        teamB: desiredB,
+      });
     };
 
     setIsSaving(true);
@@ -325,17 +241,15 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
     } finally {
       setIsSaving(false);
     }
-  }, [
-    matchId,
-    rows,
-    teamAColor,
-    teamBColor,
-  ]);
+    },
+    [matchId, rows, teamAColor, teamBColor],
+  );
 
   useImperativeHandle(
     ref,
     () => ({
       saveLineup: async () => saveLineup(false),
+      saveLineupForMatch: async (targetMatchId: string) => saveLineup(false, targetMatchId),
     }),
     [saveLineup],
   );
@@ -349,11 +263,52 @@ export const MatchPlayersTableBuilder = forwardRef<MatchPlayersTableBuilderRef, 
             disabled={!canEdit}
             min={1}
             onChange={(event) => {
-              const value = Number(event.target.value);
+              const value = Math.max(1, Number(event.target.value) || 1);
               setPlayersPerTeam(value);
-              setRows(createRows(value));
-              setSelectedPlayerIds([]);
-              setAvailablePlayerIds([]);
+
+              setRows((previousRows) => {
+                const nextRows = createRows(value).map((row, index) => {
+                  const previous = previousRows[index];
+                  if (!previous) {
+                    return row;
+                  }
+                  return {
+                    ...row,
+                    teamAGoals: previous.teamAGoals,
+                    teamAPlayerId: previous.teamAPlayerId,
+                    teamBPlayerId: previous.teamBPlayerId,
+                    teamBGoals: previous.teamBGoals,
+                  };
+                });
+
+                const nextAssignedIds = nextRows
+                  .flatMap((row) => [row.teamAPlayerId, row.teamBPlayerId])
+                  .filter((id): id is string => Boolean(id));
+
+                const previousAssignedIds = previousRows
+                  .flatMap((row) => [row.teamAPlayerId, row.teamBPlayerId])
+                  .filter((id): id is string => Boolean(id));
+
+                const droppedAssignedIds = previousAssignedIds.filter(
+                  (id) => !nextAssignedIds.includes(id),
+                );
+
+                const maxSelected = value * 2;
+                const nextAvailableIds = Array.from(
+                  new Set([...availablePlayerIds, ...droppedAssignedIds]),
+                ).filter((id) => !nextAssignedIds.includes(id));
+                const cappedAvailableIds = nextAvailableIds.slice(
+                  0,
+                  Math.max(0, maxSelected - nextAssignedIds.length),
+                );
+
+                setAvailablePlayerIds(cappedAvailableIds);
+                setSelectedPlayerIds([...nextAssignedIds, ...cappedAvailableIds]);
+
+                setSearch('');
+
+                return nextRows;
+              });
             }}
             type="number"
             value={playersPerTeam}
