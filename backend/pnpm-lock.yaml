@@ -35,6 +35,9 @@ importers:
       class-validator:
         specifier: ^0.14.3
         version: 0.14.3
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
       jwks-rsa:
         specifier: ^3.2.2
         version: 3.2.2
