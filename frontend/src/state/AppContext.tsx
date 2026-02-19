@@ -7,14 +7,14 @@ import {
   useMemo,
   useState,
   type PropsWithChildren,
-} from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { DisplayPreference } from '@shared/enums';
-import { PlayerRole } from '@shared/enums';
-import type { UserProfile } from '@shared/contracts';
-import type { TournamentContract } from '@shared/contracts';
-import { apiClient, setAccessTokenProvider } from '../api/client';
-import type { AppData } from '../types/app';
+} from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { DisplayPreference } from "@shared/enums";
+import { PlayerRole } from "@shared/enums";
+import type { UserProfile } from "@shared/contracts";
+import type { TournamentContract } from "@shared/contracts";
+import { apiClient, setAccessTokenProvider } from "../api/client";
+import type { AppData } from "../types/app";
 
 interface AppContextValue {
   data: AppData;
@@ -25,18 +25,24 @@ interface AppContextValue {
   logout: () => void;
   loadTournaments: () => Promise<void>;
   getMyRole: (tournamentId: string) => PlayerRole | null;
-  createTournament: (input: { name: string; visibility: string }) => Promise<TournamentContract>;
-  updateTournament: (id: string, input: Partial<TournamentContract>) => Promise<void>;
+  createTournament: (input: {
+    name: string;
+    visibility: string;
+  }) => Promise<TournamentContract>;
+  updateTournament: (
+    id: string,
+    input: Partial<TournamentContract>,
+  ) => Promise<void>;
   deleteTournament: (id: string) => Promise<void>;
   updateProfile: (input: Partial<UserProfile>) => Promise<void>;
 }
 
 const emptyUser: UserProfile = {
-  id: 'pending',
-  auth0Id: 'auth0|pending',
-  email: 'pending@fulboapp.local',
-  name: 'Usuario',
-  nickname: 'Usuario',
+  id: "pending",
+  auth0Id: "auth0|pending",
+  email: "pending@fulboapp.local",
+  name: "Usuario",
+  nickname: "Usuario",
   imageUrl: null,
   favoriteTeamSlug: null,
   displayPreference: DisplayPreference.IMAGE,
@@ -59,12 +65,15 @@ export function AppProvider({ children }: PropsWithChildren) {
     loginWithRedirect,
     logout: auth0Logout,
     getAccessTokenSilently,
+    user,
   } = useAuth0();
 
   const [data, setData] = useState<AppData>(emptyData);
   const [currentUser, setCurrentUser] = useState<UserProfile>(emptyUser);
   const [isSessionReady, setIsSessionReady] = useState(true);
-  const [rolesByTournament, setRolesByTournament] = useState<Record<string, PlayerRole | null>>({});
+  const [rolesByTournament, setRolesByTournament] = useState<
+    Record<string, PlayerRole | null>
+  >({});
 
   const loadTournaments = useCallback(async () => {
     const userId = currentUser.id;
@@ -121,7 +130,12 @@ export function AppProvider({ children }: PropsWithChildren) {
     });
 
     void (async () => {
-      const me = await apiClient.syncMe();
+      const me = await apiClient.syncMe({
+        email: user?.email,
+        name: user?.name,
+        nickname: user?.nickname,
+        picture: user?.picture,
+      });
       const users = await apiClient.getUsers();
       if (cancelled) {
         return;
@@ -163,7 +177,7 @@ export function AppProvider({ children }: PropsWithChildren) {
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
 
   const login = useCallback(async () => {
     await loginWithRedirect();
@@ -180,7 +194,10 @@ export function AppProvider({ children }: PropsWithChildren) {
     setRolesByTournament({});
   }, [auth0Logout]);
 
-  const getMyRole = useCallback((tournamentId: string) => rolesByTournament[tournamentId] ?? null, [rolesByTournament]);
+  const getMyRole = useCallback(
+    (tournamentId: string) => rolesByTournament[tournamentId] ?? null,
+    [rolesByTournament],
+  );
 
   const createTournament = useCallback(
     async (input: { name: string; visibility: string }) => {
@@ -220,7 +237,9 @@ export function AppProvider({ children }: PropsWithChildren) {
     setCurrentUser(profile);
     setData((prev) => ({
       ...prev,
-      users: prev.users.map((user) => (user.id === profile.id ? profile : user)),
+      users: prev.users.map((user) =>
+        user.id === profile.id ? profile : user,
+      ),
     }));
   }, []);
 
@@ -264,7 +283,7 @@ export function AppProvider({ children }: PropsWithChildren) {
 export function useAppContext(): AppContextValue {
   const context = useContext(AppContext);
   if (!context) {
-    throw new Error('useAppContext must be used inside AppProvider');
+    throw new Error("useAppContext must be used inside AppProvider");
   }
   return context;
 }

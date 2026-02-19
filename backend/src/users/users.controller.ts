@@ -3,6 +3,7 @@ import { FAVORITE_TEAMS } from '../../../shared/src/favorite-teams';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthUser } from '../auth/auth.types';
+import { SyncMeDto } from './dto/sync-me.dto';
 import { UpdateMeDto } from './dto/update-me.dto';
 import { UsersService } from './users.service';
 
@@ -22,8 +23,8 @@ export class UsersController {
   }
 
   @Post('me/sync')
-  syncMe(@CurrentUser() user: AuthUser) {
-    return this.usersService.syncMe(user);
+  syncMe(@CurrentUser() user: AuthUser, @Body() dto: SyncMeDto) {
+    return this.usersService.syncMe(user, dto);
   }
 
   @Get('me')

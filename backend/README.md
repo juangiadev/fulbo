@@ -17,6 +17,11 @@ Required values:
 - `AUTH0_AUDIENCE` - Auth0 API audience
 - `FRONTEND_ORIGIN` - deployed frontend URL
 
+Optional (recommended for complete user profile sync):
+
+- `AUTH0_MGMT_CLIENT_ID` - Auth0 M2M client id with `read:users`
+- `AUTH0_MGMT_CLIENT_SECRET` - Auth0 M2M client secret
+
 Security values:
 
 - `NODE_ENV=production` in production

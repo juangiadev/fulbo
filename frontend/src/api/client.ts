@@ -17,6 +17,13 @@ let cachedAccessToken: string | null = null;
 let cachedAccessTokenExpiresAtMs = 0;
 let inFlightTokenRequest: Promise<string | null> | null = null;
 
+interface SyncMeInput {
+  email?: string;
+  name?: string;
+  nickname?: string;
+  picture?: string;
+}
+
 export function setAccessTokenProvider(provider: (() => Promise<string | null>) | null): void {
   accessTokenProvider = provider;
   cachedAccessToken = null;
@@ -116,7 +123,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const apiClient = {
-  syncMe: () => request<UserProfile>('/users/me/sync', { method: 'POST' }),
+  syncMe: (input?: SyncMeInput) =>
+    request<UserProfile>('/users/me/sync', {
+      method: 'POST',
+      body: JSON.stringify(input ?? {}),
+    }),
   getMe: () => request<UserProfile>('/users/me'),
   updateMe: (input: Partial<UserProfile>) =>
     request<UserProfile>('/users/me', { method: 'PATCH', body: JSON.stringify(input) }),
