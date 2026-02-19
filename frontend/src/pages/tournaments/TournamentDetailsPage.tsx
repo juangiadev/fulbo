@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
 import { apiClient } from '../../api/client';
+import { ContentSpinner } from '../../components/ContentSpinner';
 import { useAppContext } from '../../state/AppContext';
 import buttonStyles from '../../styles/Button.module.css';
 import styles from './TournamentDetailsPage.module.css';
@@ -59,6 +60,7 @@ export function TournamentDetailsPage() {
   const { data, getMyRole, loadTournaments, updateTournament } = useAppContext();
   const [summary, setSummary] = useState<TournamentSummaryContract | null>(null);
   const [players, setPlayers] = useState<PlayerContract[]>([]);
+  const [isLoadingTournament, setIsLoadingTournament] = useState(true);
   const [isLoadingBanners, setIsLoadingBanners] = useState(true);
   const [isEditingTournament, setIsEditingTournament] = useState(false);
   const [isSavingTournament, setIsSavingTournament] = useState(false);
@@ -68,7 +70,8 @@ export function TournamentDetailsPage() {
   const [scorerBannerImageUrlDraft, setScorerBannerImageUrlDraft] = useState<string | null>(null);
 
   useEffect(() => {
-    void loadTournaments();
+    setIsLoadingTournament(true);
+    void loadTournaments().finally(() => setIsLoadingTournament(false));
   }, [loadTournaments]);
 
   useEffect(() => {
@@ -129,12 +132,26 @@ export function TournamentDetailsPage() {
   const leaderAutoImage = resolvePlayerBannerImage(summary?.leaderPlayerId);
   const scorerAutoImage = resolvePlayerBannerImage(summary?.topScorerPlayerId);
 
-  if (!tournamentId || (data.tournaments.length > 0 && !tournament)) {
+  if (!tournamentId) {
     return <Navigate replace to="/tournaments" />;
   }
 
+  if (isLoadingTournament) {
+    return (
+      <section className={styles.section}>
+        <div className={styles.headerRow}>
+          <h2>Detalle del torneo</h2>
+          <Link className={buttonStyles.ghost} to="/tournaments">
+            Volver
+          </Link>
+        </div>
+        <ContentSpinner />
+      </section>
+    );
+  }
+
   if (!tournament) {
-    return null;
+    return <Navigate replace to="/tournaments" />;
   }
 
   if (tournament.membershipStatus === 'PENDING') {

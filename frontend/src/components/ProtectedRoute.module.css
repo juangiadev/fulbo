@@ -1,0 +1,4 @@
+.loadingWrap {
+  width: min(980px, 92vw);
+  margin: 1.2rem auto;
+}
