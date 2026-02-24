@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
 import { apiClient } from '../../api/client';
+import { ContentSpinner } from '../../components/ContentSpinner';
 import { useAppContext } from '../../state/AppContext';
 import buttonStyles from '../../styles/Button.module.css';
 import styles from './TournamentJoinRequestsPage.module.css';
@@ -25,6 +26,7 @@ export function TournamentJoinRequestsPage() {
   const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [selectedPlayerByRequestId, setSelectedPlayerByRequestId] = useState<Record<string, string>>({});
   const [linkingRequestId, setLinkingRequestId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
 
@@ -33,13 +35,35 @@ export function TournamentJoinRequestsPage() {
       return;
     }
 
+    let isActive = true;
+    setIsLoading(true);
     void Promise.all([
       apiClient.getTournamentJoinRequests(tournamentId),
       apiClient.getPlayers(tournamentId),
-    ]).then(([joinRequests, tournamentPlayers]) => {
-      setRequests(joinRequests);
-      setPlayers(tournamentPlayers.filter((player) => !player.userId));
-    });
+    ])
+      .then(([joinRequests, tournamentPlayers]) => {
+        if (!isActive) {
+          return;
+        }
+        setRequests(joinRequests);
+        setPlayers(tournamentPlayers.filter((player) => !player.userId));
+      })
+      .catch(() => {
+        if (!isActive) {
+          return;
+        }
+        sileo.error({ title: 'No se pudieron cargar las solicitudes' });
+      })
+      .finally(() => {
+        if (!isActive) {
+          return;
+        }
+        setIsLoading(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
   }, [tournamentId]);
 
   if (!tournamentId || !tournament) {
@@ -55,69 +79,75 @@ export function TournamentJoinRequestsPage() {
         </Link>
       </div>
 
-      {requests.length === 0 ? <p className={styles.meta}>No hay solicitudes pendientes.</p> : null}
+      {!isLoading && requests.length === 0 ? (
+        <p className={styles.meta}>No hay solicitudes pendientes.</p>
+      ) : null}
 
       <div className={styles.requestsList}>
-        {requests.map((request) => (
-          <article className={styles.requestCard} key={request.id}>
-            <div>
-              <h3>{request.user.name}</h3>
-              <p className={styles.meta}>{request.user.email}</p>
-            </div>
+        {isLoading ? (
+          <ContentSpinner />
+        ) : (
+          requests.map((request) => (
+            <article className={styles.requestCard} key={request.id}>
+              <div>
+                <h3>{request.user.name}</h3>
+                <p className={styles.meta}>{request.user.email}</p>
+              </div>
 
-            <div className={styles.actions}>
-              <select
-                onChange={(event) =>
-                  setSelectedPlayerByRequestId((prev) => ({
-                    ...prev,
-                    [request.id]: event.target.value,
-                  }))
-                }
-                value={selectedPlayerByRequestId[request.id] ?? ''}
-              >
-                <option value="">Seleccionar invitado</option>
-                {players.map((player) => (
-                  <option key={player.id} value={player.id}>
-                    {player.nickname ?? player.name}
-                  </option>
-                ))}
-              </select>
-
-              <button
-                className={buttonStyles.primary}
-                disabled={linkingRequestId === request.id}
-                onClick={async () => {
-                  const playerId = selectedPlayerByRequestId[request.id];
-                  if (!playerId) {
-                    sileo.warning({ title: 'Selecciona un invitado para vincular' });
-                    return;
+              <div className={styles.actions}>
+                <select
+                  onChange={(event) =>
+                    setSelectedPlayerByRequestId((prev) => ({
+                      ...prev,
+                      [request.id]: event.target.value,
+                    }))
                   }
+                  value={selectedPlayerByRequestId[request.id] ?? ''}
+                >
+                  <option value="">Seleccionar invitado</option>
+                  {players.map((player) => (
+                    <option key={player.id} value={player.id}>
+                      {player.nickname ?? player.name}
+                    </option>
+                  ))}
+                </select>
 
-                  setLinkingRequestId(request.id);
-                  try {
-                    await sileo.promise(apiClient.linkJoinRequest(tournamentId, request.id, { playerId }), {
-                      loading: { title: 'Vinculando solicitud...' },
-                      success: { title: 'Solicitud vinculada con exito' },
-                      error: { title: 'No se pudo vincular la solicitud' },
-                    });
+                <button
+                  className={buttonStyles.primary}
+                  disabled={linkingRequestId === request.id}
+                  onClick={async () => {
+                    const playerId = selectedPlayerByRequestId[request.id];
+                    if (!playerId) {
+                      sileo.warning({ title: 'Selecciona un invitado para vincular' });
+                      return;
+                    }
 
-                    const [joinRequests, tournamentPlayers] = await Promise.all([
-                      apiClient.getTournamentJoinRequests(tournamentId),
-                      apiClient.getPlayers(tournamentId),
-                    ]);
-                    setRequests(joinRequests);
-                    setPlayers(tournamentPlayers.filter((player) => !player.userId));
-                  } finally {
-                    setLinkingRequestId(null);
-                  }
-                }}
-                type="button"
-              >
-                Vincular
-              </button>
-            </div>
-          </article>
-        ))}
+                    setLinkingRequestId(request.id);
+                    try {
+                      await sileo.promise(apiClient.linkJoinRequest(tournamentId, request.id, { playerId }), {
+                        loading: { title: 'Vinculando solicitud...' },
+                        success: { title: 'Solicitud vinculada con exito' },
+                        error: { title: 'No se pudo vincular la solicitud' },
+                      });
+
+                      const [joinRequests, tournamentPlayers] = await Promise.all([
+                        apiClient.getTournamentJoinRequests(tournamentId),
+                        apiClient.getPlayers(tournamentId),
+                      ]);
+                      setRequests(joinRequests);
+                      setPlayers(tournamentPlayers.filter((player) => !player.userId));
+                    } finally {
+                      setLinkingRequestId(null);
+                    }
+                  }}
+                  type="button"
+                >
+                  Vincular
+                </button>
+              </div>
+            </article>
+          ))
+        )}
       </div>
     </section>
   );

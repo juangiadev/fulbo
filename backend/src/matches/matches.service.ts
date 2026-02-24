@@ -21,10 +21,6 @@ export class MatchesService {
   constructor(
     @InjectRepository(Match)
     private readonly matchesRepository: Repository<Match>,
-    @InjectRepository(Team)
-    private readonly teamsRepository: Repository<Team>,
-    @InjectRepository(PlayerTeam)
-    private readonly playerTeamsRepository: Repository<PlayerTeam>,
     @InjectRepository(Player)
     private readonly playersRepository: Repository<Player>,
     private readonly tournamentsService: TournamentsService,
@@ -159,7 +155,6 @@ export class MatchesService {
 
       const existingTeams = await teamsRepo.find({
         where: { matchId },
-        relations: { playerTeams: true },
         order: { createdAt: 'ASC' },
       });
 
@@ -236,45 +231,42 @@ export class MatchesService {
         team: Team,
         entries: Array<{ playerId: string; goals: number }>,
       ) => {
-        const existing = await playerTeamsRepo.find({
-          where: { teamId: team.id },
-        });
-        const existingByPlayerId = new Map(
-          existing.map((item) => [item.playerId, item]),
-        );
-        const desiredByPlayerId = new Map(
-          entries.map((entry) => [entry.playerId, entry]),
-        );
+        const desiredRows = entries.map((entry) => ({
+          teamId: team.id,
+          playerId: entry.playerId,
+          goals: entry.goals,
+          injury: null,
+        }));
 
-        const creates = entries
-          .filter((entry) => !existingByPlayerId.has(entry.playerId))
-          .map((entry) =>
-            playerTeamsRepo.save(
-              playerTeamsRepo.create({
-                teamId: team.id,
-                playerId: entry.playerId,
-                goals: entry.goals,
-                injury: null,
-              }),
-            ),
-          );
+        if (desiredRows.length > 0) {
+          await playerTeamsRepo
+            .createQueryBuilder()
+            .insert()
+            .into(PlayerTeam)
+            .values(desiredRows)
+            .onConflict(
+              '("playerId", "teamId") DO UPDATE SET "goals" = EXCLUDED."goals", "updatedAt" = now()',
+            )
+            .execute();
 
-        const updates = entries
-          .filter((entry) => {
-            const found = existingByPlayerId.get(entry.playerId);
-            return Boolean(found) && found?.goals !== entry.goals;
-          })
-          .map((entry) => {
-            const found = existingByPlayerId.get(entry.playerId) as PlayerTeam;
-            found.goals = entry.goals;
-            return playerTeamsRepo.save(found);
-          });
+          await playerTeamsRepo
+            .createQueryBuilder()
+            .delete()
+            .from(PlayerTeam)
+            .where('"teamId" = :teamId', { teamId: team.id })
+            .andWhere('"playerId" NOT IN (:...playerIds)', {
+              playerIds: desiredRows.map((row) => row.playerId),
+            })
+            .execute();
+          return;
+        }
 
-        const deletes = existing
-          .filter((entry) => !desiredByPlayerId.has(entry.playerId))
-          .map((entry) => playerTeamsRepo.delete({ id: entry.id }));
-
-        await Promise.all([...creates, ...updates, ...deletes]);
+        await playerTeamsRepo
+          .createQueryBuilder()
+          .delete()
+          .from(PlayerTeam)
+          .where('"teamId" = :teamId', { teamId: team.id })
+          .execute();
       };
 
       await Promise.all([

@@ -167,12 +167,11 @@ export function TournamentMatchFormPage() {
                 error: { title: "No se pudo crear el partido" },
               },
             );
-            sileo.success({ title: "Partido creado" });
             navigate(`/tournaments/${tournamentId}/partidos`, {
               replace: true,
             });
-          } catch {
-            sileo.error({ title: "No se pudo crear el partido" });
+          } catch (error) {
+            void error;
           } finally {
             setIsSubmitting(false);
           }

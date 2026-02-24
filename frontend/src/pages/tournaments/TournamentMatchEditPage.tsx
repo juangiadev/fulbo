@@ -248,12 +248,11 @@ export function TournamentMatchEditPage() {
                 error: { title: "No se pudo guardar el partido" },
               },
             );
-            await sileo.success({ title: "Partido actualizado" });
             navigate(`/tournaments/${tournamentId}/partidos`, {
               replace: true,
             });
-          } catch {
-            sileo.error({ title: "No se pudo guardar el partido" });
+          } catch (error) {
+            void error;
           } finally {
             setIsSavingAll(false);
           }
