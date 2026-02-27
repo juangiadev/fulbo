@@ -21,8 +21,4 @@ export class CreateMatchDto {
   @IsString()
   @MaxLength(120)
   stage: string;
-
-  @IsOptional()
-  @IsString()
-  mvpPlayerId?: string;
 }

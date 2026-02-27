@@ -83,6 +83,22 @@ export interface MatchContract {
   updatedAt: string;
 }
 
+export interface MatchMvpVoteContract {
+  voterPlayerId: string;
+  votedPlayerId: string;
+  updatedAt: string;
+}
+
+export interface MatchMvpVotingContract {
+  matchId: string;
+  candidatePlayerIds: string[];
+  myVotePlayerId: string | null;
+  mvpPlayerId: string | null;
+  hasTie: boolean;
+  votesByPlayerId: Record<string, number>;
+  votes: MatchMvpVoteContract[];
+}
+
 export interface TeamContract {
   id: string;
   matchId: string;

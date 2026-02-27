@@ -14,6 +14,7 @@ import type { AuthUser } from '../auth/auth.types';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { UpsertMatchLineupDto } from './dto/upsert-match-lineup.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
+import { VoteMatchMvpDto } from './dto/vote-match-mvp.dto';
 import { MatchesService } from './matches.service';
 
 @Controller()
@@ -51,6 +52,20 @@ export class MatchesController {
     @Body() dto: UpsertMatchLineupDto,
   ) {
     return this.matchesService.upsertLineup(matchId, user.sub, dto);
+  }
+
+  @Get('matches/:matchId/mvp')
+  getMvpVoting(@Param('matchId') matchId: string, @CurrentUser() user: AuthUser) {
+    return this.matchesService.getMvpVoting(matchId, user.sub);
+  }
+
+  @Post('matches/:matchId/mvp')
+  voteMvp(
+    @Param('matchId') matchId: string,
+    @CurrentUser() user: AuthUser,
+    @Body() dto: VoteMatchMvpDto,
+  ) {
+    return this.matchesService.voteMvp(matchId, user.sub, dto);
   }
 
   @Delete('matches/:matchId')

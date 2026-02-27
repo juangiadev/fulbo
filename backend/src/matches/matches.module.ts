@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Match, Player, PlayerTeam, Team } from '../database/entities';
+import { Match, MatchMvpVote, Player, PlayerTeam, Team } from '../database/entities';
 import { TournamentsModule } from '../tournaments/tournaments.module';
 import { MatchesController } from './matches.controller';
 import { MatchesService } from './matches.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Match, Team, PlayerTeam, Player]),
+    TypeOrmModule.forFeature([Match, Team, PlayerTeam, Player, MatchMvpVote]),
     TournamentsModule,
   ],
   controllers: [MatchesController],

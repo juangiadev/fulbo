@@ -1,7 +1,14 @@
 import { MatchStatus } from '@shared/enums';
-import type { MatchContract, PlayerContract, PlayerTeamContract, TeamContract } from '@shared/contracts';
+import type {
+  MatchContract,
+  MatchMvpVotingContract,
+  PlayerContract,
+  PlayerTeamContract,
+  TeamContract,
+} from '@shared/contracts';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
+import { sileo } from 'sileo';
 import { ContentSpinner } from '../../components/ContentSpinner';
 import { MatchPlayersTableReadonly } from '../../components/MatchPlayersTableReadonly';
 import { apiClient } from '../../api/client';
@@ -23,6 +30,11 @@ export function TournamentMatchDetailsPage() {
   const [matches, setMatches] = useState<MatchContract[]>([]);
   const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [teams, setTeams] = useState<TeamContract[]>([]);
+  const [mvpVoting, setMvpVoting] = useState<MatchMvpVotingContract | null>(null);
+  const [isMvpLoading, setIsMvpLoading] = useState(false);
+  const [isVotingMvp, setIsVotingMvp] = useState(false);
+  const [mvpVotingError, setMvpVotingError] = useState<string | null>(null);
+  const [mvpSearch, setMvpSearch] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
@@ -52,6 +64,88 @@ export function TournamentMatchDetailsPage() {
 
     void apiClient.getTeamsByMatch(selectedMatch.id).then(setTeams).catch(() => setTeams([]));
   }, [selectedMatch]);
+
+  useEffect(() => {
+    if (!selectedMatch || selectedMatch.status !== MatchStatus.FINISHED) {
+      setMvpVoting(null);
+      setMvpVotingError(null);
+      setIsMvpLoading(false);
+      return;
+    }
+
+    setIsMvpLoading(true);
+    setMvpVotingError(null);
+
+    void apiClient
+      .getMatchMvpVoting(selectedMatch.id)
+      .then(setMvpVoting)
+      .catch(() => {
+        setMvpVoting(null);
+        setMvpVotingError('Solo jugadores que participaron pueden votar el MVP.');
+      })
+      .finally(() => setIsMvpLoading(false));
+  }, [selectedMatch]);
+
+  const mvpCandidates = useMemo(
+    () =>
+      (mvpVoting?.candidatePlayerIds ?? [])
+        .map((playerId) => players.find((player) => player.id === playerId))
+        .filter((player): player is PlayerContract => Boolean(player)),
+    [mvpVoting?.candidatePlayerIds, players],
+  );
+
+  const filteredMvpCandidates = useMemo(() => {
+    const query = mvpSearch.trim().toLowerCase();
+    if (!query) {
+      return [];
+    }
+
+    return mvpCandidates.filter((candidate) =>
+      `${candidate.name} ${candidate.nickname ?? ''}`.toLowerCase().includes(query),
+    );
+  }, [mvpCandidates, mvpSearch]);
+
+  const voteForMvp = (targetMatchId: string, votedPlayerId: string | null) => {
+    setIsVotingMvp(true);
+    void apiClient
+      .voteMatchMvp(targetMatchId, { votedPlayerId })
+      .then((nextVoting) => {
+        setMvpVoting(nextVoting);
+        if (votedPlayerId) {
+          setMvpSearch('');
+        }
+      })
+      .catch(() => {
+        sileo.error({
+          title: votedPlayerId
+            ? 'No se pudo registrar tu voto para MVP'
+            : 'No se pudo quitar tu voto de MVP',
+        });
+      })
+      .finally(() => setIsVotingMvp(false));
+  };
+
+  const mvpVotesList = useMemo(
+    () =>
+      (mvpVoting?.votes ?? []).map((vote) => {
+        const voter = players.find((player) => player.id === vote.voterPlayerId);
+        const voted = players.find((player) => player.id === vote.votedPlayerId);
+        return {
+          voterName: voter?.nickname ?? voter?.name ?? 'Jugador desconocido',
+          votedName: voted?.nickname ?? voted?.name ?? 'Jugador desconocido',
+          updatedAt: vote.updatedAt,
+        };
+      }),
+    [mvpVoting?.votes, players],
+  );
+
+  const mvpDisplayName = useMemo(() => {
+    if (!mvpVoting?.mvpPlayerId) {
+      return null;
+    }
+    const player = players.find((item) => item.id === mvpVoting.mvpPlayerId);
+    return player?.nickname ?? player?.name ?? null;
+  }, [mvpVoting?.mvpPlayerId, players]);
 
   const resultSummary = useMemo(() => {
     const { teamA, teamB } = splitTeams(teams);
@@ -140,6 +234,93 @@ export function TournamentMatchDetailsPage() {
           </tbody>
         </table>
       </div>
+
+      {selectedMatch.status === MatchStatus.FINISHED ? (
+        <article className={styles.card}>
+          <h3 className={styles.mvpTitle}>Votacion MVP</h3>
+          {isMvpLoading ? <ContentSpinner /> : null}
+          {!isMvpLoading && mvpVotingError ? <p className={styles.meta}>{mvpVotingError}</p> : null}
+          {!isMvpLoading && !mvpVotingError && mvpVoting ? (
+            <>
+              <p className={styles.meta}>
+                {mvpDisplayName
+                  ? `MVP actual: ${mvpDisplayName}`
+                  : mvpVoting.hasTie
+                    ? 'MVP actual: Sin MVP (empate en votos)'
+                    : 'MVP actual: Sin MVP'}
+              </p>
+
+              <div className={styles.mvpSearchWrap}>
+                <label className={styles.mvpSearchField}>
+                  Buscar jugador
+                  <input
+                    onChange={(event) => setMvpSearch(event.target.value)}
+                    placeholder="Escribe nombre o apodo"
+                    value={mvpSearch}
+                  />
+                </label>
+                {mvpSearch.trim() ? (
+                  <div className={styles.mvpDropdown}>
+                    {filteredMvpCandidates.map((candidate) => {
+                      const voteCount = mvpVoting.votesByPlayerId[candidate.id] ?? 0;
+                      const isMyVote = mvpVoting.myVotePlayerId === candidate.id;
+                      const label = candidate.nickname ?? candidate.name;
+
+                      return (
+                        <button
+                          className={styles.mvpDropdownItem}
+                          disabled={isVotingMvp}
+                          key={candidate.id}
+                          onClick={() => voteForMvp(selectedMatch.id, candidate.id)}
+                          type="button"
+                        >
+                          <span>
+                            <strong>{label}</strong>
+                            <span className={styles.mvpVoteCount}> ({voteCount} votos)</span>
+                            {isMyVote ? <span className={styles.mvpMyVoteTag}> Tu voto</span> : null}
+                          </span>
+                          <span>Votar</span>
+                        </button>
+                      );
+                    })}
+                    {filteredMvpCandidates.length === 0 ? (
+                      <p className={styles.mvpDropdownEmpty}>No hay jugadores que coincidan con la busqueda.</p>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+
+              {mvpVoting.myVotePlayerId ? (
+                <div className={styles.mvpActions}>
+                  <button
+                    className={buttonStyles.ghost}
+                    disabled={isVotingMvp}
+                    onClick={() => voteForMvp(selectedMatch.id, null)}
+                    type="button"
+                  >
+                    Quitar mi voto
+                  </button>
+                </div>
+              ) : null}
+
+              <h4 className={styles.mvpVotesTitle}>Quien voto a quien</h4>
+              {mvpVotesList.length === 0 ? (
+                <p className={styles.meta}>Aun no hay votos para este partido.</p>
+              ) : (
+                <ul className={styles.mvpVotesList}>
+                  {mvpVotesList.map((voteRow, index) => (
+                    <li className={styles.mvpVoteRow} key={`${voteRow.voterName}-${voteRow.updatedAt}-${index + 1}`}>
+                      <span>
+                        {voteRow.voterName} voto a {voteRow.votedName}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          ) : null}
+        </article>
+      ) : null}
     </section>
   );
 }

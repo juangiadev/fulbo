@@ -85,3 +85,99 @@
   padding: 0.65rem;
   text-align: center;
 }
+
+.mvpTitle {
+  margin: 0;
+}
+
+.mvpSearchField {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.mvpSearchWrap {
+  position: relative;
+}
+
+.mvpSearchField input {
+  border: 1px solid var(--secondary);
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
+  color: var(--secondary);
+  background: transparent;
+}
+
+.mvpDropdown {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  margin-top: 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: #0f1a14;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.mvpDropdownItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.55rem 0.65rem;
+  background: transparent;
+  color: var(--secondary);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.mvpDropdownItem:last-child {
+  border-bottom: 0;
+}
+
+.mvpDropdownItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mvpDropdownEmpty {
+  margin: 0;
+  padding: 0.7rem;
+  color: var(--text-soft);
+}
+
+.mvpVoteCount {
+  color: var(--text-soft);
+}
+
+.mvpMyVoteTag {
+  margin-left: 0.35rem;
+  color: var(--secondary);
+}
+
+.mvpActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mvpVotesTitle {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.mvpVotesList {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.mvpVoteRow {
+  color: var(--text-soft);
+}

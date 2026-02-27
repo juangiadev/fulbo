@@ -1,4 +1,5 @@
 import { Match } from './match.entity';
+import { MatchMvpVote } from './match-mvp-vote.entity';
 import { PlayerTeam } from './player-team.entity';
 import { Player } from './player.entity';
 import { Team } from './team.entity';
@@ -12,6 +13,7 @@ export const databaseEntities = [
   Tournament,
   Player,
   Match,
+  MatchMvpVote,
   Team,
   PlayerTeam,
   TournamentInvite,
@@ -20,6 +22,7 @@ export const databaseEntities = [
 
 export {
   Match,
+  MatchMvpVote,
   Player,
   PlayerTeam,
   Team,

@@ -1,5 +1,6 @@
 import type {
   MatchContract,
+  MatchMvpVotingContract,
   PlayerContract,
   PlayerTeamContract,
   TeamContract,
@@ -165,7 +166,6 @@ export const apiClient = {
       placeUrl?: string;
       kickoffAt: string;
       stage: string;
-      mvpPlayerId?: string;
     },
   ) =>
     request<MatchContract>(`/tournaments/${tournamentId}/matches`, {
@@ -194,7 +194,6 @@ export const apiClient = {
       placeUrl?: string;
       kickoffAt?: string;
       stage?: string;
-      mvpPlayerId?: string;
       status?: string;
     },
   ) =>
@@ -207,6 +206,13 @@ export const apiClient = {
       method: 'DELETE',
     }),
   getTeamsByMatch: (matchId: string) => request<TeamContract[]>(`/matches/${matchId}/teams`),
+  getMatchMvpVoting: (matchId: string) =>
+    request<MatchMvpVotingContract>(`/matches/${matchId}/mvp`),
+  voteMatchMvp: (matchId: string, input: { votedPlayerId: string | null }) =>
+    request<MatchMvpVotingContract>(`/matches/${matchId}/mvp`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
   createTeam: (
     matchId: string,
     input: { name: string; imageUrl?: string; result?: string; color?: string },
