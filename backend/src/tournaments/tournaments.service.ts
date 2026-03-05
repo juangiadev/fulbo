@@ -346,6 +346,25 @@ export class TournamentsService {
     return { success: true };
   }
 
+  async removeJoinRequest(
+    tournamentId: string,
+    requestId: string,
+    auth0Id: string,
+  ): Promise<void> {
+    const actor = await this.findActorForTournament(tournamentId, auth0Id);
+    assertTournamentOwner(actor);
+
+    const request = await this.joinRequestsRepository.findOne({
+      where: { id: requestId, tournamentId, status: JoinRequestStatus.PENDING },
+    });
+
+    if (!request) {
+      throw new NotFoundException('Join request not found');
+    }
+
+    await this.joinRequestsRepository.delete({ id: request.id });
+  }
+
   async getSummary(tournamentId: string, auth0Id: string) {
     await this.findActorForTournament(tournamentId, auth0Id);
 

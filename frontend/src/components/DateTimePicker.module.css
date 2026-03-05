@@ -1,0 +1,153 @@
+.root {
+  position: relative;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.label {
+  font-size: 0.95rem;
+}
+
+.trigger {
+  border: 1px solid var(--secondary);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    #0f2f20;
+  color: var(--secondary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.popover {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  width: min(360px, 94vw);
+  border: 1px solid var(--secondary);
+  border-radius: 14px;
+  padding: 0.9rem;
+  background: linear-gradient(180deg, #133c28, #0d281b);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
+  display: grid;
+  gap: 0.75rem;
+}
+
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.monthLabel {
+  margin: 0;
+  text-transform: capitalize;
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.monthButton {
+  border: 1px solid var(--secondary);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--secondary);
+  cursor: pointer;
+  font: inherit;
+}
+
+.weekHeader {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.weekLabel {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
+
+.daysGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.dayEmpty {
+  height: 36px;
+}
+
+.dayButton {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 8px;
+  height: 36px;
+  font: inherit;
+  color: var(--secondary);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+}
+
+.dayButtonSelected {
+  background: var(--secondary);
+  color: var(--primary);
+  border-color: var(--secondary);
+  font-weight: 700;
+}
+
+.timeRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+
+.timeField {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.86rem;
+  color: var(--text-soft);
+}
+
+.timeField select {
+  border: 1px solid var(--secondary);
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--secondary);
+  font: inherit;
+}
+
+.quickTimes {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.quickButton {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  padding: 0.3rem 0.45rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--secondary);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+@media (max-width: 680px) {
+  .popover {
+    position: fixed;
+    top: auto;
+    left: 50%;
+    bottom: 0.75rem;
+    transform: translateX(-50%);
+    width: min(430px, calc(100vw - 1rem));
+    border-radius: 16px;
+  }
+}

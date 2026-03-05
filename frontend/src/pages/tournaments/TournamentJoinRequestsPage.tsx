@@ -1,3 +1,4 @@
+import { PlayerRole } from '@shared/enums';
 import type { PlayerContract } from '@shared/contracts';
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
@@ -21,14 +22,18 @@ interface JoinRequestItem {
 
 export function TournamentJoinRequestsPage() {
   const { tournamentId } = useParams();
-  const { data } = useAppContext();
+  const { data, getMyRole } = useAppContext();
   const [requests, setRequests] = useState<JoinRequestItem[]>([]);
   const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [selectedPlayerByRequestId, setSelectedPlayerByRequestId] = useState<Record<string, string>>({});
+  const [playerQueryByRequestId, setPlayerQueryByRequestId] = useState<Record<string, string>>({});
   const [linkingRequestId, setLinkingRequestId] = useState<string | null>(null);
+  const [deletingRequestId, setDeletingRequestId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
+  const role = tournamentId ? getMyRole(tournamentId) : null;
+  const isOwner = role === PlayerRole.OWNER;
 
   useEffect(() => {
     if (!tournamentId) {
@@ -95,55 +100,147 @@ export function TournamentJoinRequestsPage() {
               </div>
 
               <div className={styles.actions}>
-                <select
-                  onChange={(event) =>
-                    setSelectedPlayerByRequestId((prev) => ({
-                      ...prev,
-                      [request.id]: event.target.value,
-                    }))
-                  }
-                  value={selectedPlayerByRequestId[request.id] ?? ''}
-                >
-                  <option value="">Seleccionar invitado</option>
-                  {players.map((player) => (
-                    <option key={player.id} value={player.id}>
-                      {player.nickname ?? player.name}
-                    </option>
-                  ))}
-                </select>
+                {(() => {
+                  const query = playerQueryByRequestId[request.id] ?? '';
+                  const filteredPlayers = players
+                    .filter((player) => {
+                      if (!query.trim()) {
+                        return true;
+                      }
 
-                <button
-                  className={buttonStyles.primary}
-                  disabled={linkingRequestId === request.id}
-                  onClick={async () => {
-                    const playerId = selectedPlayerByRequestId[request.id];
-                    if (!playerId) {
-                      sileo.warning({ title: 'Selecciona un invitado para vincular' });
-                      return;
-                    }
+                      const label = `${player.nickname ?? ''} ${player.name}`
+                        .toLowerCase()
+                        .trim();
+                      return label.includes(query.toLowerCase().trim());
+                    })
+                    .slice(0, 8);
 
-                    setLinkingRequestId(request.id);
-                    try {
-                      await sileo.promise(apiClient.linkJoinRequest(tournamentId, request.id, { playerId }), {
-                        loading: { title: 'Vinculando solicitud...' },
-                        success: { title: 'Solicitud vinculada con exito' },
-                        error: { title: 'No se pudo vincular la solicitud' },
-                      });
+                  const selectedPlayer = players.find(
+                    (player) => player.id === selectedPlayerByRequestId[request.id],
+                  );
 
-                      const [joinRequests, tournamentPlayers] = await Promise.all([
-                        apiClient.getTournamentJoinRequests(tournamentId),
-                        apiClient.getPlayers(tournamentId),
-                      ]);
-                      setRequests(joinRequests);
-                      setPlayers(tournamentPlayers.filter((player) => !player.userId));
-                    } finally {
-                      setLinkingRequestId(null);
-                    }
-                  }}
-                  type="button"
-                >
-                  Vincular
-                </button>
+                  return (
+                    <>
+                      <input
+                        className={styles.playerSearchInput}
+                        onChange={(event) => {
+                          const nextQuery = event.target.value;
+                          setPlayerQueryByRequestId((prev) => ({
+                            ...prev,
+                            [request.id]: nextQuery,
+                          }));
+                          setSelectedPlayerByRequestId((prev) => ({
+                            ...prev,
+                            [request.id]: '',
+                          }));
+                        }}
+                        placeholder="Buscar invitado para vincular"
+                        value={query}
+                      />
+
+                      {query.trim() ? (
+                        <div className={styles.playerMatches}>
+                          {filteredPlayers.length > 0 ? (
+                            filteredPlayers.map((player) => {
+                              const label = player.nickname ?? player.name;
+                              return (
+                                <button
+                                  className={styles.playerMatchOption}
+                                  key={player.id}
+                                  onClick={() => {
+                                    setSelectedPlayerByRequestId((prev) => ({
+                                      ...prev,
+                                      [request.id]: player.id,
+                                    }));
+                                    setPlayerQueryByRequestId((prev) => ({
+                                      ...prev,
+                                      [request.id]: label,
+                                    }));
+                                  }}
+                                  type="button"
+                                >
+                                  {label}
+                                </button>
+                              );
+                            })
+                          ) : (
+                            <p className={styles.playerSearchHint}>No hay invitados que coincidan.</p>
+                          )}
+                        </div>
+                      ) : null}
+
+                      {selectedPlayer && !query.trim() ? (
+                        <p className={styles.playerSearchHint}>
+                          Seleccionado: {selectedPlayer.nickname ?? selectedPlayer.name}
+                        </p>
+                      ) : null}
+                    </>
+                  );
+                })()}
+
+                <div className={styles.actionButtons}>
+                  <button
+                    className={buttonStyles.primary}
+                    disabled={linkingRequestId === request.id || deletingRequestId === request.id}
+                    onClick={async () => {
+                      const playerId = selectedPlayerByRequestId[request.id];
+                      if (!playerId) {
+                        sileo.warning({ title: 'Selecciona un invitado para vincular' });
+                        return;
+                      }
+
+                      setLinkingRequestId(request.id);
+                      try {
+                        await sileo.promise(apiClient.linkJoinRequest(tournamentId, request.id, { playerId }), {
+                          loading: { title: 'Vinculando solicitud...' },
+                          success: { title: 'Solicitud vinculada con exito' },
+                          error: { title: 'No se pudo vincular la solicitud' },
+                        });
+
+                        const [joinRequests, tournamentPlayers] = await Promise.all([
+                          apiClient.getTournamentJoinRequests(tournamentId),
+                          apiClient.getPlayers(tournamentId),
+                        ]);
+                        setRequests(joinRequests);
+                        setPlayers(tournamentPlayers.filter((player) => !player.userId));
+                      } finally {
+                        setLinkingRequestId(null);
+                      }
+                    }}
+                    type="button"
+                  >
+                    Vincular
+                  </button>
+
+                  {isOwner ? (
+                    <button
+                      className={buttonStyles.ghost}
+                      disabled={deletingRequestId === request.id || linkingRequestId === request.id}
+                      onClick={async () => {
+                        setDeletingRequestId(request.id);
+                        try {
+                          await sileo.promise(apiClient.removeJoinRequest(tournamentId, request.id), {
+                            loading: { title: 'Eliminando solicitud...' },
+                            success: { title: 'Solicitud eliminada' },
+                            error: { title: 'No se pudo eliminar la solicitud' },
+                          });
+
+                          const [joinRequests, tournamentPlayers] = await Promise.all([
+                            apiClient.getTournamentJoinRequests(tournamentId),
+                            apiClient.getPlayers(tournamentId),
+                          ]);
+                          setRequests(joinRequests);
+                          setPlayers(tournamentPlayers.filter((player) => !player.userId));
+                        } finally {
+                          setDeletingRequestId(null);
+                        }
+                      }}
+                      type="button"
+                    >
+                      Eliminar
+                    </button>
+                  ) : null}
+                </div>
               </div>
             </article>
           ))

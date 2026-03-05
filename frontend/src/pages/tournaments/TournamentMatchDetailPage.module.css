@@ -55,12 +55,6 @@
   background: transparent;
 }
 
-.inlineControls input[type='datetime-local']::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-  opacity: 1;
-  cursor: pointer;
-}
-
 .inlineControls select {
   background: var(--primary);
 }

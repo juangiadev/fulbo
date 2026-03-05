@@ -7,6 +7,7 @@ import {
   MatchPlayersTableBuilder,
   type MatchPlayersTableBuilderRef,
 } from "../../components/MatchPlayersTableBuilder";
+import { DateTimePicker } from "../../components/DateTimePicker";
 import { apiClient } from "../../api/client";
 import { useAppContext } from "../../state/AppContext";
 import buttonStyles from "../../styles/Button.module.css";
@@ -107,15 +108,11 @@ export function TournamentMatchFormPage() {
           />
         </label>
 
-        <label>
-          Fecha y hora
-          <input
-            onChange={(event) => setKickoffAt(event.target.value)}
-            required
-            type="datetime-local"
-            value={kickoffAt}
-          />
-        </label>
+        <DateTimePicker
+          label="Fecha y hora"
+          onChange={setKickoffAt}
+          value={kickoffAt}
+        />
       </article>
 
       <article className={styles.card}>

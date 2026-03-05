@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { sileo } from "sileo";
 import { ContentSpinner } from "../../components/ContentSpinner";
+import { DateTimePicker } from "../../components/DateTimePicker";
 import {
   MatchPlayersTableBuilder,
   type MatchPlayersTableBuilderRef,
@@ -157,14 +158,11 @@ export function TournamentMatchEditPage() {
               value={placeUrlDraft}
             />
           </label>
-          <label>
-            Fecha y hora
-            <input
-              onChange={(event) => setKickoffAtDraft(event.target.value)}
-              type="datetime-local"
-              value={kickoffAtDraft}
-            />
-          </label>
+          <DateTimePicker
+            label="Fecha y hora"
+            onChange={setKickoffAtDraft}
+            value={kickoffAtDraft}
+          />
         </div>
         <div className={styles.inlineControls}>
           <label>

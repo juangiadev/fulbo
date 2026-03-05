@@ -77,6 +77,16 @@ export class TournamentsController {
     );
   }
 
+  @Delete(':id/join-requests/:requestId')
+  async removeJoinRequest(
+    @Param('id') id: string,
+    @Param('requestId') requestId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    await this.tournamentsService.removeJoinRequest(id, requestId, user.sub);
+    return { success: true };
+  }
+
   @Patch(':id')
   update(
     @Param('id') id: string,

@@ -157,6 +157,10 @@ export const apiClient = {
       method: 'POST',
       body: JSON.stringify(input),
     }),
+  removeJoinRequest: (tournamentId: string, requestId: string) =>
+    request<{ success: true }>(`/tournaments/${tournamentId}/join-requests/${requestId}`, {
+      method: 'DELETE',
+    }),
   getMatches: (tournamentId: string) => request<MatchContract[]>(`/tournaments/${tournamentId}/matches`),
   createMatch: (
     tournamentId: string,
