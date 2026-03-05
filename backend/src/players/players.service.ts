@@ -256,6 +256,7 @@ export class PlayersService {
     player.userId = user.id;
     player.claimCodeHash = null;
     player.claimCodeExpiresAt = null;
+    this.fillPlayerProfileFromUser(player, user);
     return this.playersRepository.save(player);
   }
 
@@ -302,6 +303,7 @@ export class PlayersService {
     player.userId = user.id;
     player.claimCodeHash = null;
     player.claimCodeExpiresAt = null;
+    this.fillPlayerProfileFromUser(player, user);
 
     return this.playersRepository.save(player);
   }
@@ -342,6 +344,7 @@ export class PlayersService {
     player.userId = user.id;
     player.claimCodeHash = null;
     player.claimCodeExpiresAt = null;
+    this.fillPlayerProfileFromUser(player, user);
 
     return this.playersRepository.save(player);
   }
@@ -428,6 +431,33 @@ export class PlayersService {
     assertTournamentOwner(actor);
 
     await this.playersRepository.delete({ id: target.id });
+  }
+
+  private fillPlayerProfileFromUser(player: Player, user: User): void {
+    if (!player.name?.trim() && user.name) {
+      player.name = user.name;
+    }
+
+    if (!player.nickname && user.nickname) {
+      player.nickname = user.nickname;
+    }
+
+    if (!player.imageUrl && user.imageUrl) {
+      player.imageUrl = user.imageUrl;
+    }
+
+    if (!player.favoriteTeamSlug && user.favoriteTeamSlug) {
+      player.favoriteTeamSlug = user.favoriteTeamSlug;
+    }
+
+    if (
+      player.displayPreference === DisplayPreference.IMAGE &&
+      !player.imageUrl &&
+      user.displayPreference === DisplayPreference.FAVORITE_TEAM &&
+      user.favoriteTeamSlug
+    ) {
+      player.displayPreference = DisplayPreference.FAVORITE_TEAM;
+    }
   }
 
   private generateClaimCode(): string {

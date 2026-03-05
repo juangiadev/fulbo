@@ -6,7 +6,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createHash, randomBytes } from 'node:crypto';
-import { MatchStatus, PlayerRole, TeamResult } from '../../../shared/src/enums';
+import {
+  DisplayPreference,
+  MatchStatus,
+  PlayerRole,
+  TeamResult,
+} from '../../../shared/src/enums';
 import { Repository } from 'typeorm';
 import {
   Match,
@@ -267,11 +272,22 @@ export class TournamentsService {
       );
     }
 
-    return this.joinRequestsRepository.find({
+    const requests = await this.joinRequestsRepository.find({
       where: { tournamentId, status: JoinRequestStatus.PENDING },
       relations: { user: true },
       order: { createdAt: 'ASC' },
     });
+
+    return requests.map((request) => ({
+      id: request.id,
+      userId: request.userId,
+      user: {
+        id: request.user.id,
+        name: request.user.name,
+        email: request.user.email,
+      },
+      createdAt: request.createdAt,
+    }));
   }
 
   async linkJoinRequest(
@@ -321,6 +337,7 @@ export class TournamentsService {
     player.userId = request.userId;
     player.claimCodeHash = null;
     player.claimCodeExpiresAt = null;
+    this.fillPlayerProfileFromUser(player, request.user);
     await this.playersRepository.save(player);
 
     request.status = JoinRequestStatus.APPROVED;
@@ -545,6 +562,33 @@ export class TournamentsService {
       );
     }
     return user;
+  }
+
+  private fillPlayerProfileFromUser(player: Player, user: User): void {
+    if (!player.name?.trim() && user.name) {
+      player.name = user.name;
+    }
+
+    if (!player.nickname && user.nickname) {
+      player.nickname = user.nickname;
+    }
+
+    if (!player.imageUrl && user.imageUrl) {
+      player.imageUrl = user.imageUrl;
+    }
+
+    if (!player.favoriteTeamSlug && user.favoriteTeamSlug) {
+      player.favoriteTeamSlug = user.favoriteTeamSlug;
+    }
+
+    if (
+      player.displayPreference === DisplayPreference.IMAGE &&
+      !player.imageUrl &&
+      user.displayPreference === DisplayPreference.FAVORITE_TEAM &&
+      user.favoriteTeamSlug
+    ) {
+      player.displayPreference = DisplayPreference.FAVORITE_TEAM;
+    }
   }
 
   private generateToken(): string {

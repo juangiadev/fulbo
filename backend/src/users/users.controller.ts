@@ -17,11 +17,6 @@ export class UsersController {
     return FAVORITE_TEAMS;
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
-  }
-
   @Post('me/sync')
   syncMe(@CurrentUser() user: AuthUser, @Body() dto: SyncMeDto) {
     return this.usersService.syncMe(user, dto);

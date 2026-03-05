@@ -1,4 +1,4 @@
-import type { PlayerContract, TournamentSummaryContract, UserProfile } from '@shared/contracts';
+import type { PlayerContract, TournamentSummaryContract } from '@shared/contracts';
 import { FAVORITE_TEAMS } from '@shared/favorite-teams';
 import { DisplayPreference } from '@shared/enums';
 import { useEffect, useState } from 'react';
@@ -18,13 +18,12 @@ export function TournamentTablePage() {
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
 
-  const resolvePlayerVisual = (player: PlayerContract | undefined, users: UserProfile[]) => {
+  const resolvePlayerVisual = (player: PlayerContract | undefined) => {
     if (!player) {
       return { kind: 'fallback' as const, value: '?' };
     }
 
-    const linkedUser = users.find((user) => user.id === player.userId);
-    const imageUrl = player.imageUrl ?? linkedUser?.imageUrl ?? null;
+    const imageUrl = player.imageUrl ?? null;
 
     if (player.displayPreference === DisplayPreference.FAVORITE_TEAM) {
       const team = FAVORITE_TEAMS.find((item) => item.slug === player.favoriteTeamSlug);
@@ -102,7 +101,7 @@ export function TournamentTablePage() {
                     <div className={styles.playerCell}>
                       {(() => {
                         const player = players.find((item) => item.id === row.playerId);
-                        const visual = resolvePlayerVisual(player, data.users);
+                        const visual = resolvePlayerVisual(player);
                         if (visual.kind === 'image') {
                           return <img alt={visual.alt} className={styles.avatar} src={visual.value} />;
                         }

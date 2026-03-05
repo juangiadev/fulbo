@@ -52,7 +52,6 @@ const emptyUser: UserProfile = {
 };
 
 const emptyData: AppData = {
-  users: [],
   tournaments: [],
 };
 
@@ -136,13 +135,11 @@ export function AppProvider({ children }: PropsWithChildren) {
         nickname: user?.nickname,
         picture: user?.picture,
       });
-      const users = await apiClient.getUsers();
       if (cancelled) {
         return;
       }
 
       setCurrentUser(me);
-      setData((prev) => ({ ...prev, users }));
 
       const tournaments = await apiClient.getTournaments();
       if (cancelled) {
@@ -235,12 +232,6 @@ export function AppProvider({ children }: PropsWithChildren) {
   const updateProfile = useCallback(async (input: Partial<UserProfile>) => {
     const profile = await apiClient.updateMe(input);
     setCurrentUser(profile);
-    setData((prev) => ({
-      ...prev,
-      users: prev.users.map((user) =>
-        user.id === profile.id ? profile : user,
-      ),
-    }));
   }, []);
 
   const isAuthLoading = auth0Loading || (isAuthenticated && !isSessionReady);

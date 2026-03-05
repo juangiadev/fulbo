@@ -132,7 +132,6 @@ export const apiClient = {
   getMe: () => request<UserProfile>('/users/me'),
   updateMe: (input: Partial<UserProfile>) =>
     request<UserProfile>('/users/me', { method: 'PATCH', body: JSON.stringify(input) }),
-  getUsers: () => request<UserProfile[]>('/users'),
   getTournaments: () => request<TournamentContract[]>('/tournaments'),
   getTournament: (id: string) => request<TournamentContract>(`/tournaments/${id}`),
   getTournamentSummary: (id: string) => request<TournamentSummaryContract>(`/tournaments/${id}/summary`),

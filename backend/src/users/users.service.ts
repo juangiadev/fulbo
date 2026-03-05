@@ -118,7 +118,4 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  findAll(): Promise<User[]> {
-    return this.usersRepository.find({ order: { createdAt: 'ASC' } });
-  }
 }

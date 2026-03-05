@@ -1,7 +1,7 @@
 import { PlayerRole, TournamentVisibility } from '@shared/enums';
 import { DisplayPreference } from '@shared/enums';
 import { FAVORITE_TEAMS } from '@shared/favorite-teams';
-import type { PlayerContract, StandingRowContract, TournamentSummaryContract, UserProfile } from '@shared/contracts';
+import type { PlayerContract, StandingRowContract, TournamentSummaryContract } from '@shared/contracts';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
@@ -125,8 +125,7 @@ export function TournamentDetailsPage() {
       }
     }
 
-    const linkedUser = data.users.find((user: UserProfile) => user.id === player.userId);
-    return player.imageUrl ?? linkedUser?.imageUrl ?? null;
+    return player.imageUrl ?? null;
   };
 
   const leaderAutoImage = resolvePlayerBannerImage(summary?.leaderPlayerId);

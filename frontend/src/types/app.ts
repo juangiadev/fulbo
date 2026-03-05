@@ -1,6 +1,5 @@
-import type { TournamentContract, UserProfile } from '@shared/contracts';
+import type { TournamentContract } from '@shared/contracts';
 
 export interface AppData {
-  users: UserProfile[];
   tournaments: TournamentContract[];
 }
