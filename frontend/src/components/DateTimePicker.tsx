@@ -10,6 +10,15 @@ interface DateTimePickerProps {
 const WEEK_DAYS = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
 const QUICK_TIMES = ['18:00', '19:30', '21:00', '22:30'];
 
+function enqueueStateUpdate(callback: () => void): void {
+  if (typeof queueMicrotask === 'function') {
+    queueMicrotask(callback);
+    return;
+  }
+
+  void Promise.resolve().then(callback);
+}
+
 function pad(value: number): string {
   return String(value).padStart(2, '0');
 }
@@ -66,8 +75,20 @@ export function DateTimePicker({ label, value, onChange }: DateTimePickerProps) 
   });
 
   useEffect(() => {
+    let cancelled = false;
     const base = selectedDate ?? new Date();
-    setVisibleMonthDate(new Date(base.getFullYear(), base.getMonth(), 1));
+
+    enqueueStateUpdate(() => {
+      if (cancelled) {
+        return;
+      }
+
+      setVisibleMonthDate(new Date(base.getFullYear(), base.getMonth(), 1));
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [selectedDate]);
 
   useEffect(() => {

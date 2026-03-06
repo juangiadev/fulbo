@@ -24,6 +24,15 @@ function splitTeams(teams: TeamContract[]): { teamA: TeamContract | null; teamB:
   return { teamA: fallbackA, teamB: fallbackB };
 }
 
+function enqueueStateUpdate(callback: () => void): void {
+  if (typeof queueMicrotask === 'function') {
+    queueMicrotask(callback);
+    return;
+  }
+
+  void Promise.resolve().then(callback);
+}
+
 export function TournamentMatchDetailsPage() {
   const { tournamentId, matchId } = useParams();
   const { data } = useAppContext();
@@ -66,24 +75,61 @@ export function TournamentMatchDetailsPage() {
   }, [selectedMatch]);
 
   useEffect(() => {
+    let cancelled = false;
+
     if (!selectedMatch || selectedMatch.status !== MatchStatus.FINISHED) {
-      setMvpVoting(null);
-      setMvpVotingError(null);
-      setIsMvpLoading(false);
-      return;
+      enqueueStateUpdate(() => {
+        if (cancelled) {
+          return;
+        }
+
+        setMvpVoting(null);
+        setMvpVotingError(null);
+        setIsMvpLoading(false);
+      });
+
+      return () => {
+        cancelled = true;
+      };
     }
 
-    setIsMvpLoading(true);
-    setMvpVotingError(null);
+    enqueueStateUpdate(() => {
+      if (cancelled) {
+        return;
+      }
+
+      setIsMvpLoading(true);
+      setMvpVotingError(null);
+    });
 
     void apiClient
       .getMatchMvpVoting(selectedMatch.id)
-      .then(setMvpVoting)
+      .then((nextVoting) => {
+        if (cancelled) {
+          return;
+        }
+
+        setMvpVoting(nextVoting);
+      })
       .catch(() => {
+        if (cancelled) {
+          return;
+        }
+
         setMvpVoting(null);
         setMvpVotingError('Solo jugadores que participaron pueden votar el MVP.');
       })
-      .finally(() => setIsMvpLoading(false));
+      .finally(() => {
+        if (cancelled) {
+          return;
+        }
+
+        setIsMvpLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [selectedMatch]);
 
   const mvpCandidates = useMemo(
@@ -139,13 +185,16 @@ export function TournamentMatchDetailsPage() {
     [mvpVoting?.votes, players],
   );
 
+  const mvpPlayerId = mvpVoting?.mvpPlayerId ?? null;
+
   const mvpDisplayName = useMemo(() => {
-    if (!mvpVoting?.mvpPlayerId) {
+    if (!mvpPlayerId) {
       return null;
     }
-    const player = players.find((item) => item.id === mvpVoting.mvpPlayerId);
+
+    const player = players.find((item) => item.id === mvpPlayerId);
     return player?.nickname ?? player?.name ?? null;
-  }, [mvpVoting?.mvpPlayerId, players]);
+  }, [mvpPlayerId, players]);
 
   const resultSummary = useMemo(() => {
     const { teamA, teamB } = splitTeams(teams);
@@ -190,6 +239,12 @@ export function TournamentMatchDetailsPage() {
     return <Navigate replace to={`/tournaments/${tournamentId}/partidos`} />;
   }
 
+  const normalizedPlaceUrl = selectedMatch.placeUrl?.trim()
+    ? /^https?:\/\//i.test(selectedMatch.placeUrl.trim())
+      ? selectedMatch.placeUrl.trim()
+      : `https://${selectedMatch.placeUrl.trim()}`
+    : null;
+
   return (
     <section className={styles.section}>
       <div className={styles.headerRow}>
@@ -201,17 +256,14 @@ export function TournamentMatchDetailsPage() {
 
       <article className={styles.card}>
         <p className={styles.meta}>Cancha: {selectedMatch.stage}</p>
-        <p className={styles.meta}>Lugar: {selectedMatch.placeName}</p>
-        <p className={styles.meta}>
-          URL:{' '}
-          {selectedMatch.placeUrl ? (
-            <a className={styles.link} href={selectedMatch.placeUrl} rel="noreferrer" target="_blank">
-              {selectedMatch.placeUrl}
+        <div className={styles.metaRow}>
+          <p className={styles.meta}>Lugar: {selectedMatch.placeName}</p>
+          {normalizedPlaceUrl ? (
+            <a className={`${buttonStyles.ghost} ${styles.mapButton}`} href={normalizedPlaceUrl} rel="noreferrer" target="_blank">
+              Ver en mapa
             </a>
-          ) : (
-            'Sin URL'
-          )}
-        </p>
+          ) : null}
+        </div>
         <p className={styles.meta}>Fecha: {new Date(selectedMatch.kickoffAt).toLocaleString('es-AR')}</p>
         <p className={styles.meta}>Estado: {selectedMatch.status === MatchStatus.PENDING ? 'Pendiente' : 'Finalizado'}</p>
       </article>

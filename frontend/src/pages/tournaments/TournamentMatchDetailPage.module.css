@@ -24,10 +24,17 @@
   color: var(--text-soft);
 }
 
-.link {
-  color: var(--secondary);
-  text-decoration: underline;
-  text-underline-offset: 2px;
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.mapButton {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.85rem;
+  text-decoration: none;
 }
 
 .inlineControls {
