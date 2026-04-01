@@ -42,6 +42,7 @@ export function TournamentMatchesPage() {
     () =>
       [...matches].sort(
         (a, b) =>
+          b.matchday - a.matchday ||
           new Date(b.kickoffAt).getTime() - new Date(a.kickoffAt).getTime(),
       ),
     [matches],
@@ -88,10 +89,11 @@ export function TournamentMatchesPage() {
           orderedMatches.map((match) => (
             <article className={styles.matchCard} key={match.id}>
               <div>
-                <h3>{match.stage}</h3>
+                <h3>Fecha {match.matchday}</h3>
+                <p className={styles.meta}>Cancha: {match.stage}</p>
                 <p className={styles.meta}>Lugar: {match.placeName}</p>
                 <p className={styles.meta}>
-                  Fecha:{" "}
+                  Fecha y hora:{" "}
                   {new Date(match.kickoffAt).toLocaleString("es-AR", {
                     hour12: false,
                   })}

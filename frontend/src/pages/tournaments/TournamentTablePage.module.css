@@ -35,6 +35,13 @@
     display: flex;
     align-items: center;
     gap: 0.45rem;
+    min-width: 0;
+}
+
+.playerName {
+    flex: 1;
+    min-width: 0;
+    font-size: inherit;
 }
 
 .positionCell {
@@ -53,6 +60,7 @@
 .avatarFallback {
     width: 53px;
     height: 53px;
+    flex-shrink: 0;
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.25);
     object-fit: cover;
@@ -70,6 +78,7 @@
 .avatarTeam {
     width: 53px;
     height: 53px;
+    flex-shrink: 0;
     object-fit: contain;
 }
 
@@ -94,8 +103,50 @@
     }
 
     .table {
+        width: 100%;
+        min-width: 0;
         border-collapse: separate;
         border-spacing: 0;
+        table-layout: fixed;
+        font-size: 0.82rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.45rem 0.35rem;
+    }
+
+    .playerCell {
+        gap: 0.3rem;
+    }
+
+    .playerName {
+        display: block;
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.82rem;
+    }
+
+    .positionCell {
+        gap: 0.25rem;
+    }
+
+    .table th:nth-child(1),
+    .table td:nth-child(1) {
+        width: 54px;
+    }
+
+    .table th:nth-child(2),
+    .table td:nth-child(2) {
+        width: 140px;
+    }
+
+    .table th:nth-child(n + 3),
+    .table td:nth-child(n + 3) {
+        width: 34px;
+        text-align: center;
     }
 
     .table thead th {
@@ -107,32 +158,16 @@
         box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.12);
     }
 
-    .table th:nth-child(2),
-    .table td:nth-child(2) {
-        position: -webkit-sticky;
-        position: sticky;
-        left: 0;
-        z-index: 2;
-        background: #173324;
-        box-shadow:
-            inset -1px 0 0 rgba(255, 255, 255, 0.12),
-            inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+    .topScorerIcon,
+    .avatar,
+    .avatarFallback,
+    .avatarTeam {
+        width: 24px;
+        height: 24px;
     }
 
-    .table thead th:nth-child(2) {
-        z-index: 4;
-    }
-
-    .firstPlace td:nth-child(2) {
-        background: #374a1f;
-    }
-
-    .secondPlace td:nth-child(2) {
-        background: #32493d;
-    }
-
-    .thirdPlace td:nth-child(2) {
-        background: #343f26;
+    .avatarFallback {
+        font-size: 0.62rem;
     }
 }
 

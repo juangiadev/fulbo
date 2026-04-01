@@ -22,6 +22,7 @@ export function TournamentMatchEditPage() {
   const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [status, setStatus] = useState<MatchStatus>(MatchStatus.PENDING);
+  const [matchdayDraft, setMatchdayDraft] = useState("");
   const [stageDraft, setStageDraft] = useState("");
   const [placeNameDraft, setPlaceNameDraft] = useState("");
   const [placeUrlDraft, setPlaceUrlDraft] = useState("");
@@ -75,6 +76,7 @@ export function TournamentMatchEditPage() {
       .slice(0, 16);
 
     setStatus(selectedMatch.status);
+    setMatchdayDraft(String(selectedMatch.matchday));
     setStageDraft(selectedMatch.stage);
     setPlaceNameDraft(selectedMatch.placeName);
     setPlaceUrlDraft(selectedMatch.placeUrl ?? "");
@@ -134,6 +136,17 @@ export function TournamentMatchEditPage() {
 
       <article className={styles.card}>
         <div className={styles.inlineControls}>
+          <label>
+            Fecha
+            <input
+              inputMode="numeric"
+              min={1}
+              onChange={(event) => setMatchdayDraft(event.target.value)}
+              required
+              type="number"
+              value={matchdayDraft}
+            />
+          </label>
           <label>
             Cancha
             <input
@@ -222,11 +235,18 @@ export function TournamentMatchEditPage() {
             return;
           }
 
+          const parsedMatchday = Number(matchdayDraft);
+          if (!Number.isInteger(parsedMatchday) || parsedMatchday < 1) {
+            sileo.warning({ title: "La fecha del torneo debe ser un número mayor a 0" });
+            return;
+          }
+
           setIsSavingAll(true);
           try {
             await sileo.promise(
               (async () => {
                 const updated = await apiClient.updateMatch(selectedMatch.id, {
+                  matchday: parsedMatchday,
                   status,
                   stage: stageDraft.trim(),
                   placeName: placeNameDraft.trim(),

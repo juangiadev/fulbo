@@ -1,4 +1,5 @@
 import type {
+  CreateMatchPayload,
   MatchContract,
   MatchMvpVotingContract,
   PlayerContract,
@@ -6,6 +7,7 @@ import type {
   TeamContract,
   TournamentContract,
   TournamentSummaryContract,
+  UpdateMatchPayload,
   UserProfile,
 } from '@shared/contracts';
 
@@ -162,15 +164,7 @@ export const apiClient = {
       method: 'DELETE',
     }),
   getMatches: (tournamentId: string) => request<MatchContract[]>(`/tournaments/${tournamentId}/matches`),
-  createMatch: (
-    tournamentId: string,
-    input: {
-      placeName: string;
-      placeUrl?: string;
-      kickoffAt: string;
-      stage: string;
-    },
-  ) =>
+  createMatch: (tournamentId: string, input: CreateMatchPayload) =>
     request<MatchContract>(`/tournaments/${tournamentId}/matches`, {
       method: 'POST',
       body: JSON.stringify(input),
@@ -190,16 +184,7 @@ export const apiClient = {
       method: 'POST',
       body: JSON.stringify(input),
     }),
-  updateMatch: (
-    matchId: string,
-    input: {
-      placeName?: string;
-      placeUrl?: string;
-      kickoffAt?: string;
-      stage?: string;
-      status?: string;
-    },
-  ) =>
+  updateMatch: (matchId: string, input: UpdateMatchPayload) =>
     request<MatchContract>(`/matches/${matchId}`, {
       method: 'PATCH',
       body: JSON.stringify(input),

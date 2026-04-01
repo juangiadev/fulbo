@@ -78,11 +78,11 @@ export function MatchPlayersTableReadonly({ matchId, players }: MatchPlayersTabl
           {data.rows.map((row, index) => (
             <tr key={`readonly-row-${index + 1}`}>
               <td className={styles.goalsCol} style={{ backgroundColor: withAlpha(data.teamAColor, '33') }}>{row.teamA?.goals ?? 0}</td>
-              <td className={styles.teamACol} style={{ backgroundColor: withAlpha(data.teamAColor, '33') }}>
-                {row.teamA?.player?.nickname ?? row.teamA?.player?.name ?? '-'}
+              <td className={`${styles.teamACol} ${styles.playerCell}`} style={{ backgroundColor: withAlpha(data.teamAColor, '33') }}>
+                <span className={styles.playerName}>{row.teamA?.player?.nickname ?? row.teamA?.player?.name ?? '-'}</span>
               </td>
-              <td style={{ backgroundColor: withAlpha(data.teamBColor, '33') }}>
-                {row.teamB?.player?.nickname ?? row.teamB?.player?.name ?? '-'}
+              <td className={styles.playerCell} style={{ backgroundColor: withAlpha(data.teamBColor, '33') }}>
+                <span className={styles.playerName}>{row.teamB?.player?.nickname ?? row.teamB?.player?.name ?? '-'}</span>
               </td>
               <td className={styles.goalsCol} style={{ backgroundColor: withAlpha(data.teamBColor, '33') }}>{row.teamB?.goals ?? 0}</td>
             </tr>

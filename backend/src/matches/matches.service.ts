@@ -12,7 +12,13 @@ import {
   assertTournamentEditor,
   assertTournamentOwner,
 } from '../common/player-role.utils';
-import { Match, MatchMvpVote, Player, PlayerTeam, Team } from '../database/entities';
+import {
+  Match,
+  MatchMvpVote,
+  Player,
+  PlayerTeam,
+  Team,
+} from '../database/entities';
 import { TournamentsService } from '../tournaments/tournaments.service';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { UpsertMatchLineupDto } from './dto/upsert-match-lineup.dto';
@@ -37,7 +43,7 @@ export class MatchesService {
     return this.matchesRepository.find({
       where: { tournamentId },
       relations: { teams: true },
-      order: { kickoffAt: 'ASC' },
+      order: { matchday: 'ASC', kickoffAt: 'ASC' },
     });
   }
 
@@ -51,8 +57,10 @@ export class MatchesService {
       auth0Id,
     );
     assertTournamentEditor(actor);
+    const matchday = dto.matchday ?? (await this.getNextMatchday(tournamentId));
     const match = this.matchesRepository.create({
       ...dto,
+      matchday,
       kickoffAt: new Date(dto.kickoffAt),
       status: MatchStatus.PENDING,
       tournamentId,
@@ -299,10 +307,8 @@ export class MatchesService {
     auth0Id: string,
     dto: VoteMatchMvpDto,
   ): Promise<MatchMvpVotingContract> {
-    const { actorPlayerId, participantIds } = await this.resolveMvpVotingContext(
-      matchId,
-      auth0Id,
-    );
+    const { actorPlayerId, participantIds } =
+      await this.resolveMvpVotingContext(matchId, auth0Id);
 
     if (dto.votedPlayerId && !participantIds.includes(dto.votedPlayerId)) {
       throw new BadRequestException('MVP vote must target a participant');
@@ -332,7 +338,9 @@ export class MatchesService {
       await this.recomputeMatchMvp(matchId, manager);
     });
 
-    const match = await this.matchesRepository.findOne({ where: { id: matchId } });
+    const match = await this.matchesRepository.findOne({
+      where: { id: matchId },
+    });
     if (!match) {
       throw new NotFoundException('Match not found');
     }
@@ -349,7 +357,9 @@ export class MatchesService {
     }
 
     if (match.status !== MatchStatus.FINISHED) {
-      throw new BadRequestException('MVP voting is only enabled for finished matches');
+      throw new BadRequestException(
+        'MVP voting is only enabled for finished matches',
+      );
     }
 
     const actor = await this.tournamentsService.findActorForTournament(
@@ -360,7 +370,9 @@ export class MatchesService {
     const participantIds = await this.getParticipantIds(matchId);
 
     if (!participantIds.includes(actor.id)) {
-      throw new ForbiddenException('Only players who participated can vote MVP');
+      throw new ForbiddenException(
+        'Only players who participated can vote MVP',
+      );
     }
 
     return {
@@ -368,6 +380,16 @@ export class MatchesService {
       actorPlayerId: actor.id,
       participantIds,
     };
+  }
+
+  private async getNextMatchday(tournamentId: string): Promise<number> {
+    const raw = await this.matchesRepository
+      .createQueryBuilder('match')
+      .select('COALESCE(MAX(match.matchday), 0) + 1', 'nextMatchday')
+      .where('match.tournamentId = :tournamentId', { tournamentId })
+      .getRawOne<{ nextMatchday: string | number }>();
+
+    return Number(raw?.nextMatchday ?? 1);
   }
 
   private async getParticipantIds(matchId: string): Promise<string[]> {
@@ -385,7 +407,9 @@ export class MatchesService {
     matchId: string,
     manager: EntityManager,
   ): Promise<void> {
-    const votes = await manager.getRepository(MatchMvpVote).find({ where: { matchId } });
+    const votes = await manager
+      .getRepository(MatchMvpVote)
+      .find({ where: { matchId } });
 
     const counts = votes.reduce<Map<string, number>>((accumulator, vote) => {
       accumulator.set(
@@ -401,7 +425,8 @@ export class MatchesService {
 
     const hasTie =
       ordered.length > 1 && ordered[0].votesCount === ordered[1].votesCount;
-    const mvpPlayerId = ordered.length > 0 && !hasTie ? ordered[0].playerId : null;
+    const mvpPlayerId =
+      ordered.length > 0 && !hasTie ? ordered[0].playerId : null;
 
     await manager.getRepository(Match).update({ id: matchId }, { mvpPlayerId });
   }
@@ -416,10 +441,14 @@ export class MatchesService {
       order: { updatedAt: 'ASC' },
     });
 
-    const votesByPlayerId = votes.reduce<Record<string, number>>((accumulator, vote) => {
-      accumulator[vote.votedPlayerId] = (accumulator[vote.votedPlayerId] ?? 0) + 1;
-      return accumulator;
-    }, {});
+    const votesByPlayerId = votes.reduce<Record<string, number>>(
+      (accumulator, vote) => {
+        accumulator[vote.votedPlayerId] =
+          (accumulator[vote.votedPlayerId] ?? 0) + 1;
+        return accumulator;
+      },
+      {},
+    );
 
     const ordered = Object.entries(votesByPlayerId)
       .map(([playerId, votesCount]) => ({ playerId, votesCount }))
@@ -429,7 +458,8 @@ export class MatchesService {
       ordered.length > 1 && ordered[0].votesCount === ordered[1].votesCount;
     const computedMvpPlayerId =
       ordered.length > 0 && !hasTie ? ordered[0].playerId : null;
-    const myVote = votes.find((vote) => vote.voterPlayerId === actorPlayerId) ?? null;
+    const myVote =
+      votes.find((vote) => vote.voterPlayerId === actorPlayerId) ?? null;
 
     return {
       matchId: match.id,

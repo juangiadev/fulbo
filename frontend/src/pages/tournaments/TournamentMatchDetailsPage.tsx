@@ -255,6 +255,7 @@ export function TournamentMatchDetailsPage() {
       </div>
 
       <article className={styles.card}>
+        <p className={styles.meta}>Fecha {selectedMatch.matchday}</p>
         <p className={styles.meta}>Cancha: {selectedMatch.stage}</p>
         <div className={styles.metaRow}>
           <p className={styles.meta}>Lugar: {selectedMatch.placeName}</p>
@@ -264,7 +265,7 @@ export function TournamentMatchDetailsPage() {
             </a>
           ) : null}
         </div>
-        <p className={styles.meta}>Fecha: {new Date(selectedMatch.kickoffAt).toLocaleString('es-AR')}</p>
+        <p className={styles.meta}>Fecha y hora: {new Date(selectedMatch.kickoffAt).toLocaleString('es-AR')}</p>
         <p className={styles.meta}>Estado: {selectedMatch.status === MatchStatus.PENDING ? 'Pendiente' : 'Finalizado'}</p>
       </article>
 

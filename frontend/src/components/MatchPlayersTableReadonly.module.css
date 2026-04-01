@@ -32,7 +32,38 @@
   text-align: right !important;
 }
 
+.playerCell {
+  min-width: 0;
+}
+
+.playerName {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .muted {
   margin: 0;
   color: var(--text-soft);
+}
+
+@media (max-width: 550px) {
+  .table {
+    min-width: 0;
+    font-size: 0.9rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.55rem 0.4rem;
+  }
+
+  .goalsCol {
+    width: 12%;
+  }
+
+  .teamCol {
+    width: 38%;
+  }
 }

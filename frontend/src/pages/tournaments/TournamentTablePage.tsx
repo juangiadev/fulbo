@@ -112,7 +112,7 @@ export function TournamentTablePage() {
 
                         return <span className={styles.avatarFallback}>{visual.value}</span>;
                       })()}
-                      <span>{row.displayName}</span>
+                      <span className={styles.playerName}>{row.displayName}</span>
                     </div>
                   </td>
                   <td>{row.mvp}</td>

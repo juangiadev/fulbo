@@ -21,6 +21,9 @@ export class Match {
   @Column('uuid')
   tournamentId: string;
 
+  @Column({ type: 'int' })
+  matchday: number;
+
   @Column()
   placeName: string;
 

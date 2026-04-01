@@ -21,6 +21,7 @@ export function TournamentMatchFormPage() {
   const [placeName, setPlaceName] = useState("");
   const [placeUrl, setPlaceUrl] = useState("");
   const [kickoffAt, setKickoffAt] = useState("");
+  const [matchday, setMatchday] = useState("");
   const [stage, setStage] = useState("");
   const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,6 +83,18 @@ export function TournamentMatchFormPage() {
 
       <article className={styles.form}>
         <label>
+          Fecha
+          <input
+            inputMode="numeric"
+            min={1}
+            onChange={(event) => setMatchday(event.target.value)}
+            placeholder="Se autocalcula si lo dejás vacío"
+            type="number"
+            value={matchday}
+          />
+        </label>
+
+        <label>
           Cancha
           <input
             onChange={(event) => setStage(event.target.value)}
@@ -141,7 +154,16 @@ export function TournamentMatchFormPage() {
             return;
           }
 
+          if (matchday.trim()) {
+            const parsedMatchday = Number(matchday);
+            if (!Number.isInteger(parsedMatchday) || parsedMatchday < 1) {
+              sileo.warning({ title: "La fecha del torneo debe ser un número mayor a 0" });
+              return;
+            }
+          }
+
           const payload = {
+            ...(matchday.trim() ? { matchday: Number(matchday) } : {}),
             placeName: placeName.trim(),
             kickoffAt: kickoffDate.toISOString(),
             stage: stage.trim(),

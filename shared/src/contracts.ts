@@ -73,6 +73,7 @@ export interface TournamentSummaryContract {
 export interface MatchContract {
   id: string;
   tournamentId: string;
+  matchday: number;
   placeName: string;
   placeUrl: string | null;
   kickoffAt: string;
@@ -81,6 +82,23 @@ export interface MatchContract {
   mvpPlayerId: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreateMatchPayload {
+  matchday?: number;
+  placeName: string;
+  placeUrl?: string;
+  kickoffAt: string;
+  stage: string;
+}
+
+export interface UpdateMatchPayload {
+  matchday?: number;
+  placeName?: string;
+  placeUrl?: string;
+  kickoffAt?: string;
+  stage?: string;
+  status?: MatchStatus;
 }
 
 export interface MatchMvpVoteContract {
