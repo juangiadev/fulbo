@@ -31,6 +31,25 @@
   gap: 0.75rem;
 }
 
+.templateHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.templateActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.templateMeta {
+  margin: 0;
+  color: var(--text-soft);
+}
+
 .form label {
   display: grid;
   gap: 0.35rem;
@@ -62,4 +81,20 @@
 .actions > * {
   flex: 1;
   text-align: center;
+}
+
+@media (max-width: 760px) {
+  .templateHeader {
+    flex-direction: column;
+  }
+
+  .templateActions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .templateActions > * {
+    flex: 1;
+    text-align: center;
+  }
 }

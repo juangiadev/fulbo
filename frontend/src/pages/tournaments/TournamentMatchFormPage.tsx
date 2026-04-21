@@ -1,17 +1,71 @@
 import { PlayerRole } from "@shared/enums";
-import type { PlayerContract } from "@shared/contracts";
+import type {
+  MatchContract,
+  PlayerContract,
+  TeamContract,
+} from "@shared/contracts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { sileo } from "sileo";
 import {
   MatchPlayersTableBuilder,
   type MatchPlayersTableBuilderRef,
+  type MatchPlayersTableTemplateConfig,
 } from "../../components/MatchPlayersTableBuilder";
 import { DateTimePicker } from "../../components/DateTimePicker";
 import { apiClient } from "../../api/client";
 import { useAppContext } from "../../state/AppContext";
 import buttonStyles from "../../styles/Button.module.css";
 import styles from "./TournamentMatchFormPage.module.css";
+
+interface MatchCreationTemplate {
+  sourceLabel: string;
+  placeName: string;
+  placeUrl: string;
+  stage: string;
+  teamConfig: MatchPlayersTableTemplateConfig;
+}
+
+const DEFAULT_PLAYERS_PER_TEAM = 5;
+
+function splitTemplateTeams(teams: TeamContract[]): {
+  teamA: TeamContract | null;
+  teamB: TeamContract | null;
+} {
+  const byNameA = teams.find((team) => team.name === "Team A") ?? null;
+  const byNameB = teams.find((team) => team.name === "Team B") ?? null;
+  const fallbackA = byNameA ?? teams[0] ?? null;
+  const fallbackB =
+    byNameB ?? teams.find((team) => team.id !== fallbackA?.id) ?? null;
+
+  return { teamA: fallbackA, teamB: fallbackB };
+}
+
+function buildTemplateFromMatch(
+  match: MatchContract,
+  teams: TeamContract[],
+): MatchCreationTemplate {
+  const { teamA, teamB } = splitTemplateTeams(teams);
+  const playersPerTeam = Math.max(
+    teamA?.playerTeams?.length ?? 0,
+    teamB?.playerTeams?.length ?? 0,
+    DEFAULT_PLAYERS_PER_TEAM,
+  );
+
+  return {
+    sourceLabel: `Fecha ${match.matchday} · ${match.stage}`,
+    placeName: match.placeName,
+    placeUrl: match.placeUrl ?? "",
+    stage: match.stage,
+    teamConfig: {
+      playersPerTeam,
+      teamAName: teamA?.name ?? "Team A",
+      teamBName: teamB?.name ?? "Team B",
+      teamAColor: teamA?.color ?? "#0b2818",
+      teamBColor: teamB?.color ?? "#f2f2f2",
+    },
+  };
+}
 
 export function TournamentMatchFormPage() {
   const { tournamentId } = useParams();
@@ -24,6 +78,11 @@ export function TournamentMatchFormPage() {
   const [matchday, setMatchday] = useState("");
   const [stage, setStage] = useState("");
   const [players, setPlayers] = useState<PlayerContract[]>([]);
+  const [lastMatchTemplate, setLastMatchTemplate] =
+    useState<MatchCreationTemplate | null>(null);
+  const [appliedTemplateConfig, setAppliedTemplateConfig] =
+    useState<MatchPlayersTableTemplateConfig | null>(null);
+  const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const tableRef = useRef<MatchPlayersTableBuilderRef | null>(null);
 
@@ -36,10 +95,60 @@ export function TournamentMatchFormPage() {
       return;
     }
 
-    void apiClient
-      .getPlayers(tournamentId)
-      .then(setPlayers)
-      .catch(() => setPlayers([]));
+    let isActive = true;
+    setIsLoadingTemplate(true);
+    setAppliedTemplateConfig(null);
+    setLastMatchTemplate(null);
+
+    void (async () => {
+      try {
+        const [nextPlayers, matches] = await Promise.all([
+          apiClient.getPlayers(tournamentId),
+          apiClient.getMatches(tournamentId),
+        ]);
+
+        if (!isActive) {
+          return;
+        }
+
+        setPlayers(nextPlayers);
+
+        const lastCreatedMatch = [...matches].sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        )[0];
+
+        if (!lastCreatedMatch) {
+          setLastMatchTemplate(null);
+          return;
+        }
+
+        const teams = await apiClient
+          .getTeamsByMatch(lastCreatedMatch.id)
+          .catch(() => [] as TeamContract[]);
+
+        if (!isActive) {
+          return;
+        }
+
+        setLastMatchTemplate(buildTemplateFromMatch(lastCreatedMatch, teams));
+      } catch {
+        if (!isActive) {
+          return;
+        }
+
+        setPlayers([]);
+        setLastMatchTemplate(null);
+      } finally {
+        if (isActive) {
+          setIsLoadingTemplate(false);
+        }
+      }
+    })();
+
+    return () => {
+      isActive = false;
+    };
   }, [tournamentId]);
 
   const tournament = useMemo(
@@ -51,6 +160,8 @@ export function TournamentMatchFormPage() {
   const canCreate = [PlayerRole.OWNER, PlayerRole.ADMIN].includes(
     role ?? PlayerRole.USER,
   );
+
+  const hasAppliedTemplate = Boolean(appliedTemplateConfig);
 
   if (
     !tournamentId ||
@@ -80,6 +191,59 @@ export function TournamentMatchFormPage() {
           Volver
         </Link>
       </div>
+
+      {lastMatchTemplate ? (
+        <article className={styles.card}>
+          <div className={styles.templateHeader}>
+            <div>
+              <h3>Usar último partido como plantilla</h3>
+              <p className={styles.templateMeta}>
+                {lastMatchTemplate.sourceLabel} · {lastMatchTemplate.placeName}
+              </p>
+            </div>
+            <div className={styles.templateActions}>
+              <button
+                className={buttonStyles.primary}
+                onClick={() => {
+                  setStage(lastMatchTemplate.stage);
+                  setPlaceName(lastMatchTemplate.placeName);
+                  setPlaceUrl(lastMatchTemplate.placeUrl);
+                  setAppliedTemplateConfig({ ...lastMatchTemplate.teamConfig });
+                }}
+                type="button"
+              >
+                Usar plantilla
+              </button>
+              <button
+                className={buttonStyles.ghost}
+                disabled={!hasAppliedTemplate}
+                onClick={() => {
+                  setStage("");
+                  setPlaceName("");
+                  setPlaceUrl("");
+                  setAppliedTemplateConfig(null);
+                }}
+                type="button"
+              >
+                Limpiar plantilla
+              </button>
+            </div>
+          </div>
+          <p className={styles.templateMeta}>
+            Copia cancha, lugar, URL, nombres y colores de equipos, y cantidad
+            de jugadores por equipo. La fecha, la hora, la fecha del torneo y
+            los jugadores quedan vacíos.
+          </p>
+        </article>
+      ) : null}
+
+      {!lastMatchTemplate && !isLoadingTemplate ? (
+        <article className={styles.card}>
+          <p className={styles.templateMeta}>
+            Todavía no hay un partido anterior para usar como plantilla.
+          </p>
+        </article>
+      ) : null}
 
       <article className={styles.form}>
         <label>
@@ -135,6 +299,7 @@ export function TournamentMatchFormPage() {
           players={players}
           ref={tableRef}
           showSaveButton={false}
+          templateConfig={appliedTemplateConfig}
         />
       </article>
 

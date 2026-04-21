@@ -30,6 +30,7 @@ interface MatchPlayersTableBuilderProps {
   canEdit: boolean;
   matchId?: string;
   showSaveButton?: boolean;
+  templateConfig?: MatchPlayersTableTemplateConfig | null;
   onSummaryChange?: (summary: {
     teamAName: string;
     teamBName: string;
@@ -44,6 +45,20 @@ export interface MatchPlayersTableBuilderRef {
   saveLineup: () => Promise<void>;
   saveLineupForMatch: (targetMatchId: string) => Promise<void>;
 }
+
+export interface MatchPlayersTableTemplateConfig {
+  playersPerTeam: number;
+  teamAName: string;
+  teamBName: string;
+  teamAColor: string;
+  teamBColor: string;
+}
+
+const DEFAULT_TEAM_A_NAME = "Team A";
+const DEFAULT_TEAM_B_NAME = "Team B";
+const DEFAULT_TEAM_A_COLOR = "#0b2818";
+const DEFAULT_TEAM_B_COLOR = "#f2f2f2";
+const DEFAULT_PLAYERS_PER_TEAM = 5;
 
 const createRows = (playersPerTeam: number): RowItem[] =>
   Array.from({ length: playersPerTeam }, (_, index) => ({
@@ -78,19 +93,24 @@ export const MatchPlayersTableBuilder = forwardRef<
     canEdit,
     matchId,
     showSaveButton = true,
+    templateConfig = null,
     onSummaryChange,
   }: MatchPlayersTableBuilderProps,
   ref,
 ) {
-  const [playersPerTeam, setPlayersPerTeam] = useState<number>(5);
-  const [rows, setRows] = useState<RowItem[]>(createRows(5));
+  const [playersPerTeam, setPlayersPerTeam] = useState<number>(
+    DEFAULT_PLAYERS_PER_TEAM,
+  );
+  const [rows, setRows] = useState<RowItem[]>(
+    createRows(DEFAULT_PLAYERS_PER_TEAM),
+  );
   const [search, setSearch] = useState("");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [availablePlayerIds, setAvailablePlayerIds] = useState<string[]>([]);
-  const [teamAName, setTeamAName] = useState("Team A");
-  const [teamBName, setTeamBName] = useState("Team B");
-  const [teamAColor, setTeamAColor] = useState("#0b2818");
-  const [teamBColor, setTeamBColor] = useState("#f2f2f2");
+  const [teamAName, setTeamAName] = useState(DEFAULT_TEAM_A_NAME);
+  const [teamBName, setTeamBName] = useState(DEFAULT_TEAM_B_NAME);
+  const [teamAColor, setTeamAColor] = useState(DEFAULT_TEAM_A_COLOR);
+  const [teamBColor, setTeamBColor] = useState(DEFAULT_TEAM_B_COLOR);
   const [isLoadingLineup, setIsLoadingLineup] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -192,10 +212,10 @@ export const MatchPlayersTableBuilder = forwardRef<
         setPlayersPerTeam(count);
         setSelectedPlayerIds(assignedIds);
         setAvailablePlayerIds([]);
-        setTeamAName(teamA?.name ?? "Team A");
-        setTeamBName(teamB?.name ?? "Team B");
-        setTeamAColor(teamA?.color ?? "#0b2818");
-        setTeamBColor(teamB?.color ?? "#f2f2f2");
+        setTeamAName(teamA?.name ?? DEFAULT_TEAM_A_NAME);
+        setTeamBName(teamB?.name ?? DEFAULT_TEAM_B_NAME);
+        setTeamAColor(teamA?.color ?? DEFAULT_TEAM_A_COLOR);
+        setTeamBColor(teamB?.color ?? DEFAULT_TEAM_B_COLOR);
       })
       .finally(() => {
         if (isActive) {
@@ -207,6 +227,27 @@ export const MatchPlayersTableBuilder = forwardRef<
       isActive = false;
     };
   }, [matchId]);
+
+  useEffect(() => {
+    if (matchId) {
+      return;
+    }
+
+    const nextPlayersPerTeam = Math.max(
+      1,
+      templateConfig?.playersPerTeam ?? DEFAULT_PLAYERS_PER_TEAM,
+    );
+
+    setPlayersPerTeam(nextPlayersPerTeam);
+    setRows(createRows(nextPlayersPerTeam));
+    setSelectedPlayerIds([]);
+    setAvailablePlayerIds([]);
+    setSearch("");
+    setTeamAName(templateConfig?.teamAName ?? DEFAULT_TEAM_A_NAME);
+    setTeamBName(templateConfig?.teamBName ?? DEFAULT_TEAM_B_NAME);
+    setTeamAColor(templateConfig?.teamAColor ?? DEFAULT_TEAM_A_COLOR);
+    setTeamBColor(templateConfig?.teamBColor ?? DEFAULT_TEAM_B_COLOR);
+  }, [matchId, templateConfig]);
 
   const movePlayer = (playerId: string, rowId: string, side: "A" | "B") => {
     if (!selectedPlayerIds.includes(playerId)) {
@@ -323,8 +364,8 @@ export const MatchPlayersTableBuilder = forwardRef<
         }));
 
       if (
-        (teamAName.trim() || "Team A").toLowerCase() ===
-        (teamBName.trim() || "Team B").toLowerCase()
+        (teamAName.trim() || DEFAULT_TEAM_A_NAME).toLowerCase() ===
+        (teamBName.trim() || DEFAULT_TEAM_B_NAME).toLowerCase()
       ) {
         sileo.warning({ title: "Los nombres de equipos deben ser distintos" });
         return;
@@ -332,8 +373,8 @@ export const MatchPlayersTableBuilder = forwardRef<
 
       const persistLineup = async () => {
         await apiClient.upsertMatchLineup(effectiveMatchId, {
-          teamAName: teamAName.trim() || "Team A",
-          teamBName: teamBName.trim() || "Team B",
+          teamAName: teamAName.trim() || DEFAULT_TEAM_A_NAME,
+          teamBName: teamBName.trim() || DEFAULT_TEAM_B_NAME,
           teamAColor,
           teamBColor,
           teamA: desiredA,
@@ -580,10 +621,10 @@ export const MatchPlayersTableBuilder = forwardRef<
                 Goles
               </th>
               <th className={styles.teamACol} style={{ backgroundColor: withAlpha(teamAColor, "66") }}>
-                {(teamAName.trim() || "Team A") + ` (${teamAAbilitySum})`}
+                 {(teamAName.trim() || DEFAULT_TEAM_A_NAME) + ` (${teamAAbilitySum})`}
               </th>
               <th style={{ backgroundColor: withAlpha(teamBColor, "66") }}>
-                {(teamBName.trim() || "Team B") + ` (${teamBAbilitySum})`}
+                 {(teamBName.trim() || DEFAULT_TEAM_B_NAME) + ` (${teamBAbilitySum})`}
               </th>
               <th className={styles.goalsCol} style={{ backgroundColor: withAlpha(teamBColor, "66") }}>
                 Goles
