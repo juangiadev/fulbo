@@ -2,6 +2,7 @@ import type {
   CreateMatchPayload,
   MatchContract,
   MatchMvpVotingContract,
+  MatchPlayersRecentFormContract,
   PlayerContract,
   PlayerTeamContract,
   TeamContract,
@@ -194,6 +195,8 @@ export const apiClient = {
       method: 'DELETE',
     }),
   getTeamsByMatch: (matchId: string) => request<TeamContract[]>(`/matches/${matchId}/teams`),
+  getMatchPlayersRecentForm: (matchId: string) =>
+    request<MatchPlayersRecentFormContract>(`/matches/${matchId}/player-last-five`),
   getMatchMvpVoting: (matchId: string) =>
     request<MatchMvpVotingContract>(`/matches/${matchId}/mvp`),
   voteMatchMvp: (matchId: string, input: { votedPlayerId: string | null }) =>

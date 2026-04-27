@@ -55,7 +55,10 @@ export class MatchesController {
   }
 
   @Get('matches/:matchId/mvp')
-  getMvpVoting(@Param('matchId') matchId: string, @CurrentUser() user: AuthUser) {
+  getMvpVoting(
+    @Param('matchId') matchId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
     return this.matchesService.getMvpVoting(matchId, user.sub);
   }
 
@@ -66,6 +69,14 @@ export class MatchesController {
     @Body() dto: VoteMatchMvpDto,
   ) {
     return this.matchesService.voteMvp(matchId, user.sub, dto);
+  }
+
+  @Get('matches/:matchId/player-last-five')
+  getPlayersLastFive(
+    @Param('matchId') matchId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.matchesService.getPlayersRecentForm(matchId, user.sub);
   }
 
   @Delete('matches/:matchId')

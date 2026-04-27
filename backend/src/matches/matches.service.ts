@@ -7,7 +7,11 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { MatchStatus, TeamResult } from '../../../shared/src/enums';
-import type { MatchMvpVotingContract } from '../../../shared/src/contracts';
+import type {
+  MatchMvpVotingContract,
+  MatchPlayersRecentFormContract,
+  PlayerRecentMatchResultContract,
+} from '../../../shared/src/contracts';
 import {
   assertTournamentEditor,
   assertTournamentOwner,
@@ -346,6 +350,81 @@ export class MatchesService {
     }
 
     return this.buildMvpVotingResponse(match, actorPlayerId, participantIds);
+  }
+
+  async getPlayersRecentForm(
+    matchId: string,
+    auth0Id: string,
+  ): Promise<MatchPlayersRecentFormContract> {
+    const match = await this.matchesRepository.findOne({
+      where: { id: matchId },
+    });
+    if (!match) {
+      throw new NotFoundException('Match not found');
+    }
+
+    await this.tournamentsService.findActorForTournament(
+      match.tournamentId,
+      auth0Id,
+    );
+
+    const participantIds = await this.getParticipantIds(matchId);
+    const byPlayerId = participantIds.reduce<
+      Record<string, PlayerRecentMatchResultContract[]>
+    >((accumulator, playerId) => {
+      accumulator[playerId] = [];
+      return accumulator;
+    }, {});
+
+    if (participantIds.length === 0) {
+      return {
+        matchId,
+        byPlayerId,
+      };
+    }
+
+    const previousAppearances = await this.playerTeamsRepository
+      .createQueryBuilder('playerTeam')
+      .innerJoinAndSelect('playerTeam.team', 'team')
+      .innerJoinAndSelect('team.match', 'match')
+      .where('playerTeam.playerId IN (:...playerIds)', {
+        playerIds: participantIds,
+      })
+      .andWhere('match.tournamentId = :tournamentId', {
+        tournamentId: match.tournamentId,
+      })
+      .andWhere('match.status = :status', { status: MatchStatus.FINISHED })
+      .andWhere('match.id != :matchId', { matchId })
+      .andWhere(
+        '(match.kickoffAt < :kickoffAt OR (match.kickoffAt = :kickoffAt AND match.createdAt < :createdAt))',
+        {
+          kickoffAt: match.kickoffAt.toISOString(),
+          createdAt: match.createdAt.toISOString(),
+        },
+      )
+      .orderBy('playerTeam.playerId', 'ASC')
+      .addOrderBy('match.kickoffAt', 'DESC')
+      .addOrderBy('match.createdAt', 'DESC')
+      .getMany();
+
+    previousAppearances.forEach((appearance) => {
+      const form = byPlayerId[appearance.playerId];
+      if (!form || form.length >= 5) {
+        return;
+      }
+
+      form.push({
+        matchId: appearance.team.match.id,
+        matchday: appearance.team.match.matchday,
+        kickoffAt: appearance.team.match.kickoffAt.toISOString(),
+        result: appearance.team.result,
+      });
+    });
+
+    return {
+      matchId,
+      byPlayerId,
+    };
   }
 
   private async resolveMvpVotingContext(matchId: string, auth0Id: string) {

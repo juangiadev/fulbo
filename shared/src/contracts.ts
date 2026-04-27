@@ -61,6 +61,7 @@ export interface StandingRowContract {
   loose: number;
   matchesPlayed: number;
   position: number;
+  recentForm: PlayerRecentMatchResultContract[];
 }
 
 export interface TournamentSummaryContract {
@@ -115,6 +116,18 @@ export interface MatchMvpVotingContract {
   hasTie: boolean;
   votesByPlayerId: Record<string, number>;
   votes: MatchMvpVoteContract[];
+}
+
+export interface PlayerRecentMatchResultContract {
+  matchId: string;
+  matchday: number;
+  kickoffAt: string;
+  result: TeamResult;
+}
+
+export interface MatchPlayersRecentFormContract {
+  matchId: string;
+  byPlayerId: Record<string, PlayerRecentMatchResultContract[]>;
 }
 
 export interface TeamContract {

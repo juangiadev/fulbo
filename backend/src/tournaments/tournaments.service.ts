@@ -400,6 +400,12 @@ export class TournamentsService {
         draw: number;
         loose: number;
         matchesPlayed: number;
+        recentForm: Array<{
+          matchId: string;
+          matchday: number;
+          kickoffAt: string;
+          result: TeamResult;
+        }>;
       }
     >();
 
@@ -414,6 +420,7 @@ export class TournamentsService {
         draw: 0,
         loose: 0,
         matchesPlayed: 0,
+        recentForm: [],
       });
     });
 
@@ -443,9 +450,11 @@ export class TournamentsService {
       const rows = await this.playerTeamsRepository
         .createQueryBuilder('pt')
         .innerJoinAndSelect('pt.team', 'team')
-        .innerJoin('team.match', 'match')
+        .innerJoinAndSelect('team.match', 'match')
         .where('match.tournamentId = :tournamentId', { tournamentId })
         .andWhere('match.status = :status', { status: MatchStatus.FINISHED })
+        .orderBy('match.kickoffAt', 'DESC')
+        .addOrderBy('match.createdAt', 'DESC')
         .getMany();
 
       const teamGoalsByTeamId = new Map<string, number>();
@@ -523,6 +532,15 @@ export class TournamentsService {
           matchesCountByPlayer.set(row.playerId, new Set());
         }
         matchesCountByPlayer.get(row.playerId)?.add(team.matchId);
+
+        if (stats.recentForm.length < 5) {
+          stats.recentForm.push({
+            matchId: team.matchId,
+            matchday: team.match.matchday,
+            kickoffAt: team.match.kickoffAt.toISOString(),
+            result: teamResult,
+          });
+        }
       });
 
       matchesCountByPlayer.forEach((matchSet, playerId) => {

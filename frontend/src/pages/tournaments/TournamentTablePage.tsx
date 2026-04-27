@@ -1,6 +1,10 @@
-import type { PlayerContract, TournamentSummaryContract } from '@shared/contracts';
+import type {
+  PlayerContract,
+  PlayerRecentMatchResultContract,
+  TournamentSummaryContract,
+} from '@shared/contracts';
 import { FAVORITE_TEAMS } from '@shared/favorite-teams';
-import { DisplayPreference } from '@shared/enums';
+import { DisplayPreference, TeamResult } from '@shared/enums';
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { ContentSpinner } from '../../components/ContentSpinner';
@@ -37,6 +41,45 @@ export function TournamentTablePage() {
     }
 
     return { kind: 'fallback' as const, value: (player.nickname ?? player.name).slice(0, 1) };
+  };
+
+  const renderRecentForm = (items: PlayerRecentMatchResultContract[]) => {
+    const visibleItems = items.slice(0, 5);
+    const emptySlots = Math.max(0, 5 - visibleItems.length);
+
+    return (
+      <div className={styles.formList}>
+        {visibleItems.map((item) => {
+          const variantClassName =
+            item.result === TeamResult.WINNER
+              ? styles.formWin
+              : item.result === TeamResult.LOSER
+                ? styles.formLoss
+                : styles.formDraw;
+          const label =
+            item.result === TeamResult.WINNER
+              ? 'V'
+              : item.result === TeamResult.LOSER
+                ? 'D'
+                : 'E';
+
+          return (
+            <span
+              key={`${item.matchId}-${item.result}`}
+              className={`${styles.formBox} ${variantClassName}`}
+              title={`Fecha ${item.matchday} · ${new Date(item.kickoffAt).toLocaleDateString('es-AR')}`}
+            >
+              {label}
+            </span>
+          );
+        })}
+        {Array.from({ length: emptySlots }, (_, index) => (
+          <span key={`empty-${index + 1}`} className={`${styles.formBox} ${styles.formEmpty}`}>
+            -
+          </span>
+        ))}
+      </div>
+    );
   };
 
   useEffect(() => {
@@ -81,6 +124,7 @@ export function TournamentTablePage() {
                 <th>G</th>
                 <th>E</th>
                 <th>P</th>
+                <th>Ult. 5</th>
               </tr>
             </thead>
             <tbody>
@@ -121,6 +165,7 @@ export function TournamentTablePage() {
                   <td className={styles.win}>{row.win}</td>
                   <td className={styles.draw}>{row.draw}</td>
                   <td className={styles.loose}>{row.loose}</td>
+                  <td>{renderRecentForm(row.recentForm)}</td>
                 </tr>
               ))}
             </tbody>
