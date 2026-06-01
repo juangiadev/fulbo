@@ -12,6 +12,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthUser } from '../auth/auth.types';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
+import { ImportTournamentPlayersDto } from './dto/import-tournament-players.dto';
 import { JoinTournamentDto } from './dto/join-tournament.dto';
 import { LinkJoinRequestDto } from './dto/link-join-request.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
@@ -40,6 +41,15 @@ export class TournamentsController {
   @Get(':id/summary')
   getSummary(@Param('id') id: string, @CurrentUser() user: AuthUser) {
     return this.tournamentsService.getSummary(id, user.sub);
+  }
+
+  @Post(':id/import-players')
+  importPlayers(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthUser,
+    @Body() dto: ImportTournamentPlayersDto,
+  ) {
+    return this.tournamentsService.importPlayers(id, user.sub, dto);
   }
 
   @Post('join')

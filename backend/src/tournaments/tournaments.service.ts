@@ -6,6 +6,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createHash, randomBytes } from 'node:crypto';
+import type {
+  ImportTournamentPlayersRequest,
+  ImportTournamentPlayersResult,
+} from '../../../shared/src/contracts';
 import {
   DisplayPreference,
   MatchStatus,
@@ -129,6 +133,91 @@ export class TournamentsService {
     }
 
     return tournament;
+  }
+
+  async importPlayers(
+    targetTournamentId: string,
+    auth0Id: string,
+    dto: ImportTournamentPlayersRequest,
+  ): Promise<ImportTournamentPlayersResult> {
+    if (targetTournamentId === dto.sourceTournamentId) {
+      throw new BadRequestException(
+        'Source and target tournaments must be different',
+      );
+    }
+
+    const [targetTournament, sourceTournament] = await Promise.all([
+      this.getTournamentOrThrow(targetTournamentId),
+      this.getTournamentOrThrow(dto.sourceTournamentId),
+    ]);
+
+    const [targetActor, sourceActor] = await Promise.all([
+      this.findActorForTournament(targetTournament.id, auth0Id),
+      this.findActorForTournament(sourceTournament.id, auth0Id),
+    ]);
+
+    this.assertTournamentAdmin(targetActor);
+    this.assertTournamentAdmin(sourceActor);
+
+    return this.playersRepository.manager.transaction(async (manager) => {
+      const [sourcePlayers, targetPlayers] = await Promise.all([
+        manager.find(Player, {
+          where: { tournamentId: sourceTournament.id },
+          order: { createdAt: 'ASC' },
+        }),
+        manager.find(Player, {
+          where: { tournamentId: targetTournament.id },
+        }),
+      ]);
+
+      const existingUserIds = new Set(
+        targetPlayers
+          .map((player) => player.userId)
+          .filter((userId): userId is string => Boolean(userId)),
+      );
+      let skippedLinkedUserCount = 0;
+
+      const importedPlayers = sourcePlayers.flatMap((player) => {
+        if (player.userId && existingUserIds.has(player.userId)) {
+          skippedLinkedUserCount += 1;
+          return [];
+        }
+
+        if (player.userId) {
+          existingUserIds.add(player.userId);
+        }
+
+        return [
+          this.playersRepository.create({
+            userId: player.userId,
+            tournamentId: targetTournament.id,
+            name: player.name,
+            nickname: player.nickname,
+            imageUrl: player.imageUrl,
+            favoriteTeamSlug: player.favoriteTeamSlug,
+            displayPreference: player.displayPreference,
+            role:
+              player.role === PlayerRole.OWNER ? PlayerRole.ADMIN : player.role,
+            ability: player.ability,
+            injury: player.injury,
+            misses: player.misses,
+            claimCodeHash: null,
+            claimCodeExpiresAt: null,
+          }),
+        ];
+      });
+
+      if (importedPlayers.length > 0) {
+        await manager.save(Player, importedPlayers);
+      }
+
+      return {
+        targetTournamentId: targetTournament.id,
+        sourceTournamentId: sourceTournament.id,
+        importedCount: importedPlayers.length,
+        skippedLinkedUserCount,
+      };
+    });
   }
 
   async update(
@@ -599,6 +688,26 @@ export class TournamentsService {
       );
     }
     return user;
+  }
+
+  private async getTournamentOrThrow(id: string): Promise<Tournament> {
+    const tournament = await this.tournamentsRepository.findOne({
+      where: { id },
+    });
+
+    if (!tournament) {
+      throw new NotFoundException('Tournament not found');
+    }
+
+    return tournament;
+  }
+
+  private assertTournamentAdmin(player: Player): void {
+    if (![PlayerRole.OWNER, PlayerRole.ADMIN].includes(player.role)) {
+      throw new ForbiddenException(
+        'Only owner or admins can import tournament players',
+      );
+    }
   }
 
   private fillPlayerProfileFromUser(player: Player, user: User): void {

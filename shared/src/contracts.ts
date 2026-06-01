@@ -50,6 +50,17 @@ export interface TournamentContract {
   updatedAt: string;
 }
 
+export interface ImportTournamentPlayersRequest {
+  sourceTournamentId: string;
+}
+
+export interface ImportTournamentPlayersResult {
+  targetTournamentId: string;
+  sourceTournamentId: string;
+  importedCount: number;
+  skippedLinkedUserCount: number;
+}
+
 export interface StandingRowContract {
   playerId: string;
   displayName: string;

@@ -190,7 +190,7 @@ export function TournamentMatchEditPage() {
       </article>
 
       <MatchPlayersTableBuilder
-        canEdit={canEdit}
+        canEdit={permissions.canEditTournament}
         matchId={selectedMatch.id}
         onSummaryChange={setTableSummary}
         players={players}
@@ -235,7 +235,9 @@ export function TournamentMatchEditPage() {
 
           const parsedMatchday = Number(matchdayDraft);
           if (!Number.isInteger(parsedMatchday) || parsedMatchday < 1) {
-            sileo.warning({ title: "La fecha del torneo debe ser un número mayor a 0" });
+            sileo.warning({
+              title: "La fecha del torneo debe ser un número mayor a 0",
+            });
             return;
           }
 
