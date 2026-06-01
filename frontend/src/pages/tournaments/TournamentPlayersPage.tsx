@@ -1,4 +1,3 @@
-import { PlayerRole } from '@shared/enums';
 import type { PlayerContract } from '@shared/contracts';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
@@ -6,13 +5,14 @@ import { sileo } from 'sileo';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { ContentSpinner } from '../../components/ContentSpinner';
 import { apiClient } from '../../api/client';
+import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
 import { useAppContext } from '../../state/AppContext';
 import buttonStyles from '../../styles/Button.module.css';
 import styles from './TournamentPlayersPage.module.css';
 
 export function TournamentPlayersPage() {
   const { tournamentId } = useParams();
-  const { currentUser, data, getMyRole } = useAppContext();
+  const { currentUser, data } = useAppContext();
   const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [search, setSearch] = useState('');
   const [deletingPlayerId, setDeletingPlayerId] = useState<string | null>(null);
@@ -20,10 +20,7 @@ export function TournamentPlayersPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
-  const role = tournamentId ? getMyRole(tournamentId) : null;
-  const canEdit = [PlayerRole.OWNER, PlayerRole.ADMIN].includes(role ?? PlayerRole.USER);
-  const canDelete = role === PlayerRole.OWNER;
-  const canManageInvites = [PlayerRole.OWNER, PlayerRole.ADMIN].includes(role ?? PlayerRole.USER);
+  const permissions = useTournamentPermissions(tournamentId);
 
   useEffect(() => {
     if (!tournamentId) {
@@ -55,7 +52,7 @@ export function TournamentPlayersPage() {
       <div className={styles.headerRow}>
         <h2>Jugadores</h2>
         <div className={styles.headerActions}>
-          {canManageInvites ? (
+          {permissions.canManageInvites ? (
             <>
               <Link className={buttonStyles.ghost} to={`/tournaments/${tournamentId}/invite-guest`}>
                 Agregar invitado
@@ -93,7 +90,7 @@ export function TournamentPlayersPage() {
                 Info
               </Link>
 
-              {canEdit ? (
+              {permissions.canManagePlayers ? (
                 <Link className={buttonStyles.ghost} to={`/tournaments/${tournamentId}/players/${player.id}/edit`}>
                   Editar
                 </Link>
@@ -103,7 +100,7 @@ export function TournamentPlayersPage() {
                 </Link>
               ) : null}
 
-              {canDelete ? (
+              {permissions.canDeletePlayers ? (
                 <button
                   className={buttonStyles.ghost}
                   disabled={deletingPlayerId === player.id}

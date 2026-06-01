@@ -1,4 +1,4 @@
-import { MatchStatus, PlayerRole } from "@shared/enums";
+import { MatchStatus } from "@shared/enums";
 import type { MatchContract } from "@shared/contracts";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
@@ -6,13 +6,14 @@ import { sileo } from "sileo";
 import { ConfirmModal } from "../../components/ConfirmModal";
 import { ContentSpinner } from "../../components/ContentSpinner";
 import { apiClient } from "../../api/client";
+import { useTournamentPermissions } from "../../hooks/useTournamentPermissions";
 import { useAppContext } from "../../state/AppContext";
 import buttonStyles from "../../styles/Button.module.css";
 import styles from "./TournamentMatchesPage.module.css";
 
 export function TournamentMatchesPage() {
   const { tournamentId } = useParams();
-  const { data, getMyRole } = useAppContext();
+  const { data } = useAppContext();
   const [matches, setMatches] = useState<MatchContract[]>([]);
   const [deletingMatchId, setDeletingMatchId] = useState<string | null>(null);
   const [confirmingMatchId, setConfirmingMatchId] = useState<string | null>(
@@ -21,11 +22,7 @@ export function TournamentMatchesPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
-  const role = tournamentId ? getMyRole(tournamentId) : null;
-  const canEdit = [PlayerRole.OWNER, PlayerRole.ADMIN].includes(
-    role ?? PlayerRole.USER,
-  );
-  const canDelete = role === PlayerRole.OWNER;
+  const permissions = useTournamentPermissions(tournamentId);
 
   useEffect(() => {
     if (!tournamentId) {
@@ -61,7 +58,7 @@ export function TournamentMatchesPage() {
       <div className={styles.headerRow}>
         <h2>Partidos</h2>
         <div className={styles.headerActions}>
-          {canEdit ? (
+          {permissions.canManageMatches ? (
             <Link
               className={buttonStyles.primary}
               to={`/tournaments/${tournamentId}/partidos/new`}
@@ -118,7 +115,7 @@ export function TournamentMatchesPage() {
                 >
                   Ver
                 </Link>
-                {canEdit ? (
+                {permissions.canManageMatches ? (
                   <Link
                     className={buttonStyles.ghost}
                     to={`/tournaments/${tournamentId}/partidos/${match.id}/edit`}
@@ -126,7 +123,7 @@ export function TournamentMatchesPage() {
                     Editar
                   </Link>
                 ) : null}
-                {canDelete ? (
+                {permissions.canDeleteMatches ? (
                   <button
                     className={buttonStyles.ghost}
                     disabled={deletingMatchId === match.id}

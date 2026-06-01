@@ -26,6 +26,12 @@
   gap: 0.6rem;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 .iconButton {
   width: 34px;
   height: 34px;
@@ -36,6 +42,26 @@
   display: grid;
   place-items: center;
   cursor: pointer;
+}
+
+.iconButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.iconButton:focus-visible,
+.actionButton:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 3px;
+}
+
+.dangerIconButton {
+  border-color: #ef9a9a;
+  color: #ef9a9a;
+}
+
+.dangerIconButton:focus-visible {
+  outline-color: #ef9a9a;
 }
 
 .meta {

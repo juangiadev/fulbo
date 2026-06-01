@@ -1,4 +1,3 @@
-import { PlayerRole } from "@shared/enums";
 import type {
   MatchContract,
   PlayerContract,
@@ -14,6 +13,7 @@ import {
 } from "../../components/MatchPlayersTableBuilder";
 import { DateTimePicker } from "../../components/DateTimePicker";
 import { apiClient } from "../../api/client";
+import { useTournamentPermissions } from "../../hooks/useTournamentPermissions";
 import { useAppContext } from "../../state/AppContext";
 import buttonStyles from "../../styles/Button.module.css";
 import styles from "./TournamentMatchFormPage.module.css";
@@ -70,7 +70,7 @@ function buildTemplateFromMatch(
 export function TournamentMatchFormPage() {
   const { tournamentId } = useParams();
   const navigate = useNavigate();
-  const { data, getMyRole, loadTournaments } = useAppContext();
+  const { data, loadTournaments } = useAppContext();
 
   const [placeName, setPlaceName] = useState("");
   const [placeUrl, setPlaceUrl] = useState("");
@@ -156,10 +156,7 @@ export function TournamentMatchFormPage() {
     [data.tournaments, tournamentId],
   );
 
-  const role = tournamentId ? getMyRole(tournamentId) : null;
-  const canCreate = [PlayerRole.OWNER, PlayerRole.ADMIN].includes(
-    role ?? PlayerRole.USER,
-  );
+  const permissions = useTournamentPermissions(tournamentId);
 
   const hasAppliedTemplate = Boolean(appliedTemplateConfig);
 
@@ -178,6 +175,10 @@ export function TournamentMatchFormPage() {
         }
       />
     );
+  }
+
+  if (!permissions.canCreateMatches) {
+    return <Navigate replace to={`/tournaments/${tournamentId}/partidos`} />;
   }
 
   return (
@@ -295,7 +296,7 @@ export function TournamentMatchFormPage() {
       <article className={styles.card}>
         <h3>Jugadores y goles</h3>
         <MatchPlayersTableBuilder
-          canEdit={canCreate}
+          canEdit={permissions.canCreateMatches}
           players={players}
           ref={tableRef}
           showSaveButton={false}
@@ -305,9 +306,9 @@ export function TournamentMatchFormPage() {
 
       <button
         className={buttonStyles.primary}
-        disabled={isSubmitting || !canCreate}
+        disabled={isSubmitting || !permissions.canCreateMatches}
         onClick={async () => {
-          if (!canCreate) {
+          if (!permissions.canCreateMatches) {
             sileo.warning({ title: "No tienes permisos para crear partidos" });
             return;
           }

@@ -1,4 +1,3 @@
-import { PlayerRole } from '@shared/enums';
 import type { PlayerContract } from '@shared/contracts';
 import { DisplayPreference } from '@shared/enums';
 import { FAVORITE_TEAMS } from '@shared/favorite-teams';
@@ -7,6 +6,7 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
 import { ContentSpinner } from '../../components/ContentSpinner';
 import { apiClient } from '../../api/client';
+import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
 import { useAppContext } from '../../state/AppContext';
 import buttonStyles from '../../styles/Button.module.css';
 import styles from './TournamentPlayerDetailsPage.module.css';
@@ -15,7 +15,7 @@ const codeStorageKey = (playerId: string) => `fulbo:last-claim-code:${playerId}`
 
 export function TournamentPlayerDetailsPage() {
   const { tournamentId, playerId } = useParams();
-  const { data, getMyRole } = useAppContext();
+  const { data } = useAppContext();
   const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
@@ -23,9 +23,7 @@ export function TournamentPlayerDetailsPage() {
   const [claimCodeExpiresAt, setClaimCodeExpiresAt] = useState<string | null>(null);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
-  const role = tournamentId ? getMyRole(tournamentId) : null;
-  const isAdmin = [PlayerRole.OWNER, PlayerRole.ADMIN].includes(role ?? PlayerRole.USER);
-  const canManageCodes = [PlayerRole.OWNER, PlayerRole.ADMIN].includes(role ?? PlayerRole.USER);
+  const permissions = useTournamentPermissions(tournamentId);
 
   useEffect(() => {
     if (!tournamentId) {
@@ -53,7 +51,7 @@ export function TournamentPlayerDetailsPage() {
       : 'Imagen';
 
   useEffect(() => {
-    if (!tournamentId || !playerId || !canManageCodes || !player || player.userId) {
+    if (!tournamentId || !playerId || !permissions.canManagePlayerCodes || !player || player.userId) {
       return;
     }
 
@@ -65,7 +63,7 @@ export function TournamentPlayerDetailsPage() {
     void apiClient
       .getPlayerClaimCodeMeta(tournamentId, playerId)
       .then((response) => setClaimCodeExpiresAt(response.expiresAt));
-  }, [canManageCodes, player, playerId, tournamentId]);
+  }, [permissions.canManagePlayerCodes, player, playerId, tournamentId]);
 
   if (!tournamentId || !playerId || !tournament) {
     return <Navigate replace to="/tournaments" />;
@@ -109,7 +107,7 @@ export function TournamentPlayerDetailsPage() {
         <p className={styles.meta}>Preferencia: {displayPreferenceLabel}</p>
         <p className={styles.meta}>Rol: {player.role}</p>
         <p className={styles.meta}>Vinculado: {player.userId ? 'Si' : 'No'}</p>
-        {isAdmin ? (
+        {permissions.canViewPlayerPrivateDetails ? (
           <>
             <p className={styles.meta}>Habilidad: {player.ability ?? 'Sin habilidad'}</p>
             <p className={styles.meta}>Lesion: {player.injury ?? 'Sin lesion'}</p>
@@ -118,7 +116,7 @@ export function TournamentPlayerDetailsPage() {
         ) : null}
       </article>
 
-      {canManageCodes && !player.userId ? (
+      {permissions.canManagePlayerCodes && !player.userId ? (
         <article className={styles.card}>
           <h3>Codigo del jugador</h3>
           <p className={styles.meta}>Estado: {codeStatus}</p>

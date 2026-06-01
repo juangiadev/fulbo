@@ -1,10 +1,10 @@
-import { PlayerRole } from '@shared/enums';
 import type { PlayerContract } from '@shared/contracts';
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
 import { apiClient } from '../../api/client';
 import { ContentSpinner } from '../../components/ContentSpinner';
+import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
 import { useAppContext } from '../../state/AppContext';
 import buttonStyles from '../../styles/Button.module.css';
 import styles from './TournamentJoinRequestsPage.module.css';
@@ -22,7 +22,7 @@ interface JoinRequestItem {
 
 export function TournamentJoinRequestsPage() {
   const { tournamentId } = useParams();
-  const { data, getMyRole } = useAppContext();
+  const { data } = useAppContext();
   const [requests, setRequests] = useState<JoinRequestItem[]>([]);
   const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [selectedPlayerByRequestId, setSelectedPlayerByRequestId] = useState<Record<string, string>>({});
@@ -32,8 +32,7 @@ export function TournamentJoinRequestsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
-  const role = tournamentId ? getMyRole(tournamentId) : null;
-  const isOwner = role === PlayerRole.OWNER;
+  const permissions = useTournamentPermissions(tournamentId);
 
   useEffect(() => {
     if (!tournamentId) {
@@ -73,6 +72,10 @@ export function TournamentJoinRequestsPage() {
 
   if (!tournamentId || !tournament) {
     return <Navigate replace to="/tournaments" />;
+  }
+
+  if (!permissions.canManageJoinRequests) {
+    return <Navigate replace to={`/tournaments/${tournamentId}/players`} />;
   }
 
   return (
@@ -212,7 +215,7 @@ export function TournamentJoinRequestsPage() {
                     Vincular
                   </button>
 
-                  {isOwner ? (
+                  {permissions.canDeleteJoinRequests ? (
                     <button
                       className={buttonStyles.ghost}
                       disabled={deletingRequestId === request.id || linkingRequestId === request.id}

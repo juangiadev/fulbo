@@ -15,6 +15,7 @@ import { TournamentPlayerDetailsPage } from './pages/tournaments/TournamentPlaye
 import { TournamentPlayerEditPage } from './pages/tournaments/TournamentPlayerEditPage';
 import { TournamentPlayersPage } from './pages/tournaments/TournamentPlayersPage';
 import { TournamentTablePage } from './pages/tournaments/TournamentTablePage';
+import { TournamentTierlistPage } from './pages/tournaments/TournamentTierlistPage';
 import { TournamentsPage } from './pages/tournaments/TournamentsPage';
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
         <Route element={<TournamentMatchEditPage />} path="/tournaments/:tournamentId/partidos/:matchId/edit" />
         <Route element={<TournamentMatchFormPage />} path="/tournaments/:tournamentId/partidos/new" />
         <Route element={<TournamentTablePage />} path="/tournaments/:tournamentId/tabla" />
+        <Route element={<TournamentTierlistPage />} path="/tournaments/:tournamentId/tierlist" />
         <Route element={<TournamentFormPage />} path="/tournaments/new" />
         <Route element={<TournamentFormPage />} path="/tournaments/:tournamentId/edit" />
         <Route element={<TournamentPlayersPage />} path="/tournaments/:tournamentId/players" />

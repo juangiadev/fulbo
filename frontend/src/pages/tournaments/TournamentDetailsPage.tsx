@@ -1,12 +1,15 @@
-import { PlayerRole, TournamentVisibility } from '@shared/enums';
+import { TournamentVisibility } from '@shared/enums';
 import { DisplayPreference } from '@shared/enums';
 import { FAVORITE_TEAMS } from '@shared/favorite-teams';
 import type { PlayerContract, StandingRowContract, TournamentSummaryContract } from '@shared/contracts';
-import { useEffect, useMemo, useState } from 'react';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { CalendarDays, LayoutGrid, Pencil, Table2, Trash2, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
 import { apiClient } from '../../api/client';
+import { ConfirmModal } from '../../components/ConfirmModal';
 import { ContentSpinner } from '../../components/ContentSpinner';
+import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
 import { useAppContext } from '../../state/AppContext';
 import buttonStyles from '../../styles/Button.module.css';
 import styles from './TournamentDetailsPage.module.css';
@@ -56,14 +59,17 @@ function Banner({
 }
 
 export function TournamentDetailsPage() {
+  const navigate = useNavigate();
   const { tournamentId } = useParams();
-  const { data, getMyRole, loadTournaments, updateTournament } = useAppContext();
+  const { data, deleteTournament, loadTournaments, updateTournament } = useAppContext();
   const [summary, setSummary] = useState<TournamentSummaryContract | null>(null);
   const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [isLoadingTournament, setIsLoadingTournament] = useState(true);
   const [isLoadingBanners, setIsLoadingBanners] = useState(true);
   const [isEditingTournament, setIsEditingTournament] = useState(false);
   const [isSavingTournament, setIsSavingTournament] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeletingTournament, setIsDeletingTournament] = useState(false);
   const [nameDraft, setNameDraft] = useState<string | null>(null);
   const [visibilityDraft, setVisibilityDraft] = useState<TournamentVisibility | null>(null);
   const [leaderBannerImageUrlDraft, setLeaderBannerImageUrlDraft] = useState<string | null>(null);
@@ -92,13 +98,9 @@ export function TournamentDetailsPage() {
       .finally(() => setIsLoadingBanners(false));
   }, [tournamentId]);
 
-  const tournament = useMemo(
-    () => data.tournaments.find((item) => item.id === tournamentId),
-    [data.tournaments, tournamentId],
-  );
+  const tournament = data.tournaments.find((item) => item.id === tournamentId);
 
-  const role = tournamentId ? getMyRole(tournamentId) : null;
-  const isAdmin = [PlayerRole.OWNER, PlayerRole.ADMIN].includes(role ?? PlayerRole.USER);
+  const permissions = useTournamentPermissions(tournamentId);
 
   const name = nameDraft ?? tournament?.name ?? '';
   const visibility = visibilityDraft ?? tournament?.visibility ?? TournamentVisibility.PRIVATE;
@@ -169,24 +171,35 @@ export function TournamentDetailsPage() {
       <article className={styles.card}>
         <div className={styles.cardHeader}>
           <h3>{tournament.name}</h3>
-          {isAdmin ? (
-            <button
-              aria-label="Editar torneo"
-              className={styles.iconButton}
-              onClick={() => setIsEditingTournament((value) => !value)}
-              type="button"
-            >
-              <svg fill="none" height="18" viewBox="0 0 24 24" width="18">
-                <path d="M4 20l4.5-1 10-10-3.5-3.5-10 10L4 20z" stroke="currentColor" strokeWidth="2" />
-              </svg>
-            </button>
-          ) : null}
+          <div className={styles.headerActions}>
+            {permissions.canEditTournament ? (
+              <button
+                aria-label="Editar torneo"
+                className={styles.iconButton}
+                onClick={() => setIsEditingTournament((value) => !value)}
+                type="button"
+              >
+                <Pencil aria-hidden="true" size={18} />
+              </button>
+            ) : null}
+            {permissions.isOwner ? (
+              <button
+                aria-label="Eliminar torneo"
+                className={`${styles.iconButton} ${styles.dangerIconButton}`}
+                disabled={isDeletingTournament}
+                onClick={() => setIsDeleteModalOpen(true)}
+                type="button"
+              >
+                <Trash2 aria-hidden="true" size={18} />
+              </button>
+            ) : null}
+          </div>
         </div>
 
         <p className={styles.meta}>Visibilidad: {visibilityLabel[tournament.visibility] ?? tournament.visibility}</p>
         <p className={styles.meta}>Creado: {new Date(tournament.createdAt).toLocaleDateString('es-AR')}</p>
 
-        {isAdmin && isEditingTournament ? (
+        {permissions.canEditTournament && isEditingTournament ? (
           <form
             className={styles.editForm}
             onSubmit={async (event) => {
@@ -266,27 +279,23 @@ export function TournamentDetailsPage() {
 
         <div className={styles.actions}>
           <Link className={styles.actionButton} to={`/tournaments/${tournament.id}/tabla`}>
-            <svg fill="none" height="20" viewBox="0 0 24 24" width="20">
-              <path d="M4 5h16M4 12h16M4 19h16" stroke="currentColor" strokeWidth="2" />
-              <path d="M9 4v16M15 4v16" stroke="currentColor" strokeWidth="2" />
-            </svg>
+            <Table2 aria-hidden="true" size={20} />
             <span>Tabla</span>
           </Link>
           <Link className={styles.actionButton} to={`/tournaments/${tournament.id}/partidos`}>
-            <svg fill="none" height="20" viewBox="0 0 24 24" width="20">
-              <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" />
-              <path d="M6 12h12M12 6v12" stroke="currentColor" strokeWidth="2" />
-            </svg>
+            <CalendarDays aria-hidden="true" size={20} />
             <span>Partidos</span>
           </Link>
           <Link className={styles.actionButton} to={`/tournaments/${tournament.id}/players`}>
-            <svg fill="none" height="20" viewBox="0 0 24 24" width="20">
-              <circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="2" />
-              <circle cx="17" cy="10" r="2.5" stroke="currentColor" strokeWidth="2" />
-              <path d="M3 19c0-2.8 2.6-5 6-5s6 2.2 6 5" stroke="currentColor" strokeWidth="2" />
-            </svg>
+            <Users aria-hidden="true" size={20} />
             <span>Jugadores</span>
           </Link>
+          {permissions.canViewTierlist ? (
+            <Link className={styles.actionButton} to={`/tournaments/${tournament.id}/tierlist`}>
+              <LayoutGrid aria-hidden="true" size={20} />
+              <span>Tierlist</span>
+            </Link>
+          ) : null}
         </div>
       </article>
 
@@ -317,6 +326,30 @@ export function TournamentDetailsPage() {
           </>
         )}
       </div>
+
+      {isDeleteModalOpen ? (
+        <ConfirmModal
+          confirmText="Eliminar"
+          isConfirming={isDeletingTournament}
+          message="Esta accion elimina el torneo de forma permanente."
+          onCancel={() => setIsDeleteModalOpen(false)}
+          onConfirm={async () => {
+            setIsDeletingTournament(true);
+            try {
+              await sileo.promise(deleteTournament(tournament.id), {
+                loading: { title: 'Eliminando torneo...' },
+                success: { title: 'Torneo eliminado' },
+                error: { title: 'No se pudo eliminar el torneo' },
+              });
+              setIsDeleteModalOpen(false);
+              navigate('/tournaments', { replace: true });
+            } finally {
+              setIsDeletingTournament(false);
+            }
+          }}
+          title="Confirmar eliminacion"
+        />
+      ) : null}
     </section>
   );
 }

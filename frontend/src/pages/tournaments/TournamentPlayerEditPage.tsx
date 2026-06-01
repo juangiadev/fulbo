@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
 import { apiClient } from '../../api/client';
+import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
 import { useAppContext } from '../../state/AppContext';
 import buttonStyles from '../../styles/Button.module.css';
 import styles from './TournamentPlayerEditPage.module.css';
@@ -12,7 +13,7 @@ import styles from './TournamentPlayerEditPage.module.css';
 export function TournamentPlayerEditPage() {
   const navigate = useNavigate();
   const { tournamentId, playerId } = useParams();
-  const { currentUser, getMyRole, loadTournaments } = useAppContext();
+  const { currentUser, loadTournaments } = useAppContext();
   const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -26,8 +27,7 @@ export function TournamentPlayerEditPage() {
   const [injury, setInjury] = useState('');
   const [misses, setMisses] = useState<number>(0);
 
-  const role = tournamentId ? getMyRole(tournamentId) : null;
-  const isAdmin = [PlayerRole.OWNER, PlayerRole.ADMIN].includes(role ?? PlayerRole.USER);
+  const permissions = useTournamentPermissions(tournamentId);
 
   useEffect(() => {
     if (!tournamentId) {
@@ -71,8 +71,8 @@ export function TournamentPlayerEditPage() {
     return null;
   }
 
-  const canEditThisPlayer = isAdmin || player.userId === currentUser.id;
-  const canAssignOwner = role === PlayerRole.OWNER && myPlayer?.id !== player.id;
+  const canEditThisPlayer = permissions.canManagePlayers || player.userId === currentUser.id;
+  const canAssignOwner = permissions.isOwner && myPlayer?.id !== player.id;
   if (!canEditThisPlayer) {
     return <Navigate replace to={`/tournaments/${tournamentId}/players`} />;
   }
@@ -100,7 +100,7 @@ export function TournamentPlayerEditPage() {
               displayPreference,
             };
 
-            if (isAdmin) {
+            if (permissions.canManagePlayers) {
               payload.ability = ability.trim() ? Number(ability) : null;
               payload.injury = injury.trim() || null;
               payload.misses = misses;
@@ -163,7 +163,7 @@ export function TournamentPlayerEditPage() {
           </select>
         </label>
 
-        {isAdmin ? (
+        {permissions.canManagePlayers ? (
           <>
             <label>
               Rol

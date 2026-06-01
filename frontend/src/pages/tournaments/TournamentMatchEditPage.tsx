@@ -1,4 +1,4 @@
-import { MatchStatus, PlayerRole } from "@shared/enums";
+import { MatchStatus } from "@shared/enums";
 import type { MatchContract, PlayerContract } from "@shared/contracts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
@@ -10,6 +10,7 @@ import {
   type MatchPlayersTableBuilderRef,
 } from "../../components/MatchPlayersTableBuilder";
 import { apiClient } from "../../api/client";
+import { useTournamentPermissions } from "../../hooks/useTournamentPermissions";
 import { useAppContext } from "../../state/AppContext";
 import buttonStyles from "../../styles/Button.module.css";
 import styles from "./TournamentMatchDetailPage.module.css";
@@ -17,7 +18,7 @@ import styles from "./TournamentMatchDetailPage.module.css";
 export function TournamentMatchEditPage() {
   const navigate = useNavigate();
   const { tournamentId, matchId } = useParams();
-  const { data, getMyRole } = useAppContext();
+  const { data } = useAppContext();
   const [matches, setMatches] = useState<MatchContract[]>([]);
   const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -39,10 +40,7 @@ export function TournamentMatchEditPage() {
   const tableRef = useRef<MatchPlayersTableBuilderRef | null>(null);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
-  const role = tournamentId ? getMyRole(tournamentId) : null;
-  const canEdit = [PlayerRole.OWNER, PlayerRole.ADMIN].includes(
-    role ?? PlayerRole.USER,
-  );
+  const permissions = useTournamentPermissions(tournamentId);
 
   useEffect(() => {
     if (!tournamentId) {
@@ -92,7 +90,7 @@ export function TournamentMatchEditPage() {
     return <Navigate replace to="/tournaments" />;
   }
 
-  if (!canEdit) {
+  if (!permissions.canManageMatches) {
     return (
       <Navigate
         replace
