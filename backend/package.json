@@ -5,6 +5,7 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "packageManager": "pnpm@11.5.3",
   "scripts": {
     "build": "nest build",
     "typeorm": "typeorm-ts-node-commonjs -d src/database/data-source.ts",
