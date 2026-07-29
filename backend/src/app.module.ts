@@ -8,6 +8,8 @@ import { PlayersModule } from './players/players.module';
 import { MatchesModule } from './matches/matches.module';
 import { TeamsModule } from './teams/teams.module';
 import { PlayerTeamsModule } from './player-teams/player-teams.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -21,5 +23,7 @@ import { PlayerTeamsModule } from './player-teams/player-teams.module';
     TeamsModule,
     PlayerTeamsModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
