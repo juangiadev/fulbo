@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title description">
+  <title id="title">Captura temporal del paso 2</title>
+  <desc id="description">Esta imagen sera reemplazada por la captura del formulario del codigo.</desc>
+  <rect width="1200" height="675" fill="#082719"/>
+  <rect x="80" y="76" width="1040" height="523" rx="24" fill="#113724" stroke="#286243" stroke-width="2"/>
+  <text x="150" y="165" fill="#ffffff" font-family="Arial, sans-serif" font-size="34" font-weight="700">Codigo del torneo</text>
+  <rect x="150" y="210" width="900" height="76" rx="12" fill="#153d29" stroke="#ffffff" stroke-width="2"/>
+  <text x="178" y="258" fill="#b9d7c4" font-family="Arial, sans-serif" font-size="25">Ingresa codigo del torneo</text>
+  <rect x="150" y="310" width="900" height="76" rx="12" fill="#ffffff"/>
+  <text x="485" y="359" fill="#082719" font-family="Arial, sans-serif" font-size="25">Enviar solicitud</text>
+</svg>

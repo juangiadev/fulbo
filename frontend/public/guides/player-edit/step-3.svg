@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title description">
+  <title id="title">Captura temporal del paso 3</title>
+  <desc id="description">Esta imagen sera reemplazada por la captura de la tarjeta del torneo.</desc>
+  <rect width="1200" height="675" fill="#082719"/>
+  <text x="90" y="130" fill="#ffffff" font-family="Arial, sans-serif" font-size="38" font-weight="700">Torneos</text>
+  <rect x="80" y="185" width="1040" height="240" rx="24" fill="#143b28" stroke="#72bd8c" stroke-width="4"/>
+  <rect x="110" y="220" width="110" height="38" rx="19" fill="#184a31"/>
+  <text x="130" y="247" fill="#d7e3dc" font-family="Arial, sans-serif" font-size="18">Privado</text>
+  <text x="110" y="318" fill="#ffffff" font-family="Arial, sans-serif" font-size="34" font-weight="700">Tu torneo</text>
+  <text x="110" y="372" fill="#b9d7c4" font-family="Arial, sans-serif" font-size="23">Selecciona la tarjeta para entrar</text>
+</svg>

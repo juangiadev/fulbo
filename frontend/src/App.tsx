@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppShell } from "./layout/AppShell";
 import { LoginPage } from "./pages/auth/LoginPage";
+import { PlayerEditGuidePage } from "./pages/guide/PlayerEditGuidePage";
 import { JoinTournamentPage } from "./pages/tournaments/JoinTournamentPage";
 import { TournamentDetailsPage } from "./pages/tournaments/TournamentDetailsPage";
 import { TournamentFormPage } from "./pages/tournaments/TournamentFormPage";
@@ -22,6 +23,7 @@ function App() {
     return (
         <Routes>
             <Route element={<LoginPage />} path="/" />
+            <Route element={<PlayerEditGuidePage />} path="/guia-jugadores" />
 
             <Route
                 element={

@@ -43,6 +43,9 @@ export function TournamentsPage() {
           <Link className={buttonStyles.ghost} to="/tournaments/join">
             Unirse a un torneo
           </Link>
+          <Link className={buttonStyles.ghost} to="/guia-jugadores">
+            Como editar mi jugador
+          </Link>
         </div>
       </div>
 

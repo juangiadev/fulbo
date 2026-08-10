@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title description">
+  <title id="title">Captura temporal del paso 6</title>
+  <desc id="description">Esta imagen sera reemplazada por la captura del formulario de edicion.</desc>
+  <rect width="1200" height="675" fill="#082719"/>
+  <rect x="80" y="55" width="1040" height="565" rx="24" fill="#113724" stroke="#286243" stroke-width="2"/>
+  <text x="140" y="130" fill="#ffffff" font-family="Arial, sans-serif" font-size="36" font-weight="700">Editar jugador</text>
+  <text x="140" y="205" fill="#d7e3dc" font-family="Arial, sans-serif" font-size="22">Foto de perfil (URL)</text>
+  <rect x="140" y="225" width="920" height="65" rx="10" fill="#153d29" stroke="#ffffff" stroke-width="2"/>
+  <text x="140" y="355" fill="#d7e3dc" font-family="Arial, sans-serif" font-size="22">Equipo favorito</text>
+  <rect x="140" y="375" width="440" height="65" rx="10" fill="#082719" stroke="#ffffff" stroke-width="2"/>
+  <text x="620" y="355" fill="#d7e3dc" font-family="Arial, sans-serif" font-size="22">Preferencia de visualizacion</text>
+  <rect x="620" y="375" width="440" height="65" rx="10" fill="#082719" stroke="#72bd8c" stroke-width="3"/>
+  <rect x="850" y="490" width="210" height="70" rx="12" fill="#ffffff"/>
+  <text x="913" y="535" fill="#082719" font-family="Arial, sans-serif" font-size="24">Guardar</text>
+</svg>
