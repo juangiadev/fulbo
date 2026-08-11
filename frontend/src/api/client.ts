@@ -3,12 +3,14 @@ import type {
   MatchContract,
   MatchMvpVotingContract,
   MatchPlayersRecentFormContract,
+  MyPlayerProfileContract,
   PlayerContract,
   PlayerTeamContract,
   TeamContract,
   TournamentContract,
   TournamentSummaryContract,
   UpdateMatchPayload,
+  UpdateUserProfileInput,
   UserProfile,
 } from '@shared/contracts';
 
@@ -133,7 +135,8 @@ export const apiClient = {
       body: JSON.stringify(input ?? {}),
     }),
   getMe: () => request<UserProfile>('/users/me'),
-  updateMe: (input: Partial<UserProfile>) =>
+  getMyPlayers: () => request<MyPlayerProfileContract[]>('/users/me/players'),
+  updateMe: (input: UpdateUserProfileInput) =>
     request<UserProfile>('/users/me', { method: 'PATCH', body: JSON.stringify(input) }),
   getTournaments: () => request<TournamentContract[]>('/tournaments'),
   getTournament: (id: string) => request<TournamentContract>(`/tournaments/${id}`),

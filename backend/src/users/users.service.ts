@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuthUser } from '../auth/auth.types';
-import { User } from '../database/entities';
+import { Player, User } from '../database/entities';
 import { Auth0ManagementService } from './auth0-management.service';
 import { SyncMeDto } from './dto/sync-me.dto';
 import { UpdateMeDto } from './dto/update-me.dto';
@@ -12,6 +12,8 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @InjectRepository(Player)
+    private readonly playersRepository: Repository<Player>,
     private readonly auth0ManagementService: Auth0ManagementService,
   ) {}
 
@@ -56,8 +58,7 @@ export class UsersService {
     const created = this.usersRepository.create({
       auth0Id: normalizedAuthUser.sub,
       email:
-        normalizedAuthUser.email ??
-        `${normalizedAuthUser.sub}@no-email.local`,
+        normalizedAuthUser.email ?? `${normalizedAuthUser.sub}@no-email.local`,
       name: normalizedAuthUser.name ?? 'Player',
       nickname: normalizedAuthUser.nickname ?? null,
       imageUrl: normalizedAuthUser.picture ?? null,
@@ -88,7 +89,9 @@ export class UsersService {
       return authUser;
     }
 
-    const profile = await this.auth0ManagementService.getUserProfile(authUser.sub);
+    const profile = await this.auth0ManagementService.getUserProfile(
+      authUser.sub,
+    );
     if (!profile) {
       return authUser;
     }
@@ -112,10 +115,30 @@ export class UsersService {
     return user;
   }
 
+  async getMyPlayers(auth0Id: string) {
+    const user = await this.getMe(auth0Id);
+    const players = await this.playersRepository.find({
+      where: { userId: user.id },
+      relations: { tournament: true },
+      order: { updatedAt: 'DESC' },
+    });
+
+    return players.map((player) => ({
+      playerId: player.id,
+      tournamentId: player.tournamentId,
+      tournamentName: player.tournament.name,
+      name: player.name,
+      nickname: player.nickname,
+      imageUrl: player.imageUrl,
+      favoriteTeamSlug: player.favoriteTeamSlug,
+      displayPreference: player.displayPreference,
+      updatedAt: player.updatedAt,
+    }));
+  }
+
   async updateMe(auth0Id: string, dto: UpdateMeDto): Promise<User> {
     const user = await this.getMe(auth0Id);
     Object.assign(user, dto);
     return this.usersRepository.save(user);
   }
-
 }

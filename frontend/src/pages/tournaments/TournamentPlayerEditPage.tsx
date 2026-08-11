@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
 import { apiClient } from '../../api/client';
+import { PlayerAvatar, type PlayerAvatarPlayer } from '../../components/PlayerAvatar';
 import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
 import { useAppContext } from '../../state/AppContext';
 import buttonStyles from '../../styles/Button.module.css';
@@ -77,6 +78,29 @@ export function TournamentPlayerEditPage() {
     return <Navigate replace to={`/tournaments/${tournamentId}/players`} />;
   }
 
+  const previewPlayer: PlayerAvatarPlayer = {
+    name: name.trim() || 'Jugador',
+    nickname: nickname.trim() || null,
+    imageUrl: imageUrl.trim() || null,
+    favoriteTeamSlug: favoriteTeamSlug || null,
+    displayPreference,
+  };
+  const selectedTeam = FAVORITE_TEAMS.find((team) => team.slug === favoriteTeamSlug);
+  const imageDescription = imageUrl.trim()
+    ? 'Se usa cuando la preferencia es Imagen. Si no carga, se muestra la inicial.'
+    : 'Si elegis Imagen sin una foto, se muestra la inicial del jugador.';
+  const teamDescription = selectedTeam
+    ? `Guardado como ${selectedTeam.name}. El escudo solo se muestra si elegis Equipo favorito.`
+    : 'Elegi un equipo para poder mostrar su escudo en la tabla.';
+  const displayPreferenceDescription =
+    displayPreference === DisplayPreference.FAVORITE_TEAM
+      ? selectedTeam
+        ? 'La tabla mostrara el escudo del equipo seleccionado.'
+        : 'Sin equipo favorito, la tabla usara la foto o la inicial.'
+      : imageUrl.trim()
+        ? 'La tabla mostrara la foto de perfil.'
+        : 'Sin foto de perfil, la tabla mostrara la inicial.';
+
   return (
     <section className={styles.section}>
       <div className={styles.headerRow}>
@@ -121,6 +145,23 @@ export function TournamentPlayerEditPage() {
           }
         }}
       >
+        <div className={styles.previewCard}>
+          <span className={styles.previewLabel}>Vista previa en la tabla</span>
+          <div className={styles.previewIdentity}>
+            <PlayerAvatar
+              classNames={{
+                avatar: styles.previewAvatar,
+                avatarFallback: styles.previewAvatarFallback,
+                avatarTeam: styles.previewAvatarTeam,
+              }}
+              player={previewPlayer}
+            />
+            <span className={styles.previewPlayerName}>
+              {previewPlayer.nickname ?? previewPlayer.name}
+            </span>
+          </div>
+        </div>
+
         <label>
           Nombre
           <input onChange={(event) => setName(event.target.value)} required value={name} />
@@ -134,15 +175,23 @@ export function TournamentPlayerEditPage() {
         <label>
           Foto de perfil (URL)
           <input
+            aria-describedby="player-image-help"
             onChange={(event) => setImageUrl(event.target.value)}
             placeholder="https://..."
             value={imageUrl}
           />
+          <span className={styles.fieldHint} id="player-image-help">
+            {imageDescription}
+          </span>
         </label>
 
         <label>
           Equipo favorito
-          <select onChange={(event) => setFavoriteTeamSlug(event.target.value)} value={favoriteTeamSlug}>
+          <select
+            aria-describedby="player-team-help"
+            onChange={(event) => setFavoriteTeamSlug(event.target.value)}
+            value={favoriteTeamSlug}
+          >
             <option value="">Sin equipo favorito</option>
             {FAVORITE_TEAMS.map((team) => (
               <option key={team.slug} value={team.slug}>
@@ -150,17 +199,28 @@ export function TournamentPlayerEditPage() {
               </option>
             ))}
           </select>
+          <span className={styles.fieldHint} id="player-team-help">
+            {teamDescription}
+          </span>
         </label>
 
         <label>
           Preferencia de visualizacion
           <select
+            aria-describedby="player-display-preference-help"
             onChange={(event) => setDisplayPreference(event.target.value as DisplayPreference)}
             value={displayPreference}
           >
             <option value={DisplayPreference.IMAGE}>Imagen</option>
             <option value={DisplayPreference.FAVORITE_TEAM}>Equipo favorito</option>
           </select>
+          <span
+            aria-live="polite"
+            className={styles.fieldHint}
+            id="player-display-preference-help"
+          >
+            {displayPreferenceDescription}
+          </span>
         </label>
 
         {permissions.canManagePlayers ? (

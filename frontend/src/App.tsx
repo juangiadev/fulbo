@@ -3,6 +3,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppShell } from "./layout/AppShell";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { PlayerEditGuidePage } from "./pages/guide/PlayerEditGuidePage";
+import { ProfilePage } from "./pages/profile/ProfilePage";
 import { JoinTournamentPage } from "./pages/tournaments/JoinTournamentPage";
 import { TournamentDetailsPage } from "./pages/tournaments/TournamentDetailsPage";
 import { TournamentFormPage } from "./pages/tournaments/TournamentFormPage";
@@ -33,6 +34,7 @@ function App() {
                 }
             >
                 <Route element={<TournamentsPage />} path="/tournaments" />
+                <Route element={<ProfilePage />} path="/profile" />
                 <Route
                     element={<JoinTournamentPage />}
                     path="/tournaments/join"

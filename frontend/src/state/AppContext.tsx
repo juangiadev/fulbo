@@ -11,8 +11,11 @@ import {
 import { useAuth0 } from "@auth0/auth0-react";
 import { DisplayPreference } from "@shared/enums";
 import { PlayerRole } from "@shared/enums";
-import type { UserProfile } from "@shared/contracts";
-import type { TournamentContract } from "@shared/contracts";
+import type {
+  TournamentContract,
+  UpdateUserProfileInput,
+  UserProfile,
+} from "@shared/contracts";
 import { apiClient, setAccessTokenProvider } from "../api/client";
 import type { AppData } from "../types/app";
 
@@ -34,7 +37,7 @@ interface AppContextValue {
     input: Partial<TournamentContract>,
   ) => Promise<void>;
   deleteTournament: (id: string) => Promise<void>;
-  updateProfile: (input: Partial<UserProfile>) => Promise<void>;
+  updateProfile: (input: UpdateUserProfileInput) => Promise<void>;
 }
 
 const emptyUser: UserProfile = {
@@ -229,7 +232,7 @@ export function AppProvider({ children }: PropsWithChildren) {
     [loadTournaments],
   );
 
-  const updateProfile = useCallback(async (input: Partial<UserProfile>) => {
+  const updateProfile = useCallback(async (input: UpdateUserProfileInput) => {
     const profile = await apiClient.updateMe(input);
     setCurrentUser(profile);
   }, []);

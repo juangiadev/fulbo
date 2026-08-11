@@ -3,11 +3,11 @@ import type {
   PlayerRecentMatchResultContract,
   TournamentSummaryContract,
 } from '@shared/contracts';
-import { FAVORITE_TEAMS } from '@shared/favorite-teams';
-import { DisplayPreference, TeamResult } from '@shared/enums';
+import { TeamResult } from '@shared/enums';
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { ContentSpinner } from '../../components/ContentSpinner';
+import { PlayerAvatar } from '../../components/PlayerAvatar';
 import { apiClient } from '../../api/client';
 import { useAppContext } from '../../state/AppContext';
 import buttonStyles from '../../styles/Button.module.css';
@@ -21,27 +21,6 @@ export function TournamentTablePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
-
-  const resolvePlayerVisual = (player: PlayerContract | undefined) => {
-    if (!player) {
-      return { kind: 'fallback' as const, value: '?' };
-    }
-
-    const imageUrl = player.imageUrl ?? null;
-
-    if (player.displayPreference === DisplayPreference.FAVORITE_TEAM) {
-      const team = FAVORITE_TEAMS.find((item) => item.slug === player.favoriteTeamSlug);
-      if (team?.imageUrl) {
-        return { kind: 'team' as const, value: team.imageUrl, alt: 'Equipo' };
-      }
-    }
-
-    if (imageUrl) {
-      return { kind: 'image' as const, value: imageUrl, alt: 'Jugador' };
-    }
-
-    return { kind: 'fallback' as const, value: (player.nickname ?? player.name).slice(0, 1) };
-  };
 
   const renderRecentForm = (items: PlayerRecentMatchResultContract[]) => {
     const visibleItems = items.slice(0, 5);
@@ -143,19 +122,14 @@ export function TournamentTablePage() {
                   </td>
                   <td>
                     <div className={styles.playerCell}>
-                      {(() => {
-                        const player = players.find((item) => item.id === row.playerId);
-                        const visual = resolvePlayerVisual(player);
-                        if (visual.kind === 'image') {
-                          return <img alt={visual.alt} className={styles.avatar} src={visual.value} />;
-                        }
-
-                        if (visual.kind === 'team') {
-                          return <img alt={visual.alt} className={styles.avatarTeam} src={visual.value} />;
-                        }
-
-                        return <span className={styles.avatarFallback}>{visual.value}</span>;
-                      })()}
+                      <PlayerAvatar
+                        classNames={{
+                          avatar: styles.avatar,
+                          avatarFallback: styles.avatarFallback,
+                          avatarTeam: styles.avatarTeam,
+                        }}
+                        player={players.find((item) => item.id === row.playerId)}
+                      />
                       <span className={styles.playerName}>{row.displayName}</span>
                     </div>
                   </td>

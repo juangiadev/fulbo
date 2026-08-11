@@ -20,15 +20,15 @@ export class UpdateMeDto {
   @IsOptional()
   @IsString()
   @MaxLength(120)
-  nickname?: string;
+  nickname?: string | null;
 
   @IsOptional()
   @IsUrl()
-  imageUrl?: string;
+  imageUrl?: string | null;
 
   @IsOptional()
   @IsIn(favoriteTeamSlugs)
-  favoriteTeamSlug?: string;
+  favoriteTeamSlug?: string | null;
 
   @IsOptional()
   @IsEnum(DisplayPreference)

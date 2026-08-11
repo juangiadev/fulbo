@@ -20,6 +20,26 @@ export interface UserProfile {
   updatedAt: string;
 }
 
+export interface UpdateUserProfileInput {
+  name?: string;
+  nickname?: string | null;
+  imageUrl?: string | null;
+  favoriteTeamSlug?: string | null;
+  displayPreference?: DisplayPreference;
+}
+
+export interface MyPlayerProfileContract {
+  playerId: string;
+  tournamentId: string;
+  tournamentName: string;
+  name: string;
+  nickname: string | null;
+  imageUrl: string | null;
+  favoriteTeamSlug: string | null;
+  displayPreference: DisplayPreference;
+  updatedAt: string;
+}
+
 export interface PlayerContract {
   id: string;
   userId: string | null;

@@ -27,6 +27,11 @@ export class UsersController {
     return this.usersService.getMe(user.sub);
   }
 
+  @Get('me/players')
+  getMyPlayers(@CurrentUser() user: AuthUser) {
+    return this.usersService.getMyPlayers(user.sub);
+  }
+
   @Patch('me')
   updateMe(@CurrentUser() user: AuthUser, @Body() dto: UpdateMeDto) {
     return this.usersService.updateMe(user.sub, dto);
