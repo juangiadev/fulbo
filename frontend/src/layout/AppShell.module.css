@@ -69,6 +69,7 @@
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.42);
   border-radius: 50%;
+  padding: 0;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
   color: var(--secondary);
   cursor: pointer;

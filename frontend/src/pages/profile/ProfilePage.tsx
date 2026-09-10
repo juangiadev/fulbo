@@ -4,14 +4,31 @@ import type {
 } from '@shared/contracts';
 import { DisplayPreference } from '@shared/enums';
 import { FAVORITE_TEAMS } from '@shared/favorite-teams';
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  Camera,
+  Eye,
+  Heart,
+  Mail,
+  Save,
+  ShieldCheck,
+  UserRound,
+  Users,
+} from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { sileo } from 'sileo';
-import { ContentSpinner } from '../../components/ContentSpinner';
 import { apiClient } from '../../api/client';
+import { PlayerAvatar } from '../../components/PlayerAvatar';
 import { useAppContext } from '../../state/AppContext';
-import buttonStyles from '../../styles/Button.module.css';
 import styles from './ProfilePage.module.css';
+
+const AVATAR_CLASS_NAMES = {
+  avatar: styles.avatarImage,
+  avatarFallback: styles.avatarFallback,
+  avatarTeam: styles.avatarTeam,
+};
 
 export function ProfilePage() {
   const { currentUser, updateProfile } = useAppContext();
@@ -26,9 +43,17 @@ export function ProfilePage() {
   const [players, setPlayers] = useState<MyPlayerProfileContract[]>([]);
   const [isLoadingPlayers, setIsLoadingPlayers] = useState(true);
   const [playersError, setPlayersError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setIsLoadingPlayers(true);
+        setPlayersError(false);
+      }
+    });
 
     void apiClient
       .getMyPlayers()
@@ -51,7 +76,17 @@ export function ProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
+
+  const displayName = nickname || name || 'Jugador';
+  const favoriteTeam = FAVORITE_TEAMS.find((team) => team.slug === favoriteTeamSlug);
+  const profilePreview = {
+    name,
+    nickname: nickname || null,
+    imageUrl: imageUrl || null,
+    favoriteTeamSlug: favoriteTeamSlug || null,
+    displayPreference,
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -77,131 +112,215 @@ export function ProfilePage() {
   };
 
   return (
-    <section className={styles.section}>
-      <div className={styles.headerRow}>
-        <div>
-          <p className={styles.eyebrow}>Cuenta</p>
-          <h2>Mi perfil</h2>
-          <p className={styles.subtle}>Configura tu identidad y revisa tus perfiles de torneo.</p>
+    <section className={styles.page}>
+      <div aria-hidden="true" className={styles.pitchDecoration} />
+
+      <Link className={styles.backLink} to="/tournaments">
+        <ArrowLeft aria-hidden="true" size={18} />
+        Volver a torneos
+      </Link>
+
+      <header className={styles.hero}>
+        <div className={styles.heroIdentity}>
+          <div className={styles.heroAvatar}>
+            <PlayerAvatar classNames={AVATAR_CLASS_NAMES} player={profilePreview} />
+          </div>
+          <div className={styles.heroCopy}>
+            <p className={styles.eyebrow}>Mi vestuario</p>
+            <h1>
+              Tu identidad,
+              <span>{displayName}.</span>
+            </h1>
+            <p>Definí cómo te presentás y administrá cada versión tuya dentro de la cancha.</p>
+          </div>
         </div>
-        <Link className={buttonStyles.ghost} to="/tournaments">
-          Volver a torneos
-        </Link>
-      </div>
+
+        <dl className={styles.profileSummary}>
+          <div>
+            <dt>Perfiles</dt>
+            <dd>{isLoadingPlayers ? '–' : players.length.toString().padStart(2, '0')}</dd>
+          </div>
+          <div>
+            <dt>Equipo</dt>
+            <dd className={styles.teamName}>{favoriteTeam?.name ?? 'Sin elegir'}</dd>
+          </div>
+        </dl>
+      </header>
 
       <div className={styles.grid}>
-        <article className={styles.card}>
+        <section aria-labelledby="account-profile-title" className={styles.accountCard}>
           <div className={styles.cardHeading}>
             <div>
-              <p className={styles.eyebrow}>Predeterminado</p>
-              <h3>Perfil de cuenta</h3>
+              <p className={styles.eyebrow}>Datos predeterminados</p>
+              <h2 id="account-profile-title">Perfil de cuenta</h2>
             </div>
-            <div className={styles.avatarPreview}>
-              {imageUrl ? (
-                <img alt="Vista previa del perfil" src={imageUrl} />
-              ) : (
-                <span>{(nickname || name || 'U').slice(0, 1).toUpperCase()}</span>
-              )}
+            <div aria-hidden="true" className={styles.sectionIcon}>
+              <UserRound size={23} strokeWidth={1.7} />
             </div>
           </div>
 
           <p className={styles.description}>
-            Estos datos se usan como valores iniciales cuando se crea tu jugador. No modifican jugadores que ya existen en un torneo.
+            Se usan como punto de partida al crear un jugador nuevo. Tus jugadores actuales mantienen su propia identidad.
           </p>
 
           <form className={styles.form} onSubmit={handleSubmit}>
-            <label>
-              Nombre de cuenta
-              <input onChange={(event) => setName(event.target.value)} required value={name} />
+            <label className={styles.field}>
+              <span>Nombre de cuenta</span>
+              <span className={styles.inputWrap}>
+                <UserRound aria-hidden="true" size={18} />
+                <input
+                  autoComplete="name"
+                  onChange={(event) => setName(event.target.value)}
+                  required
+                  value={name}
+                />
+              </span>
             </label>
 
-            <label>
-              Apodo
-              <input onChange={(event) => setNickname(event.target.value)} value={nickname} />
+            <label className={styles.field}>
+              <span>Apodo</span>
+              <span className={styles.inputWrap}>
+                <ShieldCheck aria-hidden="true" size={18} />
+                <input
+                  onChange={(event) => setNickname(event.target.value)}
+                  placeholder="Cómo te dicen en la cancha"
+                  value={nickname}
+                />
+              </span>
             </label>
 
-            <label>
-              Foto de perfil (URL)
-              <input
-                onChange={(event) => setImageUrl(event.target.value)}
-                placeholder="https://..."
-                value={imageUrl}
-              />
+            <label className={`${styles.field} ${styles.fullField}`}>
+              <span>Foto de perfil</span>
+              <span className={styles.inputWrap}>
+                <Camera aria-hidden="true" size={18} />
+                <input
+                  inputMode="url"
+                  onChange={(event) => setImageUrl(event.target.value)}
+                  placeholder="https://..."
+                  type="url"
+                  value={imageUrl}
+                />
+              </span>
             </label>
 
-            <label>
-              Equipo favorito
-              <select
-                onChange={(event) => setFavoriteTeamSlug(event.target.value)}
-                value={favoriteTeamSlug}
-              >
-                <option value="">Sin equipo favorito</option>
-                {FAVORITE_TEAMS.map((team) => (
-                  <option key={team.slug} value={team.slug}>
-                    {team.name}
-                  </option>
-                ))}
-              </select>
+            <label className={styles.field}>
+              <span>Equipo favorito</span>
+              <span className={styles.inputWrap}>
+                <Heart aria-hidden="true" size={18} />
+                <select
+                  onChange={(event) => setFavoriteTeamSlug(event.target.value)}
+                  value={favoriteTeamSlug}
+                >
+                  <option value="">Sin equipo favorito</option>
+                  {FAVORITE_TEAMS.map((team) => (
+                    <option key={team.slug} value={team.slug}>
+                      {team.name}
+                    </option>
+                  ))}
+                </select>
+              </span>
             </label>
 
-            <label>
-              Preferencia de visualizacion
-              <select
-                onChange={(event) => setDisplayPreference(event.target.value as DisplayPreference)}
-                value={displayPreference}
-              >
-                <option value={DisplayPreference.IMAGE}>Imagen</option>
-                <option value={DisplayPreference.FAVORITE_TEAM}>Equipo favorito</option>
-              </select>
+            <label className={styles.field}>
+              <span>Mostrar en mi avatar</span>
+              <span className={styles.inputWrap}>
+                <Eye aria-hidden="true" size={18} />
+                <select
+                  onChange={(event) => setDisplayPreference(event.target.value as DisplayPreference)}
+                  value={displayPreference}
+                >
+                  <option value={DisplayPreference.IMAGE}>Mi foto</option>
+                  <option value={DisplayPreference.FAVORITE_TEAM}>Mi equipo favorito</option>
+                </select>
+              </span>
             </label>
 
-            <div className={styles.accountInfo}>
-              <span>Email</span>
-              <strong>{currentUser.email}</strong>
+            <div className={`${styles.accountInfo} ${styles.fullField}`}>
+              <Mail aria-hidden="true" size={18} />
+              <div>
+                <span>Email de la cuenta</span>
+                <strong>{currentUser.email}</strong>
+              </div>
             </div>
 
-            <div className={styles.actions}>
-              <button className={buttonStyles.primary} disabled={isSaving} type="submit">
+            <div className={`${styles.actions} ${styles.fullField}`}>
+              <p>Los cambios se aplican a tu cuenta, no a jugadores ya creados.</p>
+              <button className={styles.saveButton} disabled={isSaving} type="submit">
+                <Save aria-hidden="true" size={18} />
                 {isSaving ? 'Guardando...' : 'Guardar cambios'}
               </button>
             </div>
           </form>
-        </article>
+        </section>
 
-        <article className={styles.card}>
-          <div>
-            <p className={styles.eyebrow}>Por torneo</p>
-            <h3>Mis jugadores</h3>
+        <section aria-labelledby="players-profile-title" className={styles.playersSection}>
+          <div className={styles.playersHeading}>
+            <div>
+              <p className={styles.eyebrow}>Identidad por torneo</p>
+              <h2 id="players-profile-title">Mis jugadores</h2>
+            </div>
+            <span>{isLoadingPlayers ? '–' : players.length}</span>
           </div>
           <p className={styles.description}>
-            Cada jugador tiene su propia informacion dentro del torneo. Edita un jugador para cambiar su nombre o sus datos deportivos.
+            Cada competencia guarda tu nombre, apodo e imagen de manera independiente.
           </p>
 
-          {isLoadingPlayers ? <ContentSpinner /> : null}
-          {playersError ? <p className={styles.error}>No se pudieron cargar tus jugadores.</p> : null}
+          {isLoadingPlayers ? (
+            <div aria-busy="true" className={styles.playersList}>
+              {[0, 1, 2].map((item) => (
+                <article className={`${styles.playerCard} ${styles.loadingCard}`} key={item}>
+                  <span aria-hidden="true" className={styles.loadingAvatar} />
+                  <span aria-hidden="true" className={styles.loadingLines} />
+                </article>
+              ))}
+              <span className={styles.srOnly} role="status">
+                Cargando tus jugadores...
+              </span>
+            </div>
+          ) : null}
+          {playersError ? (
+            <div className={styles.stateCard}>
+              <Users aria-hidden="true" size={30} strokeWidth={1.6} />
+              <h3>No pudimos cargar tus jugadores</h3>
+              <p>Revisá tu conexión e intentá nuevamente.</p>
+              <button onClick={() => setReloadKey((value) => value + 1)} type="button">
+                Reintentar
+              </button>
+            </div>
+          ) : null}
           {!isLoadingPlayers && !playersError && players.length === 0 ? (
-            <p className={styles.emptyState}>Todavia no tenes jugadores vinculados a un torneo.</p>
+            <div className={styles.stateCard}>
+              <Users aria-hidden="true" size={30} strokeWidth={1.6} />
+              <h3>Tu vestuario está vacío</h3>
+              <p>Cuando te sumes a un torneo, tu jugador aparecerá acá.</p>
+              <Link to="/tournaments">Explorar torneos</Link>
+            </div>
           ) : null}
           {!isLoadingPlayers && !playersError ? (
             <div className={styles.playersList}>
               {players.map((player) => (
                 <article className={styles.playerCard} key={player.playerId}>
+                  <div className={styles.playerAvatar}>
+                    <PlayerAvatar classNames={AVATAR_CLASS_NAMES} player={player} />
+                  </div>
                   <div className={styles.playerIdentity}>
-                    <strong>{player.nickname ?? player.name}</strong>
                     <span>{player.tournamentName}</span>
-                    <small>Nombre del jugador: {player.name}</small>
+                    <h3>{player.nickname ?? player.name}</h3>
+                    {player.nickname && player.nickname !== player.name ? <small>{player.name}</small> : null}
                   </div>
                   <Link
-                    className={buttonStyles.ghost}
+                    aria-label={`Editar jugador ${player.nickname ?? player.name}`}
+                    className={styles.editPlayerLink}
                     to={`/tournaments/${player.tournamentId}/players/${player.playerId}/edit`}
                   >
-                    Editar jugador
+                    <span>Editar jugador</span>
+                    <ArrowUpRight aria-hidden="true" size={18} />
                   </Link>
                 </article>
               ))}
             </div>
           ) : null}
-        </article>
+        </section>
       </div>
     </section>
   );
