@@ -1,13 +1,13 @@
+import { LogOut, UserRound } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, Outlet } from 'react-router-dom';
 import { useAppContext } from '../state/AppContext';
-import buttonStyles from '../styles/Button.module.css';
 import styles from './AppShell.module.css';
 
 function FulboLogo() {
   return (
     <Link aria-label="Ir a torneos" to="/tournaments">
-      <img alt="Balon" className={styles.logoBall} src="/fulbo_logo.png" />
+      <img alt="" className={styles.logoBall} src="/fulbo_logo.png" />
     </Link>
   );
 }
@@ -16,6 +16,7 @@ export function AppShell() {
   const { currentUser, logout } = useAppContext();
   const [menuOpen, setMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const avatarButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const initials = (currentUser.nickname ?? currentUser.name ?? 'U').slice(0, 1).toUpperCase();
 
@@ -34,8 +35,19 @@ export function AppShell() {
       }
     };
 
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+        avatarButtonRef.current?.focus();
+      }
+    };
+
     window.addEventListener('mousedown', handleOutsideClick);
-    return () => window.removeEventListener('mousedown', handleOutsideClick);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', handleOutsideClick);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [menuOpen]);
 
   return (
@@ -45,20 +57,34 @@ export function AppShell() {
           <FulboLogo />
         </div>
         <div className={styles.topbarUser} ref={dropdownRef}>
-          <button className={styles.avatarBtn} onClick={() => setMenuOpen((value) => !value)} type="button">
+          <button
+            aria-controls="user-menu"
+            aria-expanded={menuOpen}
+            aria-label="Abrir menú de usuario"
+            className={styles.avatarBtn}
+            onClick={() => setMenuOpen((value) => !value)}
+            ref={avatarButtonRef}
+            type="button"
+          >
             {currentUser.imageUrl ? (
-              <img alt="Usuario" className={styles.avatarImage} src={currentUser.imageUrl} />
+              <img alt="" className={styles.avatarImage} src={currentUser.imageUrl} />
             ) : (
               <span>{initials}</span>
             )}
           </button>
           {menuOpen ? (
-            <div className={styles.userDropdown}>
-              <Link className={buttonStyles.ghost} onClick={() => setMenuOpen(false)} to="/profile">
+            <div className={styles.userDropdown} id="user-menu">
+              <div className={styles.menuIdentity}>
+                <strong>{currentUser.nickname ?? currentUser.name}</strong>
+                <span>{currentUser.email}</span>
+              </div>
+              <Link className={styles.menuItem} onClick={() => setMenuOpen(false)} to="/profile">
+                <UserRound aria-hidden="true" size={17} />
                 Mi perfil
               </Link>
-              <button className={buttonStyles.ghost} onClick={logout} type="button">
-                Cerrar sesion
+              <button className={styles.menuItem} onClick={logout} type="button">
+                <LogOut aria-hidden="true" size={17} />
+                Cerrar sesión
               </button>
             </div>
           ) : null}

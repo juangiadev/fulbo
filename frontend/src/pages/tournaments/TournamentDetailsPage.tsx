@@ -1,59 +1,70 @@
-import { TournamentVisibility } from '@shared/enums';
+import type { PlayerContract, StandingRowContract, TournamentSummaryContract } from '@shared/contracts';
 import { DisplayPreference } from '@shared/enums';
 import { FAVORITE_TEAMS } from '@shared/favorite-teams';
-import type { PlayerContract, StandingRowContract, TournamentSummaryContract } from '@shared/contracts';
-import { CalendarDays, LayoutGrid, Pencil, Table2, Trash2, Users } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  CalendarDays,
+  LayoutGrid,
+  LoaderCircle,
+  Pencil,
+  Table2,
+  Trash2,
+  Trophy,
+  Users,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
 import { apiClient } from '../../api/client';
 import { ConfirmModal } from '../../components/ConfirmModal';
-import { ContentSpinner } from '../../components/ContentSpinner';
 import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
 import { useAppContext } from '../../state/AppContext';
-import buttonStyles from '../../styles/Button.module.css';
 import styles from './TournamentDetailsPage.module.css';
 
-const visibilityLabel: Record<string, string> = {
-  PUBLIC: 'Publico',
-  PRIVATE: 'Privado',
-};
+const TOURNAMENT_NAME_MAX_LENGTH = 150;
 
-function Banner({
-  title,
-  statText,
-  player,
-  imageUrl,
-}: {
+interface BannerProps {
   title: string;
   statText: string;
   player: StandingRowContract | undefined;
   imageUrl: string | null | undefined;
-}) {
+}
+
+function Banner({ title, statText, player, imageUrl }: BannerProps) {
+  const playerInitial = player?.displayName.slice(0, 1).toUpperCase() ?? '–';
+
   return (
-    <article className={`${styles.banner} ${imageUrl ? styles.bannerWithImage : ''}`}>
-      <div className={styles.bannerOverlay}>
+    <article className={styles.banner}>
+      <div className={styles.bannerCopy}>
         <div className={styles.bannerTopRow}>
           <p className={styles.bannerTitle}>{title}</p>
-          {player ? <span className={styles.bannerChip}>Pos #{player.position}</span> : null}
+          {player ? <span className={styles.bannerChip}>#{player.position}</span> : null}
         </div>
 
         <div className={styles.bannerMain}>
-          <h3 className={styles.bannerName}>{player?.displayName ?? 'Sin datos todavia'}</h3>
-          <p className={styles.bannerSubtitle}>Jugador destacado del torneo</p>
+          <p className={styles.bannerKicker}>Figura del torneo</p>
+          <h3 className={styles.bannerName}>{player?.displayName ?? 'Todavía sin datos'}</h3>
+          <p className={styles.bannerSubtitle}>
+            {player ? 'Rendimiento destacado en la competencia' : 'Completá partidos para descubrir las figuras'}
+          </p>
         </div>
 
-        <div className={styles.bannerStats}>
-          <span className={styles.bannerStat}>{player ? statText : 'Sin actividad en el torneo'}</span>
-        </div>
-
-        {player ? <span className={styles.bannerWatermark}>#{player.position}</span> : null}
+        <span className={styles.bannerStat}>{player ? statText : 'Sin actividad registrada'}</span>
       </div>
-      {imageUrl ? (
-        <div className={styles.bannerVisual}>
-          <img alt={player?.displayName ?? title} src={imageUrl} />
-        </div>
-      ) : null}
+
+      <div className={styles.bannerVisual}>
+        {imageUrl ? (
+          <img alt="" src={imageUrl} />
+        ) : (
+          <>
+            <span aria-hidden="true" className={styles.visualPitch} />
+            <span aria-hidden="true" className={styles.playerInitial}>
+              {playerInitial}
+            </span>
+          </>
+        )}
+      </div>
     </article>
   );
 }
@@ -61,24 +72,17 @@ function Banner({
 export function TournamentDetailsPage() {
   const navigate = useNavigate();
   const { tournamentId } = useParams();
-  const { data, deleteTournament, loadTournaments, updateTournament } = useAppContext();
+  const { data, deleteTournament, updateTournament } = useAppContext();
   const [summary, setSummary] = useState<TournamentSummaryContract | null>(null);
   const [players, setPlayers] = useState<PlayerContract[]>([]);
-  const [isLoadingTournament, setIsLoadingTournament] = useState(true);
   const [isLoadingBanners, setIsLoadingBanners] = useState(true);
   const [isEditingTournament, setIsEditingTournament] = useState(false);
   const [isSavingTournament, setIsSavingTournament] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeletingTournament, setIsDeletingTournament] = useState(false);
   const [nameDraft, setNameDraft] = useState<string | null>(null);
-  const [visibilityDraft, setVisibilityDraft] = useState<TournamentVisibility | null>(null);
   const [leaderBannerImageUrlDraft, setLeaderBannerImageUrlDraft] = useState<string | null>(null);
   const [scorerBannerImageUrlDraft, setScorerBannerImageUrlDraft] = useState<string | null>(null);
-
-  useEffect(() => {
-    setIsLoadingTournament(true);
-    void loadTournaments().finally(() => setIsLoadingTournament(false));
-  }, [loadTournaments]);
 
   useEffect(() => {
     if (!tournamentId) {
@@ -99,16 +103,14 @@ export function TournamentDetailsPage() {
   }, [tournamentId]);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
-
   const permissions = useTournamentPermissions(tournamentId);
-
   const name = nameDraft ?? tournament?.name ?? '';
-  const visibility = visibilityDraft ?? tournament?.visibility ?? TournamentVisibility.PRIVATE;
+  const trimmedName = name.trim();
   const leaderBannerImageUrl = leaderBannerImageUrlDraft ?? tournament?.leaderBannerImageUrl ?? '';
   const scorerBannerImageUrl = scorerBannerImageUrlDraft ?? tournament?.scorerBannerImageUrl ?? '';
-
   const leader = summary?.standings.find((row) => row.playerId === summary.leaderPlayerId);
   const topScorer = summary?.standings.find((row) => row.playerId === summary.topScorerPlayerId);
+  const roleLabel = permissions.isOwner ? 'Organizador' : permissions.isAdmin ? 'Administrador' : 'Jugador';
 
   const resolvePlayerBannerImage = (playerId: string | null | undefined): string | null => {
     if (!playerId) {
@@ -130,6 +132,13 @@ export function TournamentDetailsPage() {
     return player.imageUrl ?? null;
   };
 
+  const closeEditor = () => {
+    setNameDraft(null);
+    setLeaderBannerImageUrlDraft(null);
+    setScorerBannerImageUrlDraft(null);
+    setIsEditingTournament(false);
+  };
+
   const leaderAutoImage = resolvePlayerBannerImage(summary?.leaderPlayerId);
   const scorerAutoImage = resolvePlayerBannerImage(summary?.topScorerPlayerId);
 
@@ -137,79 +146,105 @@ export function TournamentDetailsPage() {
     return <Navigate replace to="/tournaments" />;
   }
 
-  if (isLoadingTournament) {
-    return (
-      <section className={styles.section}>
-        <div className={styles.headerRow}>
-          <h2>Detalle del torneo</h2>
-          <Link className={buttonStyles.ghost} to="/tournaments">
-            Volver
-          </Link>
-        </div>
-        <ContentSpinner />
-      </section>
-    );
-  }
-
-  if (!tournament) {
-    return <Navigate replace to="/tournaments" />;
-  }
-
-  if (tournament.membershipStatus === 'PENDING') {
+  if (!tournament || tournament.membershipStatus === 'PENDING') {
     return <Navigate replace to="/tournaments" />;
   }
 
   return (
-    <section className={styles.section}>
-      <div className={styles.headerRow}>
-        <h2>Detalle del torneo</h2>
-        <Link className={buttonStyles.ghost} to="/tournaments">
-          Volver
-        </Link>
-      </div>
+    <section className={styles.page}>
+      <div aria-hidden="true" className={styles.pitchDecoration} />
 
-      <article className={styles.card}>
-        <div className={styles.cardHeader}>
-          <h3>{tournament.name}</h3>
-          <div className={styles.headerActions}>
-            {permissions.canEditTournament ? (
-              <button
-                aria-label="Editar torneo"
-                className={styles.iconButton}
-                onClick={() => setIsEditingTournament((value) => !value)}
-                type="button"
-              >
-                <Pencil aria-hidden="true" size={18} />
-              </button>
-            ) : null}
-            {permissions.isOwner ? (
-              <button
-                aria-label="Eliminar torneo"
-                className={`${styles.iconButton} ${styles.dangerIconButton}`}
-                disabled={isDeletingTournament}
-                onClick={() => setIsDeleteModalOpen(true)}
-                type="button"
-              >
-                <Trash2 aria-hidden="true" size={18} />
-              </button>
-            ) : null}
+      <button className={styles.backButton} onClick={() => navigate('/tournaments')} type="button">
+        <ArrowLeft aria-hidden="true" size={18} />
+        Volver a torneos
+      </button>
+
+      <header className={`${styles.hero} ${tournament.imageUrl ? styles.heroWithImage : ''}`}>
+        {tournament.imageUrl ? <img alt="" className={styles.heroImage} src={tournament.imageUrl} /> : null}
+        <div className={styles.heroContent}>
+          <div className={styles.heroTopline}>
+            <p className={styles.eyebrow}>Centro del torneo</p>
+            <div className={styles.managementActions}>
+              {permissions.canEditTournament ? (
+                <button
+                  aria-controls="tournament-editor"
+                  aria-expanded={isEditingTournament}
+                  className={styles.managementButton}
+                  onClick={() => {
+                    if (isEditingTournament) {
+                      closeEditor();
+                      return;
+                    }
+                    setIsEditingTournament(true);
+                  }}
+                  type="button"
+                >
+                  <Pencil aria-hidden="true" size={17} />
+                  <span>{isEditingTournament ? 'Cerrar edición' : 'Editar'}</span>
+                </button>
+              ) : null}
+              {permissions.isOwner ? (
+                <button
+                  className={`${styles.managementButton} ${styles.dangerButton}`}
+                  disabled={isDeletingTournament}
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  type="button"
+                >
+                  <Trash2 aria-hidden="true" size={17} />
+                  <span>Eliminar</span>
+                </button>
+              ) : null}
+            </div>
+          </div>
+
+          <div className={styles.heroMain}>
+            <div>
+              <div className={styles.heroMeta}>
+                <span>{roleLabel}</span>
+                <span>
+                  <CalendarDays aria-hidden="true" size={15} />
+                  Creado el{' '}
+                  <time dateTime={tournament.createdAt}>
+                    {new Date(tournament.createdAt).toLocaleDateString('es-AR')}
+                  </time>
+                </span>
+              </div>
+              <h1>{tournament.name}</h1>
+              <p>Todo lo que pasa en tu competencia, en un solo lugar.</p>
+            </div>
+
+            <div className={styles.heroStamp}>
+              <Trophy aria-hidden="true" size={27} strokeWidth={1.6} />
+              <span>{tournament.finishedAt ? 'Competencia finalizada' : 'Competencia en juego'}</span>
+            </div>
           </div>
         </div>
+      </header>
 
-        <p className={styles.meta}>Visibilidad: {visibilityLabel[tournament.visibility] ?? tournament.visibility}</p>
-        <p className={styles.meta}>Creado: {new Date(tournament.createdAt).toLocaleDateString('es-AR')}</p>
+      {permissions.canEditTournament && isEditingTournament ? (
+        <section aria-labelledby="editor-title" className={styles.editPanel} id="tournament-editor">
+          <div className={styles.editHeading}>
+            <div>
+              <p className={styles.eyebrow}>Configuración</p>
+              <h2 id="editor-title">Editar presentación</h2>
+            </div>
+            <span>Los banners personalizados reemplazan la imagen del jugador.</span>
+          </div>
 
-        {permissions.canEditTournament && isEditingTournament ? (
           <form
             className={styles.editForm}
             onSubmit={async (event) => {
               event.preventDefault();
+
+              if (!trimmedName) {
+                return;
+              }
+
               setIsSavingTournament(true);
               try {
                 await sileo.promise(
                   updateTournament(tournament.id, {
-                    name: name.trim(),
-                    visibility,
+                    name: trimmedName,
                     leaderBannerImageUrl: leaderBannerImageUrl || null,
                     scorerBannerImageUrl: scorerBannerImageUrl || null,
                   }),
@@ -219,119 +254,159 @@ export function TournamentDetailsPage() {
                     error: { title: 'No se pudo actualizar el torneo' },
                   },
                 );
-                setIsEditingTournament(false);
+                closeEditor();
               } finally {
                 setIsSavingTournament(false);
               }
             }}
           >
-            <label>
-              Nombre
-              <input onChange={(event) => setNameDraft(event.target.value)} required value={name} />
-            </label>
-            <label>
-              Visibilidad
-              <select
-                onChange={(event) => setVisibilityDraft(event.target.value as TournamentVisibility)}
-                value={visibility}
-              >
-                <option value={TournamentVisibility.PRIVATE}>Privado</option>
-                <option value={TournamentVisibility.PUBLIC}>Publico</option>
-              </select>
-            </label>
-            <label>
-              URL banner Puntero
+            <label className={styles.nameField}>
+              Nombre del torneo
               <input
+                disabled={isSavingTournament}
+                maxLength={TOURNAMENT_NAME_MAX_LENGTH}
+                onChange={(event) => setNameDraft(event.target.value)}
+                required
+                value={name}
+              />
+            </label>
+            <label>
+              Banner del puntero
+              <input
+                disabled={isSavingTournament}
                 onChange={(event) => setLeaderBannerImageUrlDraft(event.target.value)}
                 placeholder="https://..."
+                type="url"
                 value={leaderBannerImageUrl}
               />
             </label>
             <label>
-              URL banner Pichichi
+              Banner del pichichi
               <input
+                disabled={isSavingTournament}
                 onChange={(event) => setScorerBannerImageUrlDraft(event.target.value)}
                 placeholder="https://..."
+                type="url"
                 value={scorerBannerImageUrl}
               />
             </label>
             <div className={styles.editActions}>
               <button
-                className={buttonStyles.ghost}
+                className={styles.cancelButton}
                 disabled={isSavingTournament}
-                onClick={() => {
-                  setNameDraft(null);
-                  setVisibilityDraft(null);
-                  setLeaderBannerImageUrlDraft(null);
-                  setScorerBannerImageUrlDraft(null);
-                  setIsEditingTournament(false);
-                }}
+                onClick={closeEditor}
                 type="button"
               >
                 Cancelar
               </button>
-              <button className={buttonStyles.primary} disabled={isSavingTournament} type="submit">
-                Guardar
+              <button
+                className={styles.saveButton}
+                disabled={isSavingTournament || !trimmedName}
+                type="submit"
+              >
+                <span>{isSavingTournament ? 'Guardando...' : 'Guardar cambios'}</span>
+                {isSavingTournament ? (
+                  <LoaderCircle aria-hidden="true" className={styles.spinner} size={19} />
+                ) : (
+                  <ArrowUpRight aria-hidden="true" size={19} />
+                )}
               </button>
             </div>
           </form>
+        </section>
+      ) : null}
+
+      <nav aria-label="Secciones del torneo" className={styles.quickNav}>
+        <Link className={styles.navCard} to={`/tournaments/${tournament.id}/tabla`}>
+          <span aria-hidden="true" className={styles.navIcon}>
+            <Table2 size={23} />
+          </span>
+          <span className={styles.navCopy}>
+            <strong>Tabla</strong>
+            <small>Posiciones y rendimiento</small>
+          </span>
+          <ArrowUpRight aria-hidden="true" className={styles.navArrow} size={19} />
+        </Link>
+        <Link className={styles.navCard} to={`/tournaments/${tournament.id}/partidos`}>
+          <span aria-hidden="true" className={styles.navIcon}>
+            <CalendarDays size={23} />
+          </span>
+          <span className={styles.navCopy}>
+            <strong>Partidos</strong>
+            <small>Fechas, equipos y resultados</small>
+          </span>
+          <ArrowUpRight aria-hidden="true" className={styles.navArrow} size={19} />
+        </Link>
+        <Link className={styles.navCard} to={`/tournaments/${tournament.id}/players`}>
+          <span aria-hidden="true" className={styles.navIcon}>
+            <Users size={23} />
+          </span>
+          <span className={styles.navCopy}>
+            <strong>Jugadores</strong>
+            <small>Plantel y perfiles</small>
+          </span>
+          <ArrowUpRight aria-hidden="true" className={styles.navArrow} size={19} />
+        </Link>
+        {permissions.canViewTierlist ? (
+          <Link className={styles.navCard} to={`/tournaments/${tournament.id}/tierlist`}>
+            <span aria-hidden="true" className={styles.navIcon}>
+              <LayoutGrid size={23} />
+            </span>
+            <span className={styles.navCopy}>
+              <strong>Tierlist</strong>
+              <small>Ranking del torneo</small>
+            </span>
+            <ArrowUpRight aria-hidden="true" className={styles.navArrow} size={19} />
+          </Link>
         ) : null}
+      </nav>
 
-        <div className={styles.actions}>
-          <Link className={styles.actionButton} to={`/tournaments/${tournament.id}/tabla`}>
-            <Table2 aria-hidden="true" size={20} />
-            <span>Tabla</span>
-          </Link>
-          <Link className={styles.actionButton} to={`/tournaments/${tournament.id}/partidos`}>
-            <CalendarDays aria-hidden="true" size={20} />
-            <span>Partidos</span>
-          </Link>
-          <Link className={styles.actionButton} to={`/tournaments/${tournament.id}/players`}>
-            <Users aria-hidden="true" size={20} />
-            <span>Jugadores</span>
-          </Link>
-          {permissions.canViewTierlist ? (
-            <Link className={styles.actionButton} to={`/tournaments/${tournament.id}/tierlist`}>
-              <LayoutGrid aria-hidden="true" size={20} />
-              <span>Tierlist</span>
-            </Link>
-          ) : null}
+      <section aria-labelledby="highlights-title" className={styles.highlightsSection}>
+        <div className={styles.sectionHeading}>
+          <div>
+            <p className={styles.eyebrow}>Figuras</p>
+            <h2 id="highlights-title">Los que marcan la diferencia</h2>
+          </div>
+          <p>El presente de la tabla y el gol.</p>
         </div>
-      </article>
 
-      <div className={styles.bannerGrid}>
-        {isLoadingBanners ? (
-          <>
-            <article className={`${styles.banner} ${styles.bannerLoading}`}>
-              <span aria-hidden="true" className={styles.bannerSpinner} />
-            </article>
-            <article className={`${styles.banner} ${styles.bannerLoading}`}>
-              <span aria-hidden="true" className={styles.bannerSpinner} />
-            </article>
-          </>
-        ) : (
-          <>
-            <Banner
-              imageUrl={tournament.leaderBannerImageUrl || leaderAutoImage}
-              player={leader}
-              statText={leader ? `Puntos: ${leader.points}` : 'Sin actividad en el torneo'}
-              title="Puntero"
-            />
-            <Banner
-              imageUrl={tournament.scorerBannerImageUrl || scorerAutoImage}
-              player={topScorer}
-              statText={topScorer ? `Goles: ${topScorer.goals}` : 'Sin actividad en el torneo'}
-              title="Pichichi"
-            />
-          </>
-        )}
-      </div>
+        <div aria-busy={isLoadingBanners} className={styles.bannerGrid}>
+          {isLoadingBanners ? (
+            <>
+              <article className={`${styles.banner} ${styles.bannerLoading}`}>
+                <span aria-hidden="true" className={styles.bannerSpinner} />
+              </article>
+              <article className={`${styles.banner} ${styles.bannerLoading}`}>
+                <span aria-hidden="true" className={styles.bannerSpinner} />
+              </article>
+              <span className={styles.srOnly} role="status">
+                Cargando figuras del torneo...
+              </span>
+            </>
+          ) : (
+            <>
+              <Banner
+                imageUrl={tournament.leaderBannerImageUrl || leaderAutoImage}
+                player={leader}
+                statText={leader ? `${leader.points} puntos` : 'Sin actividad registrada'}
+                title="Puntero"
+              />
+              <Banner
+                imageUrl={tournament.scorerBannerImageUrl || scorerAutoImage}
+                player={topScorer}
+                statText={topScorer ? `${topScorer.goals} goles` : 'Sin actividad registrada'}
+                title="Pichichi"
+              />
+            </>
+          )}
+        </div>
+      </section>
 
       {isDeleteModalOpen ? (
         <ConfirmModal
           confirmText="Eliminar"
           isConfirming={isDeletingTournament}
-          message="Esta accion elimina el torneo de forma permanente."
+          message="Esta acción elimina el torneo de forma permanente."
           onCancel={() => setIsDeleteModalOpen(false)}
           onConfirm={async () => {
             setIsDeletingTournament(true);
@@ -347,7 +422,7 @@ export function TournamentDetailsPage() {
               setIsDeletingTournament(false);
             }
           }}
-          title="Confirmar eliminacion"
+          title="Confirmar eliminación"
         />
       ) : null}
     </section>

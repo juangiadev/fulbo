@@ -17,7 +17,11 @@ import type {
   UserProfile,
 } from "@shared/contracts";
 import { apiClient, setAccessTokenProvider } from "../api/client";
-import type { AppData } from "../types/app";
+import type {
+  AppData,
+  CreateTournamentInput,
+  UpdateTournamentInput,
+} from "../types/app";
 
 interface AppContextValue {
   data: AppData;
@@ -28,13 +32,10 @@ interface AppContextValue {
   logout: () => void;
   loadTournaments: () => Promise<void>;
   getMyRole: (tournamentId: string) => PlayerRole | null;
-  createTournament: (input: {
-    name: string;
-    visibility: string;
-  }) => Promise<TournamentContract>;
+  createTournament: (input: CreateTournamentInput) => Promise<TournamentContract>;
   updateTournament: (
     id: string,
-    input: Partial<TournamentContract>,
+    input: UpdateTournamentInput,
   ) => Promise<void>;
   deleteTournament: (id: string) => Promise<void>;
   updateProfile: (input: UpdateUserProfileInput) => Promise<void>;
@@ -200,7 +201,7 @@ export function AppProvider({ children }: PropsWithChildren) {
   );
 
   const createTournament = useCallback(
-    async (input: { name: string; visibility: string }) => {
+    async (input: CreateTournamentInput) => {
       const createdTournament = await apiClient.createTournament(input);
       try {
         await loadTournaments();
@@ -217,7 +218,7 @@ export function AppProvider({ children }: PropsWithChildren) {
   );
 
   const updateTournament = useCallback(
-    async (id: string, input: Partial<TournamentContract>) => {
+    async (id: string, input: UpdateTournamentInput) => {
       await apiClient.updateTournament(id, input);
       await loadTournaments();
     },

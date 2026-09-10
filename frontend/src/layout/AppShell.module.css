@@ -2,57 +2,89 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: clip;
+  background:
+    radial-gradient(circle at 8% 4%, rgba(118, 195, 144, 0.11), transparent 26rem),
+    radial-gradient(circle at 93% 30%, rgba(232, 198, 92, 0.055), transparent 24rem),
+    var(--primary);
 }
 
 .topbar {
+  position: sticky;
+  z-index: 30;
+  top: 0;
   display: flex;
-  flex-wrap: nowrap;
+  width: min(1160px, calc(100% - 2rem));
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin: 0rem auto;
-  width: min(980px, 92vw);
+  margin: 0 auto;
+  isolation: isolate;
 }
 
-.brandWrap {
+.topbar::before {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(7, 31, 19, 0.72);
+  backdrop-filter: blur(18px);
+  content: '';
+  transform: translateX(-50%);
+}
+
+.brandWrap,
+.brandWrap a {
   display: flex;
   align-items: center;
 }
 
+.brandWrap a:focus-visible,
+.avatarBtn:focus-visible,
+.menuItem:focus-visible {
+  outline: 3px solid var(--secondary);
+  outline-offset: 3px;
+}
+
 .logoBall {
-  width: 8rem;
-  border-radius: 999px;
-  object-fit: cover;
-}
-
-.navLinks a {
-  padding: 0.4rem 0.75rem;
-  border-radius: 999px;
-  border: 1px solid transparent;
-}
-
-.activeLink {
-  border-color: var(--secondary) !important;
+  display: block;
+  width: 7.25rem;
+  height: auto;
 }
 
 .topbarUser {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.7rem;
 }
 
 .avatarBtn {
-  width: 54px;
-  height: 54px;
-  border-radius: 999px;
-  border: 1px solid var(--secondary);
-  background: transparent;
-  color: var(--secondary);
-  cursor: pointer;
   display: grid;
+  width: 50px;
+  height: 50px;
   place-items: center;
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 50%;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+  color: var(--secondary);
+  cursor: pointer;
+  font: inherit;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.avatarBtn:hover {
+  border-color: #e8c65c;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
 }
 
 .avatarImage {
@@ -65,26 +97,96 @@
 
 .userDropdown {
   position: absolute;
-  top: calc(100% + 0.4rem);
+  z-index: 40;
+  top: calc(100% + 0.7rem);
   right: 0;
-  width: 170px;
   display: grid;
+  width: min(250px, calc(100vw - 2rem));
   gap: 0.45rem;
   padding: 0.6rem;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: #103121;
-  z-index: 20;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(10, 43, 26, 0.96);
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(18px);
 }
 
-.userDropdown > * {
+.menuIdentity {
+  display: grid;
+  min-width: 0;
+  gap: 0.1rem;
+  padding: 0.5rem 0.6rem 0.7rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.menuIdentity strong,
+.menuIdentity span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menuIdentity strong {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.menuIdentity span {
+  color: #a9c0b1;
+  font-size: 0.78rem;
+}
+
+.menuItem {
   display: flex;
+  min-height: 42px;
   width: 100%;
   align-items: center;
-  justify-content: center;
+  gap: 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 0.55rem 0.65rem;
+  background: transparent;
+  color: var(--secondary);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.menuItem:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.menuItem svg {
+  color: #aee0be;
 }
 
 .pageWrap {
-  width: min(980px, 92vw);
-  margin: 1.4rem auto 2rem;
+  width: min(1160px, calc(100% - 2rem));
+  margin: 1.2rem auto 3rem;
+}
+
+@media (max-width: 520px) {
+  .topbar,
+  .pageWrap {
+    width: calc(100% - 2rem);
+  }
+
+  .logoBall {
+    width: 6.25rem;
+  }
+
+  .avatarBtn {
+    width: 46px;
+    height: 46px;
+  }
+
+  .pageWrap {
+    margin-top: 0.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatarBtn {
+    transition: none;
+  }
 }

@@ -13,6 +13,7 @@ import type {
   UpdateUserProfileInput,
   UserProfile,
 } from '@shared/contracts';
+import type { CreateTournamentInput, UpdateTournamentInput } from '../types/app';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api';
 const DEV_AUTH0_ID_STORAGE_KEY = 'fulbo-dev-auth0-id';
@@ -141,7 +142,7 @@ export const apiClient = {
   getTournaments: () => request<TournamentContract[]>('/tournaments'),
   getTournament: (id: string) => request<TournamentContract>(`/tournaments/${id}`),
   getTournamentSummary: (id: string) => request<TournamentSummaryContract>(`/tournaments/${id}/summary`),
-  createTournament: (input: { name: string; visibility: string }) =>
+  createTournament: (input: CreateTournamentInput) =>
     request<TournamentContract>('/tournaments', { method: 'POST', body: JSON.stringify(input) }),
   joinTournamentByCode: (input: { code: string }) =>
     request<{ tournamentId: string; status: 'PENDING' }>('/tournaments/join', {
@@ -280,7 +281,7 @@ export const apiClient = {
     request<{ success: true }>(`/tournaments/${tournamentId}/players/${playerId}`, {
       method: 'DELETE',
     }),
-  updateTournament: (id: string, input: Partial<TournamentContract>) =>
+  updateTournament: (id: string, input: UpdateTournamentInput) =>
     request<TournamentContract>(`/tournaments/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
   deleteTournament: (id: string) => request<{ success: true }>(`/tournaments/${id}`, { method: 'DELETE' }),
 };

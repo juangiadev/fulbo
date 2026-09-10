@@ -1,16 +1,445 @@
 .loginPage {
+  position: relative;
   min-height: 100vh;
+  overflow: hidden;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
   display: grid;
   place-items: center;
-  padding: 1rem;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 9% 12%, rgba(118, 195, 144, 0.18), transparent 28rem),
+    radial-gradient(circle at 88% 82%, rgba(226, 192, 83, 0.12), transparent 24rem),
+    linear-gradient(145deg, #071f13 0%, var(--primary) 48%, #0e3421 100%);
+}
+
+.loginPage::before,
+.loginPage::after {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  content: '';
+  pointer-events: none;
+}
+
+.loginPage::before {
+  top: -13rem;
+  right: -10rem;
+  width: 30rem;
+  height: 30rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 0 4rem rgba(255, 255, 255, 0.015),
+    0 0 0 8rem rgba(255, 255, 255, 0.01);
+}
+
+.loginPage::after {
+  bottom: -17rem;
+  left: -13rem;
+  width: 35rem;
+  height: 35rem;
+  border: 1px solid rgba(226, 192, 83, 0.1);
+}
+
+.pitchGraphic {
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  left: 53%;
+  width: min(42rem, 52vw);
+  aspect-ratio: 1.55;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 2rem;
+  opacity: 0.85;
+  transform: translate(-50%, -50%) rotate(-9deg);
+  pointer-events: none;
+}
+
+.pitchGraphic::before,
+.pitchGraphic::after {
+  position: absolute;
+  content: '';
+}
+
+.pitchGraphic::before {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  border-left: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.pitchGraphic::after {
+  top: 50%;
+  left: 50%;
+  width: 22%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.pageShell {
+  width: min(1160px, 100%);
+  margin-inline: auto;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: clamp(2.25rem, 6vh, 5.5rem);
+}
+
+.brandLogo {
+  display: block;
+  width: clamp(7.5rem, 11vw, 9.5rem);
+  height: auto;
+}
+
+.brandTagline {
+  padding: 0.4rem 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  color: #bad4c3;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.heroGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.75fr);
+  gap: clamp(3rem, 8vw, 8rem);
+  align-items: center;
+}
+
+.heroCopy {
+  max-width: 660px;
+}
+
+.eyebrow,
+.cardEyebrow {
+  margin: 0;
+  color: #9bd6ae;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.heroCopy h1 {
+  max-width: 650px;
+  margin-top: 0.8rem;
+  font-size: clamp(3.3rem, 7vw, 6.7rem);
+  line-height: 0.88;
+  letter-spacing: -0.065em;
+  text-wrap: balance;
+}
+
+.heroCopy h1 span {
+  display: block;
+  color: #e8c65c;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.lead {
+  max-width: 590px;
+  margin: 1.6rem 0 0;
+  color: var(--text-soft);
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  line-height: 1.55;
+}
+
+.featureList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin: 2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.featureList li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #d6e6dc;
+  font-size: 0.9rem;
+  backdrop-filter: blur(8px);
+}
+
+.featureList svg {
+  color: #e8c65c;
 }
 
 .loginCard {
-  width: min(440px, 92vw);
-  border: 1px solid var(--secondary);
-  border-radius: 18px;
-  padding: 1.6rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 26px;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.045));
+  box-shadow: 0 32px 90px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(18px);
+  animation: cardEntrance 0.65s ease-out both;
+}
+
+.cardTopline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1.4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: #a9c5b3;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.cardContent {
   display: grid;
-  gap: 0.8rem;
-  background: rgba(255, 255, 255, 0.03);
+  gap: 1.35rem;
+  padding: clamp(1.5rem, 4vw, 2.4rem);
+}
+
+.cardContent h2 {
+  margin-top: 0.45rem;
+  font-size: clamp(1.8rem, 3vw, 2.55rem);
+  letter-spacing: -0.035em;
+}
+
+.cardDescription {
+  margin: 0.75rem 0 0;
+  color: #c4d8cb;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.loginButton {
+  display: flex;
+  min-height: 54px;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid #f3da83;
+  border-radius: 14px;
+  padding: 0.8rem 1rem;
+  background: #e8c65c;
+  box-shadow: 0 12px 30px rgba(232, 198, 92, 0.14);
+  color: #102719;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.loginButton:hover:not(:disabled) {
+  background: #f0d575;
+  box-shadow: 0 16px 38px rgba(232, 198, 92, 0.22);
+  transform: translateY(-2px);
+}
+
+.loginButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.loginButton:focus-visible {
+  outline: 3px solid var(--secondary);
+  outline-offset: 4px;
+}
+
+.loginButton:disabled {
+  cursor: wait;
+  opacity: 0.8;
+}
+
+.buttonSpinner {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+  border: 2px solid rgba(16, 39, 25, 0.35);
+  border-top-color: #102719;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+.securityNote,
+.loginError {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.securityNote {
+  justify-content: center;
+  color: #a9c5b3;
+}
+
+.securityNote svg {
+  flex: 0 0 auto;
+  color: #9bd6ae;
+}
+
+.loginError {
+  color: #fecaca;
+  line-height: 1.4;
+}
+
+.loadingState {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  color: var(--text-soft);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+}
+
+.loadingBall {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border: 2px solid rgba(255, 255, 255, 0.24);
+  border-top-color: #e8c65c;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+.loadingBall::after {
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  content: '';
+}
+
+@keyframes cardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 820px) {
+  .loginPage {
+    place-items: start center;
+  }
+
+  .brand {
+    margin-bottom: 2.25rem;
+  }
+
+  .heroGrid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .heroCopy {
+    max-width: 620px;
+  }
+
+  .heroCopy h1 {
+    font-size: clamp(3.4rem, 12vw, 5.5rem);
+  }
+
+  .loginCard {
+    width: min(100%, 560px);
+  }
+
+  .pitchGraphic {
+    top: 31%;
+    left: 72%;
+    width: 35rem;
+    opacity: 0.65;
+  }
+}
+
+@media (max-width: 520px) {
+  .loginPage {
+    padding: 1rem;
+  }
+
+  .brand {
+    margin-bottom: 1.7rem;
+  }
+
+  .brandLogo {
+    width: 7rem;
+  }
+
+  .brandTagline {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+  }
+
+  .heroGrid {
+    gap: 2rem;
+  }
+
+  .heroCopy h1 {
+    font-size: clamp(3rem, 15.5vw, 4.2rem);
+  }
+
+  .lead {
+    margin-top: 1.2rem;
+    font-size: 1rem;
+  }
+
+  .featureList {
+    gap: 0.45rem;
+    margin-top: 1.4rem;
+  }
+
+  .featureList li {
+    padding: 0.45rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .loginCard {
+    border-radius: 20px;
+  }
+
+  .cardTopline {
+    padding-inline: 1.1rem;
+  }
+
+  .cardContent {
+    padding: 1.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loginCard,
+  .buttonSpinner,
+  .loadingBall {
+    animation: none;
+  }
+
+  .loginButton {
+    transition: none;
+  }
 }

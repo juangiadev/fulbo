@@ -18,6 +18,13 @@ export interface TournamentPermissions {
   canViewPlayerPrivateDetails: boolean;
 }
 
+interface PlayerEditAccessInput {
+  actorRole: PlayerRole | null;
+  actorUserId: string;
+  targetRole: PlayerRole;
+  targetUserId: string | null;
+}
+
 export function getTournamentPermissions(role: PlayerRole | null): TournamentPermissions {
   const safeRole = role ?? PlayerRole.USER;
   const isOwner = safeRole === PlayerRole.OWNER;
@@ -40,4 +47,21 @@ export function getTournamentPermissions(role: PlayerRole | null): TournamentPer
     canManagePlayerCodes: isAdmin,
     canViewPlayerPrivateDetails: isAdmin,
   };
+}
+
+export function canEditTournamentPlayer({
+  actorRole,
+  actorUserId,
+  targetRole,
+  targetUserId,
+}: PlayerEditAccessInput): boolean {
+  if (targetUserId === actorUserId) {
+    return true;
+  }
+
+  if (actorRole === PlayerRole.OWNER) {
+    return true;
+  }
+
+  return actorRole === PlayerRole.ADMIN && targetRole === PlayerRole.USER;
 }
