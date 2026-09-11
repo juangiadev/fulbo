@@ -8,7 +8,7 @@ interface DateTimePickerProps {
 }
 
 const WEEK_DAYS = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
-const QUICK_TIMES = ['18:00', '19:30', '21:00', '22:30'];
+const QUICK_TIMES = ['18:00', '19:30', '20:00', '21:00', '22:30'];
 
 function enqueueStateUpdate(callback: () => void): void {
   if (typeof queueMicrotask === 'function') {

@@ -1,0 +1,669 @@
+.page {
+  position: relative;
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 2.5rem);
+  padding: clamp(0.75rem, 3vw, 2.5rem) 0 2rem;
+  isolation: isolate;
+}
+
+.pitchDecoration {
+  position: absolute;
+  z-index: -1;
+  top: 2rem;
+  right: -18rem;
+  width: 38rem;
+  aspect-ratio: 1.55;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 2rem;
+  opacity: 0.8;
+  transform: rotate(-8deg);
+  pointer-events: none;
+}
+
+.pitchDecoration::before,
+.pitchDecoration::after {
+  position: absolute;
+  content: '';
+}
+
+.pitchDecoration::before {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  border-left: 1px solid rgba(255, 255, 255, 0.045);
+}
+
+.pitchDecoration::after {
+  top: 50%;
+  left: 50%;
+  width: 24%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.backLink {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 42px;
+  align-items: center;
+  gap: 0.5rem;
+  color: #b7cdbf;
+  font-size: 0.9rem;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.backLink:hover {
+  color: var(--secondary);
+  transform: translateX(-3px);
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 28px;
+  padding: clamp(1.5rem, 5vw, 3rem);
+  background:
+    radial-gradient(circle at 88% 15%, rgba(232, 198, 92, 0.18), transparent 18rem),
+    linear-gradient(135deg, #194c31, #0c301e 62%, #092617);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.24);
+  animation: heroEntrance 0.55s ease-out both;
+}
+
+.hero::after {
+  position: absolute;
+  top: -5rem;
+  right: -6rem;
+  width: 24rem;
+  aspect-ratio: 1.55;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.4rem;
+  content: '';
+  transform: rotate(-8deg);
+  pointer-events: none;
+}
+
+.heroCopy,
+.heroSummary {
+  position: relative;
+  z-index: 1;
+}
+
+.eyebrow,
+.sectionNumber {
+  margin: 0;
+  color: #9bd6ae;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.heroCopy h1 {
+  margin-top: 0.55rem;
+  font-size: clamp(2.9rem, 7vw, 5.4rem);
+  line-height: 0.96;
+  letter-spacing: -0.06em;
+}
+
+.heroDescription {
+  max-width: 620px;
+  margin: 1.1rem 0 0;
+  color: #c4d8cb;
+  font-size: clamp(1rem, 1.6vw, 1.12rem);
+  line-height: 1.55;
+}
+
+.heroDescription strong {
+  color: var(--secondary);
+}
+
+.heroSummary {
+  display: grid;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 16px;
+  background: rgba(2, 20, 11, 0.25);
+  backdrop-filter: blur(8px);
+}
+
+.heroSummary > div {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: center;
+  min-height: 52px;
+  padding: 0.7rem 0.9rem;
+}
+
+.heroSummary > div + div {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.heroSummary dt {
+  color: #91aa9a;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.heroSummary dd {
+  min-width: 0;
+  margin: 0;
+  color: #edf5ef;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.pendingBadge,
+.finishedBadge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.pendingBadge {
+  border: 1px solid rgba(232, 198, 92, 0.34);
+  background: rgba(232, 198, 92, 0.07);
+  color: #efd981;
+}
+
+.finishedBadge {
+  border: 1px solid rgba(155, 214, 174, 0.27);
+  background: rgba(155, 214, 174, 0.07);
+  color: #aee0be;
+}
+
+.editorLayout {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.surface,
+.scoreSection {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  background:
+    radial-gradient(circle at 100% 0, rgba(155, 214, 174, 0.055), transparent 20rem),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.025));
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.13);
+}
+
+.popoverSurface {
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.sectionIcon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(232, 198, 92, 0.3);
+  border-radius: 13px;
+  background: rgba(232, 198, 92, 0.07);
+  color: #e8c65c;
+}
+
+.sectionHeader h2,
+.scoreHeading h2,
+.stateCard h2 {
+  margin-top: 0.25rem;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  letter-spacing: -0.03em;
+}
+
+.sectionHeader p:last-child {
+  margin: 0.4rem 0 0;
+  color: #a9c0b1;
+  line-height: 1.45;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.formGrid > label,
+.dateField {
+  display: grid;
+  grid-column: span 2;
+  min-width: 0;
+  gap: 0.45rem;
+}
+
+.formGrid > label > span,
+.dateField > div > span {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #c9d9ce;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.formGrid input,
+.formGrid select,
+.dateField > div > button {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 11px;
+  padding: 0.65rem 0.75rem;
+  background: rgba(3, 24, 13, 0.3);
+  color: var(--secondary);
+  font: inherit;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.formGrid select {
+  color-scheme: dark;
+}
+
+.formGrid input::placeholder {
+  color: #789182;
+}
+
+.formGrid input:hover,
+.formGrid select:hover,
+.dateField > div > button:hover {
+  border-color: rgba(232, 198, 92, 0.42);
+  background: rgba(3, 24, 13, 0.45);
+}
+
+.formGrid input:focus,
+.formGrid select:focus,
+.dateField > div > button:focus-visible {
+  border-color: #e8c65c;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(232, 198, 92, 0.12);
+}
+
+.urlField,
+.dateField {
+  grid-column: span 3;
+}
+
+.statusField {
+  grid-column: span 3 !important;
+}
+
+.urlField small {
+  color: #829a8a;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.scoreSection {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.55fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: center;
+  border-color: rgba(232, 198, 92, 0.22);
+}
+
+.scoreHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.scoreHeading > svg {
+  flex: 0 0 auto;
+  color: #e8c65c;
+}
+
+.resultTableWrap {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 16px;
+  background: rgba(2, 20, 11, 0.25);
+}
+
+.resultTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.resultTable th,
+.resultTable td {
+  width: 50%;
+  padding: 0.8rem;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.resultTable th {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.11);
+  font-size: 0.86rem;
+}
+
+.resultTable th + th,
+.resultTable td + td {
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.resultTable td {
+  color: #f5dfa0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: 700;
+}
+
+.actionBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  background: rgba(4, 30, 17, 0.72);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(12px);
+}
+
+.saveNote {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #91aa9a;
+  font-size: 0.82rem;
+}
+
+.saveNote svg {
+  flex: 0 0 auto;
+  color: #9bd6ae;
+}
+
+.saveNote p {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.65rem;
+}
+
+.cancelButton,
+.saveButton,
+.retryButton {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 11px;
+  padding: 0.65rem 0.9rem;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.cancelButton,
+.retryButton {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--secondary);
+}
+
+.saveButton {
+  min-width: 180px;
+  border: 1px solid #f1d77d;
+  background: #e8c65c;
+  box-shadow: 0 12px 28px rgba(232, 198, 92, 0.13);
+  color: #102719;
+}
+
+.cancelButton:hover,
+.retryButton:hover {
+  border-color: rgba(232, 198, 92, 0.5);
+  background: rgba(232, 198, 92, 0.09);
+  transform: translateY(-1px);
+}
+
+.saveButton:hover:not(:disabled) {
+  background: #efd474;
+  box-shadow: 0 16px 34px rgba(232, 198, 92, 0.2);
+  transform: translateY(-1px);
+}
+
+.saveButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.loadingState {
+  display: grid;
+  place-items: center;
+  min-height: 280px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.stateCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1.25rem;
+  align-items: center;
+  min-height: 190px;
+  padding: clamp(1.4rem, 4vw, 2.25rem);
+  border: 1px solid rgba(232, 198, 92, 0.24);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 95% 10%, rgba(232, 198, 92, 0.09), transparent 18rem),
+    rgba(255, 255, 255, 0.035);
+}
+
+.stateIcon {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  border: 1px solid rgba(232, 198, 92, 0.34);
+  border-radius: 50%;
+  background: rgba(232, 198, 92, 0.07);
+  color: #e8c65c;
+  box-shadow: 0 0 0 8px rgba(232, 198, 92, 0.03);
+}
+
+.stateCard div > p:last-child {
+  max-width: 590px;
+  margin: 0.6rem 0 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.backLink:focus-visible,
+.cancelButton:focus-visible,
+.saveButton:focus-visible,
+.retryButton:focus-visible {
+  outline: 3px solid var(--secondary);
+  outline-offset: 4px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+@keyframes heroEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 840px) {
+  .hero,
+  .scoreSection {
+    grid-template-columns: 1fr;
+  }
+
+  .heroSummary {
+    max-width: 580px;
+  }
+
+  .formGrid > label,
+  .dateField,
+  .urlField,
+  .statusField {
+    grid-column: span 3 !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .page {
+    padding-top: 0.25rem;
+  }
+
+  .hero,
+  .surface,
+  .scoreSection {
+    border-radius: 20px;
+  }
+
+  .hero {
+    padding: 1.25rem;
+  }
+
+  .heroCopy h1 {
+    font-size: clamp(2.8rem, 15vw, 4.25rem);
+  }
+
+  .heroSummary > div {
+    grid-template-columns: 70px minmax(0, 1fr);
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formGrid > label,
+  .dateField,
+  .urlField,
+  .statusField {
+    grid-column: auto !important;
+  }
+
+  .sectionHeader {
+    gap: 0.7rem;
+  }
+
+  .sectionIcon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .stateCard {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .actionBar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .saveNote,
+  .actions {
+    width: 100%;
+  }
+
+  .actions > * {
+    flex: 1;
+  }
+
+  .stateIcon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .retryButton {
+    width: fit-content;
+  }
+}
+
+@media (max-width: 420px) {
+  .surface,
+  .scoreSection {
+    padding: 1rem;
+  }
+
+  .actions {
+    display: grid;
+  }
+
+  .saveButton {
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    animation: none;
+  }
+
+  .backLink,
+  .formGrid input,
+  .formGrid select,
+  .dateField > div > button,
+  .cancelButton,
+  .saveButton,
+  .retryButton {
+    transition: none;
+  }
+}

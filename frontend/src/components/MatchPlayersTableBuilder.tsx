@@ -31,6 +31,7 @@ interface MatchPlayersTableBuilderProps {
   matchId?: string;
   showSaveButton?: boolean;
   templateConfig?: MatchPlayersTableTemplateConfig | null;
+  variant?: "default" | "panel";
   onSummaryChange?: (summary: {
     teamAName: string;
     teamBName: string;
@@ -94,6 +95,7 @@ export const MatchPlayersTableBuilder = forwardRef<
     matchId,
     showSaveButton = true,
     templateConfig = null,
+    variant = "default",
     onSummaryChange,
   }: MatchPlayersTableBuilderProps,
   ref,
@@ -411,7 +413,7 @@ export const MatchPlayersTableBuilder = forwardRef<
   );
 
   return (
-    <section className={styles.editor}>
+    <section className={variant === "panel" ? `${styles.editor} ${styles.panel}` : styles.editor}>
       {matchId && isLoadingLineup ? <ContentSpinner /> : null}
       {!isLoadingLineup ? (
         <>

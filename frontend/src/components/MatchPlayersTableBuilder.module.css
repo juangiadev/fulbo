@@ -217,6 +217,175 @@
   justify-content: flex-end;
 }
 
+.panel {
+  gap: 1rem;
+}
+
+.panel .teamControls {
+  gap: 0.9rem;
+}
+
+.panel .teamPanel {
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  background: rgba(2, 20, 11, 0.2);
+}
+
+.panel label {
+  color: #c9d9ce;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.panel .teamControls input,
+.panel .searchControls input,
+.panel .table input {
+  min-height: 46px;
+  border-color: rgba(255, 255, 255, 0.17);
+  border-radius: 11px;
+  padding: 0.65rem 0.75rem;
+  background: rgba(3, 24, 13, 0.3);
+  color: var(--secondary);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.panel .teamControls input:hover,
+.panel .searchControls input:hover,
+.panel .table input:hover {
+  border-color: rgba(232, 198, 92, 0.42);
+  background: rgba(3, 24, 13, 0.45);
+}
+
+.panel .teamControls input:focus,
+.panel .searchControls input:focus,
+.panel .table input:focus {
+  border-color: #e8c65c;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(232, 198, 92, 0.12);
+}
+
+.panel .teamControls input:disabled,
+.panel .searchControls input:disabled,
+.panel .table input:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.panel .colorInput {
+  height: 46px;
+  padding: 0.25rem !important;
+}
+
+.panel .searchControls {
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  background: rgba(2, 20, 11, 0.2);
+}
+
+.panel .searchResults {
+  gap: 0.55rem;
+  padding: 0.1rem;
+}
+
+.panel .searchResultButton {
+  min-height: 38px;
+  border-color: rgba(232, 198, 92, 0.35);
+  padding: 0.4rem 0.75rem;
+  background: rgba(232, 198, 92, 0.07);
+  color: #f0dda0;
+  font-weight: 700;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.panel .searchResultButton:hover:not(:disabled) {
+  border-color: rgba(232, 198, 92, 0.6);
+  background: rgba(232, 198, 92, 0.13);
+  transform: translateY(-1px);
+}
+
+.panel .searchResultButton:focus-visible,
+.panel .removeChipButton:focus-visible {
+  outline: 3px solid var(--secondary);
+  outline-offset: 3px;
+}
+
+.panel .draggablesRow {
+  min-height: 48px;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem;
+  border: 1px dashed rgba(155, 214, 174, 0.22);
+  border-radius: 13px;
+  background: rgba(155, 214, 174, 0.025);
+}
+
+.panel .draggablesRow:empty::before {
+  color: #789182;
+  content: 'Buscá jugadores para sumarlos a los equipos.';
+  font-size: 0.8rem;
+}
+
+.panel .playerChip {
+  border-color: rgba(155, 214, 174, 0.34);
+  padding: 0.35rem 0.6rem;
+  background: rgba(155, 214, 174, 0.09);
+  color: #e1eee5;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.panel .removeChipButton {
+  width: 20px;
+  height: 20px;
+  background: rgba(185, 28, 28, 0.85);
+}
+
+.panel .tableWrap {
+  border-color: rgba(255, 255, 255, 0.13);
+  border-radius: 16px;
+  background: rgba(2, 20, 11, 0.25);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.panel .table th,
+.panel .table td {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  padding: 0.75rem;
+}
+
+.panel .table th {
+  color: #f2f7f3;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.8rem;
+}
+
+.panel .goalsInput {
+  width: 68px;
+  min-height: 42px;
+  padding-inline: 0.35rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+}
+
+.panel .dropZone {
+  min-height: 48px;
+  border-color: rgba(255, 255, 255, 0.28);
+  border-radius: 10px;
+  padding: 0.5rem;
+  color: #90a898;
+  font-size: 0.8rem;
+}
+
 @media (max-width: 760px) {
   .teamControls {
     grid-template-columns: 1fr;
@@ -228,5 +397,25 @@
 
   .searchControls {
     grid-template-columns: 1fr;
+  }
+
+  .panel .teamPanel,
+  .panel .searchControls {
+    padding: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .panel .teamPanel {
+    grid-template-columns: 1fr 90px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel .teamControls input,
+  .panel .searchControls input,
+  .panel .table input,
+  .panel .searchResultButton {
+    transition: none;
   }
 }
