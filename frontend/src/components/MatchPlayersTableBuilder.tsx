@@ -13,6 +13,10 @@ import {
 } from "react";
 import { sileo } from "sileo";
 import { apiClient } from "../api/client";
+import {
+  balanceMatchTeams,
+  getEffectivePlayerAbility,
+} from "./balanceMatchTeams";
 import { ContentSpinner } from "./ContentSpinner";
 import buttonStyles from "../styles/Button.module.css";
 import styles from "./MatchPlayersTableBuilder.module.css";
@@ -143,6 +147,13 @@ export const MatchPlayersTableBuilder = forwardRef<
     .map((playerId) => players.find((player) => player.id === playerId))
     .filter((player): player is PlayerContract => Boolean(player));
 
+  const selectedPlayerCount = useMemo(() => {
+    const loadedPlayerIds = new Set(players.map((player) => player.id));
+    return new Set(
+      selectedPlayerIds.filter((playerId) => loadedPlayerIds.has(playerId)),
+    ).size;
+  }, [players, selectedPlayerIds]);
+
   const teamAAbilitySum = useMemo(
     () =>
       rows.reduce((sum, row) => {
@@ -150,7 +161,7 @@ export const MatchPlayersTableBuilder = forwardRef<
           return sum;
         }
         const player = players.find((item) => item.id === row.teamAPlayerId);
-        return sum + (player?.ability ?? 0);
+        return sum + (player ? getEffectivePlayerAbility(player.ability) : 0);
       }, 0),
     [players, rows],
   );
@@ -162,7 +173,7 @@ export const MatchPlayersTableBuilder = forwardRef<
           return sum;
         }
         const player = players.find((item) => item.id === row.teamBPlayerId);
-        return sum + (player?.ability ?? 0);
+        return sum + (player ? getEffectivePlayerAbility(player.ability) : 0);
       }, 0),
     [players, rows],
   );
@@ -317,6 +328,49 @@ export const MatchPlayersTableBuilder = forwardRef<
           row.teamBPlayerId === playerId ? null : row.teamBPlayerId,
       })),
     );
+  };
+
+  const generateBalancedTeams = () => {
+    if (!canEdit || isLoadingLineup || isSaving) {
+      return;
+    }
+
+    const { teamAPlayerIds, teamBPlayerIds } = balanceMatchTeams(
+      selectedPlayerIds,
+      players,
+    );
+
+    setRows((previousRows) => {
+      const goalsByPlayerId = new Map<string, number>();
+
+      for (const row of previousRows) {
+        if (row.teamAPlayerId && !goalsByPlayerId.has(row.teamAPlayerId)) {
+          goalsByPlayerId.set(row.teamAPlayerId, row.teamAGoals);
+        }
+        if (row.teamBPlayerId && !goalsByPlayerId.has(row.teamBPlayerId)) {
+          goalsByPlayerId.set(row.teamBPlayerId, row.teamBGoals);
+        }
+      }
+
+      return createRows(playersPerTeam).map((row, index) => {
+        const teamAPlayerId = teamAPlayerIds[index] ?? null;
+        const teamBPlayerId = teamBPlayerIds[index] ?? null;
+
+        return {
+          ...row,
+          teamAGoals: teamAPlayerId
+            ? (goalsByPlayerId.get(teamAPlayerId) ?? 0)
+            : 0,
+          teamAPlayerId,
+          teamBPlayerId,
+          teamBGoals: teamBPlayerId
+            ? (goalsByPlayerId.get(teamBPlayerId) ?? 0)
+            : 0,
+        };
+      });
+    });
+    setSelectedPlayerIds([...teamAPlayerIds, ...teamBPlayerIds]);
+    setAvailablePlayerIds([]);
   };
 
   const teamAGoalsSum = rows.reduce((total, row) => total + row.teamAGoals, 0);
@@ -608,6 +662,21 @@ export const MatchPlayersTableBuilder = forwardRef<
               </div>
             ))}
           </div>
+
+          {canEdit ? (
+            <div className={styles.actions}>
+              <button
+                className={buttonStyles.ghost}
+                disabled={
+                  selectedPlayerCount === 0 || isLoadingLineup || isSaving
+                }
+                onClick={generateBalancedTeams}
+                type="button"
+              >
+                Generar equipos balanceados
+              </button>
+            </div>
+          ) : null}
 
           <div className={styles.tableWrap}>
         <table className={styles.table}>
