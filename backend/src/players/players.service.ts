@@ -13,7 +13,12 @@ import {
   assertTournamentOwner,
   canEditPlayer,
 } from '../common/player-role.utils';
-import { Player, Tournament, User } from '../database/entities';
+import {
+  DEFAULT_PLAYER_ABILITY,
+  Player,
+  Tournament,
+  User,
+} from '../database/entities';
 import { ClaimPlayerDto } from './dto/claim-player.dto';
 import { CreatePlayerDto } from './dto/create-player.dto';
 import { CreateGuestPlayerDto } from './dto/create-guest-player.dto';
@@ -92,7 +97,7 @@ export class PlayersService {
       favoriteTeamSlug: dto.favoriteTeamSlug ?? user.favoriteTeamSlug,
       displayPreference: dto.displayPreference ?? user.displayPreference,
       role: dto.role ?? PlayerRole.USER,
-      ability: dto.ability ?? null,
+      ability: dto.ability ?? DEFAULT_PLAYER_ABILITY,
       injury: dto.injury ?? null,
       misses: dto.misses ?? 0,
     });
@@ -130,7 +135,7 @@ export class PlayersService {
         favoriteTeamSlug: dto.favoriteTeamSlug ?? null,
         displayPreference: DisplayPreference.IMAGE,
         role: PlayerRole.USER,
-        ability: dto.ability ?? null,
+        ability: dto.ability ?? DEFAULT_PLAYER_ABILITY,
         injury: dto.injury ?? null,
         misses: dto.misses ?? 0,
         claimCodeHash: this.hashClaimCode(claimCode),

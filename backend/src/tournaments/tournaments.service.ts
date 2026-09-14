@@ -18,6 +18,7 @@ import {
 } from '../../../shared/src/enums';
 import { Repository } from 'typeorm';
 import {
+  DEFAULT_PLAYER_ABILITY,
   Match,
   Player,
   PlayerTeam,
@@ -74,6 +75,7 @@ export class TournamentsService {
         imageUrl: user.imageUrl,
         favoriteTeamSlug: user.favoriteTeamSlug,
         displayPreference: user.displayPreference,
+        ability: DEFAULT_PLAYER_ABILITY,
       }),
     );
 

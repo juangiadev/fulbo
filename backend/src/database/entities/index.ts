@@ -1,7 +1,7 @@
 import { Match } from './match.entity';
 import { MatchMvpVote } from './match-mvp-vote.entity';
 import { PlayerTeam } from './player-team.entity';
-import { Player } from './player.entity';
+import { DEFAULT_PLAYER_ABILITY, Player } from './player.entity';
 import { Team } from './team.entity';
 import { TournamentInvite } from './tournament-invite.entity';
 import { TournamentJoinRequest } from './tournament-join-request.entity';
@@ -21,6 +21,7 @@ export const databaseEntities = [
 ];
 
 export {
+  DEFAULT_PLAYER_ABILITY,
   Match,
   MatchMvpVote,
   Player,

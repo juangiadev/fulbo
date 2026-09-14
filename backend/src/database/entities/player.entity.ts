@@ -15,6 +15,8 @@ import { PlayerTeam } from './player-team.entity';
 import { Tournament } from './tournament.entity';
 import { User } from './user.entity';
 
+export const DEFAULT_PLAYER_ABILITY = 5;
+
 @Entity({ name: 'players' })
 @Unique('uq_players_user_tournament', ['userId', 'tournamentId'])
 @Check('"ability" >= 1 AND "ability" <= 10')
@@ -55,7 +57,7 @@ export class Player {
   })
   role: PlayerRole;
 
-  @Column({ type: 'smallint', nullable: true })
+  @Column({ type: 'smallint', nullable: true, default: DEFAULT_PLAYER_ABILITY })
   ability: number | null;
 
   @Column({ type: 'text', nullable: true })

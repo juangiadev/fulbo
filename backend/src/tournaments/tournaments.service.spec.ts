@@ -1,22 +1,36 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { DisplayPreference, PlayerRole } from '../../../shared/src/enums';
-import { Player, Tournament, User } from '../database/entities';
+import {
+  DEFAULT_PLAYER_ABILITY,
+  Player,
+  Tournament,
+  User,
+} from '../database/entities';
 import { TournamentsService } from './tournaments.service';
 
-type MockRepository<T = unknown> = {
-  create: jest.Mock;
+type TransactionManager = {
+  find: jest.Mock;
+  save: jest.Mock;
+};
+
+type TransactionCallback = (manager: TransactionManager) => Promise<unknown>;
+
+type MockRepository = {
+  create: jest.MockedFunction<(value: unknown) => unknown>;
   createQueryBuilder: jest.Mock;
   delete: jest.Mock;
   find: jest.Mock;
   findOne: jest.Mock;
   manager: {
-    transaction: jest.Mock;
+    transaction: jest.MockedFunction<
+      (callback: TransactionCallback) => Promise<unknown>
+    >;
   };
-  save: jest.Mock;
+  save: jest.MockedFunction<(value: unknown) => Promise<unknown>>;
 };
 
-const createRepositoryMock = <T = unknown>(): MockRepository<T> => ({
-  create: jest.fn((value) => value),
+const createRepositoryMock = (): MockRepository => ({
+  create: jest.fn((value: unknown): unknown => value),
   createQueryBuilder: jest.fn(),
   delete: jest.fn(),
   find: jest.fn(),
@@ -24,7 +38,7 @@ const createRepositoryMock = <T = unknown>(): MockRepository<T> => ({
   manager: {
     transaction: jest.fn(),
   },
-  save: jest.fn(),
+  save: jest.fn((value: unknown) => Promise.resolve(value)),
 });
 
 const createPlayer = (overrides: Partial<Player>): Player =>
@@ -52,18 +66,18 @@ const createPlayer = (overrides: Partial<Player>): Player =>
 
 describe('TournamentsService', () => {
   let service: TournamentsService;
-  let tournamentsRepository: MockRepository<Tournament>;
-  let playersRepository: MockRepository<Player>;
-  let usersRepository: MockRepository<User>;
+  let tournamentsRepository: MockRepository;
+  let playersRepository: MockRepository;
+  let usersRepository: MockRepository;
   let invitesRepository: MockRepository;
   let joinRequestsRepository: MockRepository;
   let playerTeamsRepository: MockRepository;
   let matchesRepository: MockRepository;
 
   beforeEach(() => {
-    tournamentsRepository = createRepositoryMock<Tournament>();
-    playersRepository = createRepositoryMock<Player>();
-    usersRepository = createRepositoryMock<User>();
+    tournamentsRepository = createRepositoryMock();
+    playersRepository = createRepositoryMock();
+    usersRepository = createRepositoryMock();
     invitesRepository = createRepositoryMock();
     joinRequestsRepository = createRepositoryMock();
     playerTeamsRepository = createRepositoryMock();
@@ -80,6 +94,36 @@ describe('TournamentsService', () => {
     );
   });
 
+  it('creates the tournament owner with the default ability', async () => {
+    const user = {
+      id: 'user-1',
+      auth0Id: 'auth0|owner',
+      name: 'Owner',
+      nickname: null,
+      imageUrl: null,
+      favoriteTeamSlug: null,
+      displayPreference: DisplayPreference.IMAGE,
+    } as User;
+    const tournament = { id: 'tournament-1', name: 'League' } as Tournament;
+
+    usersRepository.findOne.mockResolvedValue(user);
+    tournamentsRepository.save.mockResolvedValue(tournament);
+    playersRepository.save.mockImplementation((player) =>
+      Promise.resolve(player),
+    );
+
+    await service.create('auth0|owner', { name: 'League' });
+
+    expect(playersRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: user.id,
+        tournamentId: tournament.id,
+        role: PlayerRole.OWNER,
+        ability: DEFAULT_PLAYER_ABILITY,
+      }),
+    );
+  });
+
   it('rejects imports from the same tournament', async () => {
     await expect(
       service.importPlayers('tournament-1', 'auth0|owner', {
@@ -89,7 +133,8 @@ describe('TournamentsService', () => {
   });
 
   it('downgrades imported owners to admins and clears guest claim data', async () => {
-    jest.spyOn(service, 'findActorForTournament')
+    jest
+      .spyOn(service, 'findActorForTournament')
       .mockResolvedValueOnce(createPlayer({ role: PlayerRole.OWNER }))
       .mockResolvedValueOnce(createPlayer({ role: PlayerRole.ADMIN }));
 
@@ -98,7 +143,7 @@ describe('TournamentsService', () => {
       .mockResolvedValueOnce({ id: 'source-1' });
 
     const savedPlayers: Player[] = [];
-    playersRepository.manager.transaction.mockImplementation(async (callback) => {
+    playersRepository.manager.transaction.mockImplementation((callback) => {
       const manager = {
         find: jest
           .fn()
@@ -127,9 +172,9 @@ describe('TournamentsService', () => {
             }),
           ])
           .mockResolvedValueOnce([]),
-        save: jest.fn(async (_entity, players: Player[]) => {
+        save: jest.fn((_entity, players: Player[]) => {
           savedPlayers.push(...players);
-          return players;
+          return Promise.resolve(players);
         }),
       };
 
@@ -152,6 +197,7 @@ describe('TournamentsService', () => {
       tournamentId: 'target-1',
       userId: 'user-owner',
       role: PlayerRole.ADMIN,
+      ability: null,
     });
     expect(savedPlayers[1]).toMatchObject({
       tournamentId: 'target-1',
@@ -163,13 +209,15 @@ describe('TournamentsService', () => {
     expect(savedPlayers[2]).toMatchObject({
       tournamentId: 'target-1',
       userId: null,
+      ability: null,
       claimCodeHash: null,
       claimCodeExpiresAt: null,
     });
   });
 
   it('skips linked users already present in the target tournament', async () => {
-    jest.spyOn(service, 'findActorForTournament')
+    jest
+      .spyOn(service, 'findActorForTournament')
       .mockResolvedValueOnce(createPlayer({ role: PlayerRole.ADMIN }))
       .mockResolvedValueOnce(createPlayer({ role: PlayerRole.ADMIN }));
 
@@ -178,7 +226,7 @@ describe('TournamentsService', () => {
       .mockResolvedValueOnce({ id: 'source-1' });
 
     const savedPlayers: Player[] = [];
-    playersRepository.manager.transaction.mockImplementation(async (callback) => {
+    playersRepository.manager.transaction.mockImplementation((callback) => {
       const manager = {
         find: jest
           .fn()
@@ -202,9 +250,9 @@ describe('TournamentsService', () => {
               userId: 'user-1',
             }),
           ]),
-        save: jest.fn(async (_entity, players: Player[]) => {
+        save: jest.fn((_entity, players: Player[]) => {
           savedPlayers.push(...players);
-          return players;
+          return Promise.resolve(players);
         }),
       };
 
@@ -231,7 +279,8 @@ describe('TournamentsService', () => {
   });
 
   it('rejects imports when the actor is not owner or admin in both tournaments', async () => {
-    jest.spyOn(service, 'findActorForTournament')
+    jest
+      .spyOn(service, 'findActorForTournament')
       .mockResolvedValueOnce(createPlayer({ role: PlayerRole.OWNER }))
       .mockResolvedValueOnce(createPlayer({ role: PlayerRole.USER }));
 
