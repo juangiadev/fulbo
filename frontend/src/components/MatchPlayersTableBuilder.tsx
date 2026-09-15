@@ -11,6 +11,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { Eye, EyeOff, Shuffle } from "lucide-react";
 import { sileo } from "sileo";
 import { apiClient } from "../api/client";
 import {
@@ -111,6 +112,7 @@ export const MatchPlayersTableBuilder = forwardRef<
     createRows(DEFAULT_PLAYERS_PER_TEAM),
   );
   const [search, setSearch] = useState("");
+  const [showAbilityInformation, setShowAbilityInformation] = useState(false);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [availablePlayerIds, setAvailablePlayerIds] = useState<string[]>([]);
   const [teamAName, setTeamAName] = useState(DEFAULT_TEAM_A_NAME);
@@ -122,7 +124,9 @@ export const MatchPlayersTableBuilder = forwardRef<
 
   const getPlayerLabel = (player: PlayerContract): string => {
     const baseName = player.nickname ?? player.name;
-    return player.ability ? `${player.ability} · ${baseName}` : baseName;
+    return showAbilityInformation && player.ability
+      ? `${player.ability} · ${baseName}`
+      : baseName;
   };
 
   const maxSelectedPlayers = playersPerTeam * 2;
@@ -663,20 +667,41 @@ export const MatchPlayersTableBuilder = forwardRef<
             ))}
           </div>
 
-          {canEdit ? (
-            <div className={styles.actions}>
+          <div className={`${styles.actions} ${styles.lineupTools}`}>
+            <button
+              aria-label="Visibilidad de habilidades de jugadores y equipos"
+              aria-pressed={showAbilityInformation}
+              className={`${buttonStyles.ghost} ${styles.lineupToolButton} ${styles.abilityToggle}`}
+              onClick={() =>
+                setShowAbilityInformation((isCurrentlyVisible) =>
+                  !isCurrentlyVisible,
+                )
+              }
+              type="button"
+            >
+              {showAbilityInformation ? (
+                <EyeOff aria-hidden="true" size={18} />
+              ) : (
+                <Eye aria-hidden="true" size={18} />
+              )}
+              {showAbilityInformation
+                ? "Ocultar habilidades"
+                : "Mostrar habilidades"}
+            </button>
+            {canEdit ? (
               <button
-                className={buttonStyles.ghost}
+                className={`${buttonStyles.ghost} ${styles.lineupToolButton} ${styles.balanceButton}`}
                 disabled={
                   selectedPlayerCount === 0 || isLoadingLineup || isSaving
                 }
                 onClick={generateBalancedTeams}
                 type="button"
               >
+                <Shuffle aria-hidden="true" size={18} />
                 Generar equipos balanceados
               </button>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
 
           <div className={styles.tableWrap}>
         <table className={styles.table}>
@@ -692,10 +717,12 @@ export const MatchPlayersTableBuilder = forwardRef<
                 Goles
               </th>
               <th className={styles.teamACol} style={{ backgroundColor: withAlpha(teamAColor, "66") }}>
-                 {(teamAName.trim() || DEFAULT_TEAM_A_NAME) + ` (${teamAAbilitySum})`}
+                {teamAName.trim() || DEFAULT_TEAM_A_NAME}
+                {showAbilityInformation ? ` (${teamAAbilitySum})` : null}
               </th>
               <th style={{ backgroundColor: withAlpha(teamBColor, "66") }}>
-                 {(teamBName.trim() || DEFAULT_TEAM_B_NAME) + ` (${teamBAbilitySum})`}
+                {teamBName.trim() || DEFAULT_TEAM_B_NAME}
+                {showAbilityInformation ? ` (${teamBAbilitySum})` : null}
               </th>
               <th className={styles.goalsCol} style={{ backgroundColor: withAlpha(teamBColor, "66") }}>
                 Goles
