@@ -1,5 +1,7 @@
 import type {
   CreateMatchPayload,
+  CreateMatchdayFixturePayload,
+  CreateTournamentTeamInput,
   MatchContract,
   MatchMvpVotingContract,
   MatchPlayersRecentFormContract,
@@ -9,7 +11,9 @@ import type {
   TeamContract,
   TournamentContract,
   TournamentSummaryContract,
+  TournamentTeamContract,
   UpdateMatchPayload,
+  UpdateTournamentTeamInput,
   UpdateUserProfileInput,
   UserProfile,
 } from '@shared/contracts';
@@ -174,6 +178,11 @@ export const apiClient = {
       method: 'POST',
       body: JSON.stringify(input),
     }),
+  generateMatchdayFixture: (tournamentId: string, input: CreateMatchdayFixturePayload) =>
+    request<MatchContract[]>(`/tournaments/${tournamentId}/matches/generate-matchday`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
   upsertMatchLineup: (
     matchId: string,
     input: {
@@ -181,6 +190,10 @@ export const apiClient = {
       teamBName?: string;
       teamAColor?: string;
       teamBColor?: string;
+      teamATournamentTeamId?: string;
+      teamBTournamentTeamId?: string;
+      teamAGoals?: number;
+      teamBGoals?: number;
       teamA: Array<{ playerId: string; goals: number }>;
       teamB: Array<{ playerId: string; goals: number }>;
     },
@@ -199,6 +212,22 @@ export const apiClient = {
       method: 'DELETE',
     }),
   getTeamsByMatch: (matchId: string) => request<TeamContract[]>(`/matches/${matchId}/teams`),
+  getTournamentTeams: (tournamentId: string) =>
+    request<TournamentTeamContract[]>(`/tournaments/${tournamentId}/teams`),
+  createTournamentTeam: (tournamentId: string, input: CreateTournamentTeamInput) =>
+    request<TournamentTeamContract>(`/tournaments/${tournamentId}/teams`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+  updateTournamentTeam: (teamId: string, input: UpdateTournamentTeamInput) =>
+    request<TournamentTeamContract>(`/tournament-teams/${teamId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    }),
+  removeTournamentTeam: (teamId: string) =>
+    request<{ success: true }>(`/tournament-teams/${teamId}`, {
+      method: 'DELETE',
+    }),
   getMatchPlayersRecentForm: (matchId: string) =>
     request<MatchPlayersRecentFormContract>(`/matches/${matchId}/player-last-five`),
   getMatchMvpVoting: (matchId: string) =>

@@ -1,5 +1,5 @@
 import type { MatchContract } from '@shared/contracts';
-import { MatchStatus } from '@shared/enums';
+import { MatchStatus, TournamentFormat, TournamentType } from '@shared/enums';
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -41,11 +41,25 @@ export function TournamentMatchesPage() {
   const [matches, setMatches] = useState<MatchContract[]>([]);
   const [deletingMatchId, setDeletingMatchId] = useState<string | null>(null);
   const [confirmingMatchId, setConfirmingMatchId] = useState<string | null>(null);
+  const [showFixtureForm, setShowFixtureForm] = useState(false);
+  const [isGeneratingFixture, setIsGeneratingFixture] = useState(false);
+  const [fixtureForm, setFixtureForm] = useState({
+    matchday: '1',
+    firstKickoffAt: '',
+    intervalMinutes: '60',
+    placeName: '',
+    placeUrl: '',
+    stage: '',
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadError, setHasLoadError] = useState(false);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
   const permissions = useTournamentPermissions(tournamentId);
+  const canGenerateTeamLigaFixture =
+    permissions.canManageMatches &&
+    tournament?.type === TournamentType.TEAMS &&
+    tournament.format === TournamentFormat.LIGA;
 
   const loadMatches = useCallback(async () => {
     if (!tournamentId) {
@@ -82,6 +96,45 @@ export function TournamentMatchesPage() {
     (match) => match.status === MatchStatus.FINISHED,
   ).length;
   const pendingMatches = matches.length - finishedMatches;
+
+  const handleGenerateFixture = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!tournamentId || !fixtureForm.firstKickoffAt) {
+      return;
+    }
+
+    setIsGeneratingFixture(true);
+    try {
+      await sileo.promise(
+        apiClient.generateMatchdayFixture(tournamentId, {
+          matchday: Number(fixtureForm.matchday),
+          firstKickoffAt: new Date(fixtureForm.firstKickoffAt).toISOString(),
+          intervalMinutes: Number(fixtureForm.intervalMinutes),
+          placeName: fixtureForm.placeName.trim(),
+          placeUrl: fixtureForm.placeUrl.trim() || undefined,
+          stage: fixtureForm.stage.trim(),
+        }),
+        {
+          loading: { title: 'Creando fecha completa...' },
+          success: { title: 'Fecha creada' },
+          error: { title: 'No se pudo crear la fecha' },
+        },
+      );
+      const refreshed = await apiClient.getMatches(tournamentId);
+      setMatches(refreshed);
+      setShowFixtureForm(false);
+      setFixtureForm({
+        matchday: '1',
+        firstKickoffAt: '',
+        intervalMinutes: '60',
+        placeName: '',
+        placeUrl: '',
+        stage: '',
+      });
+    } finally {
+      setIsGeneratingFixture(false);
+    }
+  };
 
   if (!tournamentId || !tournament || tournament.membershipStatus === 'PENDING') {
     return <Navigate replace to="/tournaments" />;
@@ -137,8 +190,130 @@ export function TournamentMatchesPage() {
               <ArrowUpRight aria-hidden="true" size={19} />
             </Link>
           ) : null}
+
+          {canGenerateTeamLigaFixture ? (
+            <button
+              className={styles.fixtureToggleButton}
+              onClick={() => setShowFixtureForm((current) => !current)}
+              type="button"
+            >
+              <span>
+                <CalendarDays aria-hidden="true" size={19} />
+                Crear fecha completa
+              </span>
+              <ArrowUpRight aria-hidden="true" size={19} />
+            </button>
+          ) : null}
         </div>
       </header>
+
+      {canGenerateTeamLigaFixture && showFixtureForm ? (
+        <form className={styles.fixturePanel} onSubmit={handleGenerateFixture}>
+          <div className={styles.fixturePanelHeader}>
+            <div>
+              <p className={styles.eyebrow}>Liga por equipos</p>
+              <h2>Crear fecha completa</h2>
+              <p>
+                Genera automáticamente los cruces de una fecha con todos los equipos registrados.
+              </p>
+            </div>
+            <button
+              className={styles.secondaryButton}
+              onClick={() => setShowFixtureForm(false)}
+              type="button"
+            >
+              Cerrar
+            </button>
+          </div>
+
+          <div className={styles.fixtureGrid}>
+            <label>
+              <span>Fecha</span>
+              <input
+                min="1"
+                onChange={(event) =>
+                  setFixtureForm((current) => ({ ...current, matchday: event.target.value }))
+                }
+                required
+                type="number"
+                value={fixtureForm.matchday}
+              />
+            </label>
+            <label>
+              <span>Primer horario</span>
+              <input
+                onChange={(event) =>
+                  setFixtureForm((current) => ({
+                    ...current,
+                    firstKickoffAt: event.target.value,
+                  }))
+                }
+                required
+                type="datetime-local"
+                value={fixtureForm.firstKickoffAt}
+              />
+            </label>
+            <label>
+              <span>Intervalo en minutos</span>
+              <input
+                min="1"
+                onChange={(event) =>
+                  setFixtureForm((current) => ({
+                    ...current,
+                    intervalMinutes: event.target.value,
+                  }))
+                }
+                required
+                type="number"
+                value={fixtureForm.intervalMinutes}
+              />
+            </label>
+            <label>
+              <span>Lugar</span>
+              <input
+                maxLength={150}
+                onChange={(event) =>
+                  setFixtureForm((current) => ({ ...current, placeName: event.target.value }))
+                }
+                required
+                type="text"
+                value={fixtureForm.placeName}
+              />
+            </label>
+            <label>
+              <span>Cancha</span>
+              <input
+                maxLength={120}
+                onChange={(event) =>
+                  setFixtureForm((current) => ({ ...current, stage: event.target.value }))
+                }
+                required
+                type="text"
+                value={fixtureForm.stage}
+              />
+            </label>
+            <label>
+              <span>URL del lugar (opcional)</span>
+              <input
+                onChange={(event) =>
+                  setFixtureForm((current) => ({ ...current, placeUrl: event.target.value }))
+                }
+                type="url"
+                value={fixtureForm.placeUrl}
+              />
+            </label>
+          </div>
+
+          <button
+            className={styles.fixtureSubmitButton}
+            disabled={isGeneratingFixture}
+            type="submit"
+          >
+            <Plus aria-hidden="true" size={18} />
+            {isGeneratingFixture ? 'Creando fecha...' : 'Crear fecha completa'}
+          </button>
+        </form>
+      ) : null}
 
       <section aria-labelledby="matches-title" className={styles.matchesSection}>
         <div className={styles.sectionHeading}>

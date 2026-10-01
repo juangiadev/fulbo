@@ -67,6 +67,7 @@
 
 .backButton:focus-visible,
 .tournamentForm input:focus-visible,
+.optionButton:focus-visible,
 .cancelButton:focus-visible,
 .submitButton:focus-visible {
   outline: 3px solid var(--secondary);
@@ -221,6 +222,87 @@
   margin: 0;
   color: #93aa9b;
   font-size: 0.8rem;
+}
+
+.creationChoices {
+  display: grid;
+  gap: 1rem;
+}
+
+.choiceGroup {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.choiceGroup legend {
+  padding: 0;
+  color: #edf5f0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.choiceGroup p {
+  margin: -0.35rem 0 0;
+  color: #93aa9b;
+  font-size: 0.8rem;
+}
+
+.optionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.optionButton {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 104px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 15px;
+  padding: 0.9rem;
+  background: rgba(2, 20, 11, 0.28);
+  color: #bfd3c6;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.optionButton strong {
+  color: #edf5f0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.98rem;
+}
+
+.optionButton span {
+  color: #93aa9b;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.optionButton:hover {
+  border-color: rgba(255, 255, 255, 0.38);
+  background: rgba(255, 255, 255, 0.055);
+  transform: translateY(-1px);
+}
+
+.optionButton[aria-pressed='true'] {
+  border-color: #e8c65c;
+  background: rgba(232, 198, 92, 0.12);
+  box-shadow: 0 0 0 1px rgba(232, 198, 92, 0.24);
+}
+
+.optionButton[aria-pressed='true'] strong {
+  color: #f1d77d;
 }
 
 .preview {
@@ -420,6 +502,7 @@
     padding: 1.2rem;
   }
 
+  .optionGrid,
   .formActions {
     grid-template-columns: 1fr;
   }
@@ -433,6 +516,7 @@
 
   .backButton,
   .tournamentForm input,
+  .optionButton,
   .cancelButton,
   .submitButton {
     transition: none;

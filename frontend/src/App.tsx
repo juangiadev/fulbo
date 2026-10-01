@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppShell } from "./layout/AppShell";
 import { LoginPage } from "./pages/auth/LoginPage";
@@ -16,12 +16,16 @@ import { TournamentPlayerDetailsPage } from "./pages/tournaments/TournamentPlaye
 import { TournamentPlayerEditPage } from "./pages/tournaments/TournamentPlayerEditPage";
 import { TournamentPlayersPage } from "./pages/tournaments/TournamentPlayersPage";
 import { TournamentTablePage } from "./pages/tournaments/TournamentTablePage";
+import { TournamentTeamEditPage } from "./pages/tournaments/TournamentTeamEditPage";
+import { TournamentTeamsPage } from "./pages/tournaments/TournamentTeamsPage";
 import { TournamentTierlistPage } from "./pages/tournaments/TournamentTierlistPage";
 import { TournamentsPage } from "./pages/tournaments/TournamentsPage";
 
 function App() {
+    const location = useLocation();
+
     return (
-        <Routes>
+        <Routes key={location.pathname}>
             <Route element={<LoginPage />} path="/" />
 
             <Route
@@ -76,6 +80,14 @@ function App() {
                 <Route
                     element={<TournamentPlayersPage />}
                     path="/tournaments/:tournamentId/players"
+                />
+                <Route
+                    element={<TournamentTeamsPage />}
+                    path="/tournaments/:tournamentId/teams"
+                />
+                <Route
+                    element={<TournamentTeamEditPage />}
+                    path="/tournaments/:tournamentId/teams/:teamId/edit"
                 />
                 <Route
                     element={<TournamentPlayerDetailsPage />}

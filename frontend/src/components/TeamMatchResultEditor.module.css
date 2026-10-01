@@ -1,0 +1,85 @@
+.editor {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.teamCard {
+  display: grid;
+  min-width: 0;
+  gap: 0.85rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.teamCard h3 {
+  margin: 0;
+  color: #e8c65c;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+}
+
+.teamCard label {
+  display: grid;
+  min-width: 0;
+  gap: 0.35rem;
+  color: #dce9df;
+  font-weight: 700;
+}
+
+.teamCard select,
+.teamCard input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
+  background: rgba(4, 24, 14, 0.82);
+  color: #f5fbf7;
+  font: inherit;
+}
+
+.teamCard select:focus-visible,
+.teamCard input:focus-visible {
+  border-color: #e8c65c;
+  outline: 3px solid rgba(232, 198, 92, 0.85);
+  outline-offset: 3px;
+}
+
+.validationMessage {
+  margin: 0;
+  border: 1px solid rgba(255, 180, 168, 0.28);
+  border-radius: 12px;
+  padding: 0.75rem 0.85rem;
+  background: rgba(255, 180, 168, 0.08);
+  color: #ffb4a8;
+  font-weight: 700;
+}
+
+.emptyState {
+  border: 1px solid rgba(232, 198, 92, 0.32);
+  border-radius: 16px;
+  padding: 1rem;
+  background: rgba(232, 198, 92, 0.08);
+  color: #f7e7a2;
+}
+
+.emptyState p {
+  margin: 0.35rem 0 0;
+  color: #d9c983;
+}
+
+@media (min-width: 720px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

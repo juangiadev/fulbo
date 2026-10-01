@@ -1,5 +1,5 @@
 import type { PlayerContract, StandingRowContract, TournamentSummaryContract } from '@shared/contracts';
-import { DisplayPreference } from '@shared/enums';
+import { DisplayPreference, TournamentType } from '@shared/enums';
 import { FAVORITE_TEAMS } from '@shared/favorite-teams';
 import {
   ArrowLeft,
@@ -337,17 +337,30 @@ export function TournamentDetailsPage() {
           </span>
           <ArrowUpRight aria-hidden="true" className={styles.navArrow} size={19} />
         </Link>
-        <Link className={styles.navCard} to={`/tournaments/${tournament.id}/players`}>
-          <span aria-hidden="true" className={styles.navIcon}>
-            <Users size={23} />
-          </span>
-          <span className={styles.navCopy}>
-            <strong>Jugadores</strong>
-            <small>Plantel y perfiles</small>
-          </span>
-          <ArrowUpRight aria-hidden="true" className={styles.navArrow} size={19} />
-        </Link>
-        {permissions.canViewTierlist ? (
+        {tournament.type === TournamentType.TEAMS ? (
+          <Link className={styles.navCard} to={`/tournaments/${tournament.id}/teams`}>
+            <span aria-hidden="true" className={styles.navIcon}>
+              <Users size={23} />
+            </span>
+            <span className={styles.navCopy}>
+              <strong>Equipos</strong>
+              <small>Nombres de los equipos</small>
+            </span>
+            <ArrowUpRight aria-hidden="true" className={styles.navArrow} size={19} />
+          </Link>
+        ) : (
+          <Link className={styles.navCard} to={`/tournaments/${tournament.id}/players`}>
+            <span aria-hidden="true" className={styles.navIcon}>
+              <Users size={23} />
+            </span>
+            <span className={styles.navCopy}>
+              <strong>Jugadores</strong>
+              <small>Plantel y perfiles</small>
+            </span>
+            <ArrowUpRight aria-hidden="true" className={styles.navArrow} size={19} />
+          </Link>
+        )}
+        {permissions.canViewTierlist && tournament.type !== TournamentType.TEAMS ? (
           <Link className={styles.navCard} to={`/tournaments/${tournament.id}/tierlist`}>
             <span aria-hidden="true" className={styles.navIcon}>
               <LayoutGrid size={23} />

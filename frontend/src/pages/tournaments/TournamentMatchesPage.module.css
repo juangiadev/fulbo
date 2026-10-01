@@ -167,7 +167,8 @@
   font-weight: 700;
 }
 
-.createButton {
+.createButton,
+.fixtureToggleButton {
   display: flex;
   min-height: 52px;
   align-items: center;
@@ -179,23 +180,121 @@
   background: #e8c65c;
   box-shadow: 0 12px 28px rgba(232, 198, 92, 0.13);
   color: #102719;
+  font: inherit;
   font-weight: 700;
+  cursor: pointer;
   transition:
     background-color 0.2s ease,
     box-shadow 0.2s ease,
     transform 0.2s ease;
 }
 
-.createButton span {
+.createButton span,
+.fixtureToggleButton span {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
 }
 
-.createButton:hover {
+.createButton:hover,
+.fixtureToggleButton:hover {
   background: #efd474;
   box-shadow: 0 16px 34px rgba(232, 198, 92, 0.2);
   transform: translateY(-2px);
+}
+
+.fixtureToggleButton {
+  border-color: rgba(232, 198, 92, 0.45);
+  background: rgba(232, 198, 92, 0.12);
+  color: #f2dda2;
+}
+
+.fixtureToggleButton:hover {
+  background: rgba(232, 198, 92, 0.18);
+}
+
+.fixturePanel {
+  display: grid;
+  gap: 1.25rem;
+  border: 1px solid rgba(232, 198, 92, 0.22);
+  border-radius: 22px;
+  padding: clamp(1.15rem, 4vw, 1.75rem);
+  background:
+    radial-gradient(circle at 94% 10%, rgba(232, 198, 92, 0.1), transparent 18rem),
+    rgba(255, 255, 255, 0.035);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.13);
+}
+
+.fixturePanelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.fixturePanelHeader h2 {
+  margin-top: 0.35rem;
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+}
+
+.fixturePanelHeader p:last-child {
+  max-width: 640px;
+  margin: 0.45rem 0 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.fixtureGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.fixtureGrid label {
+  display: grid;
+  gap: 0.4rem;
+  color: #b8ccbf;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.fixtureGrid input {
+  min-height: 46px;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  padding: 0.65rem 0.75rem;
+  background: rgba(2, 20, 11, 0.32);
+  color: #f4faf6;
+  font: inherit;
+}
+
+.fixtureGrid input:focus {
+  border-color: rgba(232, 198, 92, 0.62);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(232, 198, 92, 0.12);
+}
+
+.fixtureSubmitButton {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid #f1d77d;
+  border-radius: 12px;
+  padding: 0.65rem 0.9rem;
+  background: #e8c65c;
+  color: #102719;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.fixtureSubmitButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .matchesSection {
@@ -519,6 +618,8 @@
 
 .backLink:focus-visible,
 .createButton:focus-visible,
+.fixtureToggleButton:focus-visible,
+.fixtureSubmitButton:focus-visible,
 .viewButton:focus-visible,
 .secondaryButton:focus-visible,
 .deleteButton:focus-visible,
@@ -562,6 +663,10 @@
   .cardBody {
     grid-template-columns: 1fr;
   }
+
+  .fixtureGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 620px) {
@@ -601,8 +706,14 @@
     grid-column: 1 / -1;
   }
 
-  .stateCard {
+  .stateCard,
+  .fixturePanelHeader,
+  .fixtureGrid {
     grid-template-columns: 1fr;
+  }
+
+  .fixturePanelHeader {
+    display: grid;
   }
 
   .stateIcon {
@@ -648,6 +759,7 @@
 
   .backLink,
   .createButton,
+  .fixtureToggleButton,
   .matchCard,
   .viewButton,
   .secondaryButton,

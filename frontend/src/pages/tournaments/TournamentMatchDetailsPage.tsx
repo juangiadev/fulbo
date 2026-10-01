@@ -1,4 +1,4 @@
-import { MatchStatus } from '@shared/enums';
+import { MatchStatus, TournamentType } from '@shared/enums';
 import type {
   MatchContract,
   MatchMvpVotingContract,
@@ -47,6 +47,7 @@ export function TournamentMatchDetailsPage() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
+  const isTeamTournament = tournament?.type === TournamentType.TEAMS;
 
   useEffect(() => {
     if (!tournamentId) {
@@ -198,14 +199,18 @@ export function TournamentMatchDetailsPage() {
 
   const resultSummary = useMemo(() => {
     const { teamA, teamB } = splitTeams(teams);
-    const teamAGoals = ((teamA?.playerTeams as PlayerTeamContract[] | undefined) ?? []).reduce(
-      (total, row) => total + row.goals,
-      0,
-    );
-    const teamBGoals = ((teamB?.playerTeams as PlayerTeamContract[] | undefined) ?? []).reduce(
-      (total, row) => total + row.goals,
-      0,
-    );
+    const teamAGoals = isTeamTournament
+      ? (teamA?.goals ?? 0)
+      : ((teamA?.playerTeams as PlayerTeamContract[] | undefined) ?? []).reduce(
+          (total, row) => total + row.goals,
+          0,
+        );
+    const teamBGoals = isTeamTournament
+      ? (teamB?.goals ?? 0)
+      : ((teamB?.playerTeams as PlayerTeamContract[] | undefined) ?? []).reduce(
+          (total, row) => total + row.goals,
+          0,
+        );
 
     return {
       teamAName: teamA?.name ?? 'Team A',
@@ -215,7 +220,7 @@ export function TournamentMatchDetailsPage() {
       teamAGoals,
       teamBGoals,
     };
-  }, [teams]);
+  }, [isTeamTournament, teams]);
 
   if (!tournamentId || !matchId || !tournament || tournament.membershipStatus === 'PENDING') {
     return <Navigate replace to="/tournaments" />;
@@ -269,7 +274,7 @@ export function TournamentMatchDetailsPage() {
         <p className={styles.meta}>Estado: {selectedMatch.status === MatchStatus.PENDING ? 'Pendiente' : 'Finalizado'}</p>
       </article>
 
-      <MatchPlayersTableReadonly matchId={selectedMatch.id} players={players} />
+      {isTeamTournament ? null : <MatchPlayersTableReadonly matchId={selectedMatch.id} players={players} />}
 
       <div className={styles.resultTableWrap}>
         <table className={styles.resultTable}>
@@ -288,7 +293,7 @@ export function TournamentMatchDetailsPage() {
         </table>
       </div>
 
-      {selectedMatch.status === MatchStatus.FINISHED ? (
+      {!isTeamTournament && selectedMatch.status === MatchStatus.FINISHED ? (
         <article className={styles.card}>
           <h3 className={styles.mvpTitle}>Votacion MVP</h3>
           {isMvpLoading ? <ContentSpinner /> : null}

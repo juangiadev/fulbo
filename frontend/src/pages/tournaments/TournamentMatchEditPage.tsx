@@ -1,5 +1,5 @@
-import type { MatchContract, PlayerContract } from '@shared/contracts';
-import { MatchStatus } from '@shared/enums';
+import type { MatchContract, PlayerContract, TournamentTeamContract } from '@shared/contracts';
+import { MatchStatus, TournamentType } from '@shared/enums';
 import {
   ArrowLeft,
   CalendarClock,
@@ -12,7 +12,7 @@ import {
   Trophy,
   UsersRound,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
 import { apiClient } from '../../api/client';
@@ -22,6 +22,10 @@ import {
   MatchPlayersTableBuilder,
   type MatchPlayersTableBuilderRef,
 } from '../../components/MatchPlayersTableBuilder';
+import {
+  TeamMatchResultEditor,
+  type TeamMatchResultEditorRef,
+} from '../../components/TeamMatchResultEditor';
 import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
 import { useAppContext } from '../../state/AppContext';
 import styles from './TournamentMatchEditPage.module.css';
@@ -32,6 +36,7 @@ export function TournamentMatchEditPage() {
   const { data } = useAppContext();
   const [matches, setMatches] = useState<MatchContract[]>([]);
   const [players, setPlayers] = useState<PlayerContract[]>([]);
+  const [tournamentTeams, setTournamentTeams] = useState<TournamentTeamContract[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadError, setHasLoadError] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
@@ -51,9 +56,45 @@ export function TournamentMatchEditPage() {
   });
   const [isSavingAll, setIsSavingAll] = useState(false);
   const tableRef = useRef<MatchPlayersTableBuilderRef | null>(null);
+  const teamResultRef = useRef<TeamMatchResultEditorRef | null>(null);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
   const permissions = useTournamentPermissions(tournamentId);
+  const isTeamTournament = tournament?.type === TournamentType.TEAMS;
+
+  const handleTeamSummaryChange = useCallback(
+    (summary: {
+      teamAName: string;
+      teamBName: string;
+      teamAGoals: number;
+      teamBGoals: number;
+    }) => {
+      setTableSummary((current) => {
+        const next = {
+          teamAName: summary.teamAName,
+          teamBName: summary.teamBName,
+          teamAColor: '#0b2818',
+          teamBColor: '#f2f2f2',
+          teamAGoals: summary.teamAGoals,
+          teamBGoals: summary.teamBGoals,
+        };
+
+        if (
+          current.teamAName === next.teamAName &&
+          current.teamBName === next.teamBName &&
+          current.teamAColor === next.teamAColor &&
+          current.teamBColor === next.teamBColor &&
+          current.teamAGoals === next.teamAGoals &&
+          current.teamBGoals === next.teamBGoals
+        ) {
+          return current;
+        }
+
+        return next;
+      });
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!tournamentId) {
@@ -64,14 +105,19 @@ export function TournamentMatchEditPage() {
     setIsLoading(true);
     setHasLoadError(false);
 
-    void Promise.all([apiClient.getMatches(tournamentId), apiClient.getPlayers(tournamentId)])
-      .then(([nextMatches, nextPlayers]) => {
+    void Promise.all([
+      apiClient.getMatches(tournamentId),
+      apiClient.getPlayers(tournamentId),
+      isTeamTournament ? apiClient.getTournamentTeams(tournamentId) : Promise.resolve([]),
+    ])
+      .then(([nextMatches, nextPlayers, nextTournamentTeams]) => {
         if (!isActive) {
           return;
         }
 
         setMatches(nextMatches);
         setPlayers(nextPlayers);
+        setTournamentTeams(nextTournamentTeams);
       })
       .catch(() => {
         if (!isActive) {
@@ -80,6 +126,7 @@ export function TournamentMatchEditPage() {
 
         setMatches([]);
         setPlayers([]);
+        setTournamentTeams([]);
         setHasLoadError(true);
       })
       .finally(() => {
@@ -91,7 +138,7 @@ export function TournamentMatchEditPage() {
     return () => {
       isActive = false;
     };
-  }, [loadAttempt, tournamentId]);
+  }, [isTeamTournament, loadAttempt, tournamentId]);
 
   const selectedMatch = useMemo(
     () => matches.find((match) => match.id === matchId) ?? null,
@@ -302,20 +349,36 @@ export function TournamentMatchEditPage() {
               </span>
               <div>
                 <p className={styles.sectionNumber}>02 · Equipos</p>
-                <h2 id="lineup-title">Jugadores y goles</h2>
-                <p>Organizá los equipos, ajustá sus colores y registrá el resultado.</p>
+                <h2 id="lineup-title">
+                  {isTeamTournament ? 'Equipos y resultado' : 'Jugadores y goles'}
+                </h2>
+                <p>
+                  {isTeamTournament
+                    ? 'Elegí los equipos registrados y actualizá el resultado total.'
+                    : 'Organizá los equipos, ajustá sus colores y registrá el resultado.'}
+                </p>
               </div>
             </div>
 
-            <MatchPlayersTableBuilder
-              canEdit={permissions.canEditTournament}
-              matchId={selectedMatch.id}
-              onSummaryChange={setTableSummary}
-              players={players}
-              ref={tableRef}
-              showSaveButton={false}
-              variant="panel"
-            />
+            {isTeamTournament ? (
+              <TeamMatchResultEditor
+                canEdit={permissions.canEditTournament}
+                matchId={selectedMatch.id}
+                onSummaryChange={handleTeamSummaryChange}
+                ref={teamResultRef}
+                tournamentTeams={tournamentTeams}
+              />
+            ) : (
+              <MatchPlayersTableBuilder
+                canEdit={permissions.canEditTournament}
+                matchId={selectedMatch.id}
+                onSummaryChange={setTableSummary}
+                players={players}
+                ref={tableRef}
+                showSaveButton={false}
+                variant="panel"
+              />
+            )}
           </section>
 
           <section aria-labelledby="score-title" className={styles.scoreSection}>
@@ -366,7 +429,7 @@ export function TournamentMatchEditPage() {
               <button
                 aria-busy={isSavingAll}
                 className={styles.saveButton}
-                disabled={isSavingAll}
+                disabled={isSavingAll || (isTeamTournament && tournamentTeams.length < 2)}
                 onClick={async () => {
                   const kickoffDate = new Date(kickoffAtDraft);
                   if (Number.isNaN(kickoffDate.getTime())) {
@@ -382,6 +445,10 @@ export function TournamentMatchEditPage() {
                     return;
                   }
 
+                  if (isTeamTournament && !teamResultRef.current?.validateResult()) {
+                    return;
+                  }
+
                   setIsSavingAll(true);
                   try {
                     await sileo.promise(
@@ -394,7 +461,11 @@ export function TournamentMatchEditPage() {
                           placeUrl: placeUrlDraft.trim() || undefined,
                           kickoffAt: kickoffDate.toISOString(),
                         });
-                        await tableRef.current?.saveLineup();
+                        if (isTeamTournament) {
+                          await teamResultRef.current?.saveResult();
+                        } else {
+                          await tableRef.current?.saveLineup();
+                        }
                         setMatches((previous) =>
                           previous.map((item) => (item.id === updated.id ? updated : item)),
                         );

@@ -3,7 +3,7 @@ import type {
   PlayerRecentMatchResultContract,
   TournamentSummaryContract,
 } from '@shared/contracts';
-import { TeamResult } from '@shared/enums';
+import { TeamResult, TournamentType } from '@shared/enums';
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { ContentSpinner } from '../../components/ContentSpinner';
@@ -21,6 +21,23 @@ export function TournamentTablePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
+  const isTeamTournament = tournament?.type === TournamentType.TEAMS;
+  const topScoringTeamRow = isTeamTournament
+    ? summary?.standings.reduce<(typeof summary.standings)[number] | null>((best, current) => {
+        const currentGoals = current.goalsFor ?? current.goals;
+        const bestGoals = best ? (best.goalsFor ?? best.goals) : -1;
+
+        if (!best || currentGoals > bestGoals) {
+          return current;
+        }
+
+        return best;
+      }, null) ?? null
+    : null;
+  const topScoringTeamGoals = topScoringTeamRow
+    ? (topScoringTeamRow.goalsFor ?? topScoringTeamRow.goals)
+    : 0;
+  const topScoringTeamId = topScoringTeamGoals > 0 ? topScoringTeamRow?.playerId ?? null : null;
 
   const renderRecentForm = (items: PlayerRecentMatchResultContract[]) => {
     const visibleItems = items.slice(0, 5);
@@ -97,9 +114,10 @@ export function TournamentTablePage() {
               <tr>
                 <th>Posicion</th>
                 <th>Nombre</th>
-                <th>MVP</th>
+                {isTeamTournament ? null : <th>MVP</th>}
                 <th>Puntos</th>
-                <th>Goles</th>
+                <th>{isTeamTournament ? 'GF' : 'Goles'}</th>
+                {isTeamTournament ? <th>GC</th> : null}
                 <th>G</th>
                 <th>E</th>
                 <th>P</th>
@@ -115,27 +133,35 @@ export function TournamentTablePage() {
                   <td>
                     <div className={styles.positionCell}>
                       <span>{row.position}</span>
-                      {summary.topScorerPlayerId === row.playerId ? (
+                      {(!isTeamTournament && summary.topScorerPlayerId === row.playerId) ||
+                      (isTeamTournament && topScoringTeamId === row.playerId) ? (
                         <img alt="Goleador" className={styles.topScorerIcon} src="/pelota-gol.png" />
                       ) : null}
                     </div>
                   </td>
                   <td>
                     <div className={styles.playerCell}>
-                      <PlayerAvatar
-                        classNames={{
-                          avatar: styles.avatar,
-                          avatarFallback: styles.avatarFallback,
-                          avatarTeam: styles.avatarTeam,
-                        }}
-                        player={players.find((item) => item.id === row.playerId)}
-                      />
+                      {isTeamTournament ? (
+                        row.imageUrl ? (
+                          <img alt="" className={styles.avatarTeam} src={row.imageUrl} />
+                        ) : null
+                      ) : (
+                        <PlayerAvatar
+                          classNames={{
+                            avatar: styles.avatar,
+                            avatarFallback: styles.avatarFallback,
+                            avatarTeam: styles.avatarTeam,
+                          }}
+                          player={players.find((item) => item.id === row.playerId)}
+                        />
+                      )}
                       <span className={styles.playerName}>{row.displayName}</span>
                     </div>
                   </td>
-                  <td>{row.mvp}</td>
+                  {isTeamTournament ? null : <td>{row.mvp}</td>}
                   <td>{row.points}</td>
-                  <td>{row.goals}</td>
+                  <td>{row.goalsFor ?? row.goals}</td>
+                  {isTeamTournament ? <td>{row.goalsAgainst ?? 0}</td> : null}
                   <td className={styles.win}>{row.win}</td>
                   <td className={styles.draw}>{row.draw}</td>
                   <td className={styles.loose}>{row.loose}</td>

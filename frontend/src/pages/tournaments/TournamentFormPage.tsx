@@ -1,3 +1,4 @@
+import { TournamentFormat, TournamentType } from '@shared/enums';
 import { ArrowLeft, ArrowRight, CheckCircle2, LoaderCircle, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
@@ -16,6 +17,8 @@ export function TournamentFormPage() {
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
 
   const [nameDraft, setNameDraft] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState(TournamentType.USER);
+  const [selectedFormat, setSelectedFormat] = useState(TournamentFormat.LIGA);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -84,11 +87,14 @@ export function TournamentFormPage() {
                     error: { title: 'No se pudo guardar el torneo' },
                   });
                 } else {
-                  await sileo.promise(createTournament({ name: trimmedName }), {
-                    loading: { title: 'Creando torneo...' },
-                    success: { title: 'Torneo creado' },
-                    error: { title: 'No se pudo guardar el torneo' },
-                  });
+                  await sileo.promise(
+                    createTournament({ name: trimmedName, type: selectedType, format: selectedFormat }),
+                    {
+                      loading: { title: 'Creando torneo...' },
+                      success: { title: 'Torneo creado' },
+                      error: { title: 'No se pudo guardar el torneo' },
+                    },
+                  );
                 }
                 navigate('/tournaments', { replace: true });
               } finally {
@@ -116,6 +122,62 @@ export function TournamentFormPage() {
               />
               <p id="tournament-name-help">Así lo van a encontrar todos los jugadores.</p>
             </div>
+
+            {!isEdit ? (
+              <div className={styles.creationChoices}>
+                <fieldset className={styles.choiceGroup}>
+                  <legend>Tipo de torneo</legend>
+                  <p>Elegí si compiten jugadores sueltos o equipos con nombre.</p>
+                  <div className={styles.optionGrid}>
+                    <button
+                      aria-pressed={selectedType === TournamentType.USER}
+                      className={styles.optionButton}
+                      onClick={() => setSelectedType(TournamentType.USER)}
+                      type="button"
+                    >
+                      <strong>Jugadores</strong>
+                      <span>El formato clásico: armás partidos y rankings por jugador.</span>
+                    </button>
+                    <button
+                      aria-pressed={selectedType === TournamentType.TEAMS}
+                      className={styles.optionButton}
+                      onClick={() => setSelectedType(TournamentType.TEAMS)}
+                      type="button"
+                    >
+                      <strong>Equipos</strong>
+                      <span>Creá equipos por nombre ahora; los planteles se cargan después.</span>
+                    </button>
+                  </div>
+                </fieldset>
+
+                {selectedType === TournamentType.TEAMS ? (
+                  <fieldset className={styles.choiceGroup}>
+                    <legend>Formato</legend>
+                    <p>Definí cómo se va a jugar este torneo de equipos.</p>
+                    <div className={styles.optionGrid}>
+                      <button
+                        aria-pressed={selectedFormat === TournamentFormat.LIGA}
+                        className={styles.optionButton}
+                        onClick={() => setSelectedFormat(TournamentFormat.LIGA)}
+                        type="button"
+                      >
+                        <strong>Liga</strong>
+                        <span>Todos suman puntos en una tabla general.</span>
+                      </button>
+                      <button
+                        aria-pressed={selectedFormat === TournamentFormat.COPA}
+                        className={styles.optionButton}
+                        onClick={() => setSelectedFormat(TournamentFormat.COPA)}
+                        type="button"
+                      >
+                        <strong>Copa</strong>
+                        <span>Ideal para fases o cruces de eliminación.</span>
+                      </button>
+                    </div>
+                  </fieldset>
+                ) : null}
+              </div>
+            ) : null}
 
             <div className={styles.preview}>
               <div className={styles.previewTopline}>

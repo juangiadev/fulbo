@@ -2,6 +2,7 @@ import type {
   MatchContract,
   PlayerContract,
   TeamContract,
+  TournamentTeamContract,
 } from "@shared/contracts";
 import {
   ArrowLeft,
@@ -17,11 +18,16 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { sileo } from "sileo";
+import { TournamentType } from "@shared/enums";
 import {
   MatchPlayersTableBuilder,
   type MatchPlayersTableBuilderRef,
   type MatchPlayersTableTemplateConfig,
 } from "../../components/MatchPlayersTableBuilder";
+import {
+  TeamMatchResultEditor,
+  type TeamMatchResultEditorRef,
+} from "../../components/TeamMatchResultEditor";
 import { DateTimePicker } from "../../components/DateTimePicker";
 import { apiClient } from "../../api/client";
 import { useTournamentPermissions } from "../../hooks/useTournamentPermissions";
@@ -88,6 +94,9 @@ export function TournamentMatchFormPage() {
   const [matchday, setMatchday] = useState("");
   const [stage, setStage] = useState("");
   const [players, setPlayers] = useState<PlayerContract[]>([]);
+  const [tournamentTeams, setTournamentTeams] = useState<
+    TournamentTeamContract[]
+  >([]);
   const [lastMatchTemplate, setLastMatchTemplate] =
     useState<MatchCreationTemplate | null>(null);
   const [appliedTemplateConfig, setAppliedTemplateConfig] =
@@ -95,6 +104,7 @@ export function TournamentMatchFormPage() {
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const tableRef = useRef<MatchPlayersTableBuilderRef | null>(null);
+  const teamResultRef = useRef<TeamMatchResultEditorRef | null>(null);
 
   useEffect(() => {
     void loadTournaments();
@@ -167,6 +177,25 @@ export function TournamentMatchFormPage() {
   );
 
   const permissions = useTournamentPermissions(tournamentId);
+  const isTeamTournament = tournament?.type === TournamentType.TEAMS;
+
+  useEffect(() => {
+    if (!tournamentId || !isTeamTournament) {
+      setTournamentTeams([]);
+      return;
+    }
+
+    let isActive = true;
+    void apiClient.getTournamentTeams(tournamentId).then((nextTeams) => {
+      if (isActive) {
+        setTournamentTeams(nextTeams);
+      }
+    });
+
+    return () => {
+      isActive = false;
+    };
+  }, [isTeamTournament, tournamentId]);
 
   const hasAppliedTemplate = Boolean(appliedTemplateConfig);
 
@@ -398,19 +427,33 @@ export function TournamentMatchFormPage() {
             </span>
             <div>
               <p className={styles.sectionNumber}>03 · Equipos</p>
-              <h2 id="lineup-title">Jugadores y goles</h2>
-              <p>Armá los equipos, elegí sus colores y prepará la formación.</p>
+              <h2 id="lineup-title">
+                {isTeamTournament ? "Equipos y resultado" : "Jugadores y goles"}
+              </h2>
+              <p>
+                {isTeamTournament
+                  ? "Elegí los equipos registrados y cargá el resultado total."
+                  : "Armá los equipos, elegí sus colores y prepará la formación."}
+              </p>
             </div>
           </div>
 
-          <MatchPlayersTableBuilder
-            canEdit={permissions.canCreateMatches}
-            players={players}
-            ref={tableRef}
-            showSaveButton={false}
-            templateConfig={appliedTemplateConfig}
-            variant="panel"
-          />
+          {isTeamTournament ? (
+            <TeamMatchResultEditor
+              canEdit={permissions.canCreateMatches}
+              ref={teamResultRef}
+              tournamentTeams={tournamentTeams}
+            />
+          ) : (
+            <MatchPlayersTableBuilder
+              canEdit={permissions.canCreateMatches}
+              players={players}
+              ref={tableRef}
+              showSaveButton={false}
+              templateConfig={appliedTemplateConfig}
+              variant="panel"
+            />
+          )}
         </section>
 
         <footer className={styles.actionBar}>
@@ -428,7 +471,11 @@ export function TournamentMatchFormPage() {
             <button
               aria-busy={isSubmitting}
               className={styles.createButton}
-              disabled={isSubmitting || !permissions.canCreateMatches}
+              disabled={
+                isSubmitting ||
+                !permissions.canCreateMatches ||
+                (isTeamTournament && tournamentTeams.length < 2)
+              }
               onClick={async () => {
                 if (!permissions.canCreateMatches) {
                   sileo.warning({
@@ -457,6 +504,10 @@ export function TournamentMatchFormPage() {
                   }
                 }
 
+                if (isTeamTournament && !teamResultRef.current?.validateResult()) {
+                  return;
+                }
+
                 const payload = {
                   ...(matchday.trim() ? { matchday: Number(matchday) } : {}),
                   placeName: placeName.trim(),
@@ -473,9 +524,15 @@ export function TournamentMatchFormPage() {
                         tournamentId,
                         payload,
                       );
-                      await tableRef.current?.saveLineupForMatch(
-                        createdMatch.id,
-                      );
+                      if (isTeamTournament) {
+                        await teamResultRef.current?.saveResultForMatch(
+                          createdMatch.id,
+                        );
+                      } else {
+                        await tableRef.current?.saveLineupForMatch(
+                          createdMatch.id,
+                        );
+                      }
                     })(),
                     {
                       loading: { title: "Guardando partido..." },

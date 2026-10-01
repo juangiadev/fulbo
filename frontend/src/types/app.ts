@@ -1,12 +1,13 @@
-import type { TournamentContract } from '@shared/contracts';
+import type {
+  CreateTournamentInput as SharedCreateTournamentInput,
+  TournamentContract,
+} from '@shared/contracts';
 
 export interface AppData {
   tournaments: TournamentContract[];
 }
 
-export interface CreateTournamentInput {
-  name: string;
-}
+export type CreateTournamentInput = SharedCreateTournamentInput;
 
 export interface UpdateTournamentInput {
   name?: string;
