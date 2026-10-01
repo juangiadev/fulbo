@@ -6,9 +6,14 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { TournamentVisibility } from '../../../../shared/src/enums';
+import {
+  TournamentFormat,
+  TournamentType,
+  TournamentVisibility,
+} from '../../../../shared/src/enums';
 import { Match } from './match.entity';
 import { Player } from './player.entity';
+import { TournamentTeam } from './tournament-team.entity';
 
 @Entity({ name: 'tournaments' })
 export class Tournament {
@@ -24,6 +29,20 @@ export class Tournament {
     default: TournamentVisibility.PRIVATE,
   })
   visibility: TournamentVisibility;
+
+  @Column({
+    type: 'enum',
+    enum: TournamentType,
+    default: TournamentType.USER,
+  })
+  type: TournamentType;
+
+  @Column({
+    type: 'enum',
+    enum: TournamentFormat,
+    default: TournamentFormat.LIGA,
+  })
+  format: TournamentFormat;
 
   @Column({ type: 'varchar', nullable: true })
   imageUrl: string | null;
@@ -48,4 +67,7 @@ export class Tournament {
 
   @OneToMany(() => Match, (match) => match.tournament)
   matches: Match[];
+
+  @OneToMany(() => TournamentTeam, (team) => team.tournament)
+  tournamentTeams: TournamentTeam[];
 }

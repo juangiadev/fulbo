@@ -4,8 +4,13 @@ import {
   IsString,
   IsUrl,
   MaxLength,
+  ValidateIf,
 } from 'class-validator';
-import { TournamentVisibility } from '../../../../shared/src/enums';
+import {
+  TournamentFormat,
+  TournamentType,
+  TournamentVisibility,
+} from '../../../../shared/src/enums';
 
 export class CreateTournamentDto {
   @IsString()
@@ -27,4 +32,17 @@ export class CreateTournamentDto {
   @IsOptional()
   @IsUrl()
   scorerBannerImageUrl?: string;
+
+  @IsOptional()
+  @IsEnum(TournamentType)
+  type?: TournamentType;
+
+  @ValidateIf(
+    (dto: CreateTournamentDto) =>
+      dto.type === TournamentType.TEAMS || dto.format !== undefined,
+  )
+  @IsEnum(TournamentFormat, {
+    message: 'format must be one of the following values: LIGA, COPA',
+  })
+  format?: TournamentFormat;
 }

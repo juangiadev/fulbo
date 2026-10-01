@@ -5,6 +5,7 @@ import { DEFAULT_PLAYER_ABILITY, Player } from './player.entity';
 import { Team } from './team.entity';
 import { TournamentInvite } from './tournament-invite.entity';
 import { TournamentJoinRequest } from './tournament-join-request.entity';
+import { TournamentTeam } from './tournament-team.entity';
 import { Tournament } from './tournament.entity';
 import { User } from './user.entity';
 
@@ -18,6 +19,7 @@ export const databaseEntities = [
   PlayerTeam,
   TournamentInvite,
   TournamentJoinRequest,
+  TournamentTeam,
 ];
 
 export {
@@ -30,5 +32,6 @@ export {
   Tournament,
   TournamentInvite,
   TournamentJoinRequest,
+  TournamentTeam,
   User,
 };

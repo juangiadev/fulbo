@@ -3,6 +3,8 @@ import {
   MatchStatus,
   PlayerRole,
   TeamResult,
+  TournamentFormat,
+  TournamentType,
   TournamentVisibility,
 } from './enums';
 
@@ -61,6 +63,8 @@ export interface TournamentContract {
   id: string;
   name: string;
   visibility: TournamentVisibility;
+  type: TournamentType;
+  format: TournamentFormat;
   imageUrl: string | null;
   leaderBannerImageUrl?: string | null;
   scorerBannerImageUrl?: string | null;
@@ -68,6 +72,12 @@ export interface TournamentContract {
   membershipStatus?: 'MEMBER' | 'PENDING';
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreateTournamentInput {
+  name: string;
+  type?: TournamentType;
+  format?: TournamentFormat;
 }
 
 export interface ImportTournamentPlayersRequest {
@@ -83,10 +93,14 @@ export interface ImportTournamentPlayersResult {
 
 export interface StandingRowContract {
   playerId: string;
+  tournamentTeamId?: string;
   displayName: string;
+  imageUrl?: string | null;
   mvp: number;
   points: number;
   goals: number;
+  goalsFor?: number;
+  goalsAgainst?: number;
   win: number;
   draw: number;
   loose: number;
@@ -121,6 +135,15 @@ export interface CreateMatchPayload {
   placeName: string;
   placeUrl?: string;
   kickoffAt: string;
+  stage: string;
+}
+
+export interface CreateMatchdayFixturePayload {
+  matchday: number;
+  firstKickoffAt: string;
+  intervalMinutes: number;
+  placeName: string;
+  placeUrl?: string;
   stage: string;
 }
 
@@ -161,11 +184,32 @@ export interface MatchPlayersRecentFormContract {
   byPlayerId: Record<string, PlayerRecentMatchResultContract[]>;
 }
 
+export interface TournamentTeamContract {
+  id: string;
+  tournamentId: string;
+  name: string;
+  imageUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTournamentTeamInput {
+  name: string;
+  imageUrl?: string | null;
+}
+
+export interface UpdateTournamentTeamInput {
+  name?: string;
+  imageUrl?: string | null;
+}
+
 export interface TeamContract {
   id: string;
   matchId: string;
+  tournamentTeamId: string | null;
   name: string;
   imageUrl: string | null;
+  goals: number | null;
   result: TeamResult;
   color: string | null;
   playerTeams?: PlayerTeamContract[];

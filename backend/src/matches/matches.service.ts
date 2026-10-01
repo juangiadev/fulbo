@@ -6,7 +6,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
-import { MatchStatus, TeamResult } from '../../../shared/src/enums';
+import {
+  MatchStatus,
+  TeamResult,
+  TournamentFormat,
+  TournamentType,
+} from '../../../shared/src/enums';
 import type {
   MatchMvpVotingContract,
   MatchPlayersRecentFormContract,
@@ -22,9 +27,12 @@ import {
   Player,
   PlayerTeam,
   Team,
+  Tournament,
+  TournamentTeam,
 } from '../database/entities';
 import { TournamentsService } from '../tournaments/tournaments.service';
 import { CreateMatchDto } from './dto/create-match.dto';
+import { CreateMatchdayFixtureDto } from './dto/create-matchday-fixture.dto';
 import { UpsertMatchLineupDto } from './dto/upsert-match-lineup.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
 import { VoteMatchMvpDto } from './dto/vote-match-mvp.dto';
@@ -70,6 +78,138 @@ export class MatchesService {
       tournamentId,
     });
     return this.matchesRepository.save(match);
+  }
+
+  async generateMatchdayFixture(
+    tournamentId: string,
+    auth0Id: string,
+    dto: CreateMatchdayFixtureDto,
+  ): Promise<Match[]> {
+    const actor = await this.tournamentsService.findActorForTournament(
+      tournamentId,
+      auth0Id,
+    );
+    assertTournamentEditor(actor);
+
+    const tournament = await this.matchesRepository.manager
+      .getRepository(Tournament)
+      .findOne({ where: { id: tournamentId } });
+    if (!tournament) {
+      throw new NotFoundException('Tournament not found');
+    }
+    if (
+      tournament.type !== TournamentType.TEAMS ||
+      tournament.format !== TournamentFormat.LIGA
+    ) {
+      throw new BadRequestException(
+        'Matchday fixture generation is only available for team league tournaments',
+      );
+    }
+
+    const firstKickoffAt = new Date(dto.firstKickoffAt);
+    if (Number.isNaN(firstKickoffAt.getTime())) {
+      throw new BadRequestException('First kickoff must be a valid date');
+    }
+
+    const existingMatch = await this.matchesRepository.findOne({
+      where: { tournamentId, matchday: dto.matchday },
+    });
+    if (existingMatch) {
+      throw new BadRequestException('Matchday already has matches');
+    }
+
+    const tournamentTeams = await this.matchesRepository.manager
+      .getRepository(TournamentTeam)
+      .find({
+        where: { tournamentId },
+        order: { createdAt: 'ASC', name: 'ASC' },
+      });
+    if (tournamentTeams.length < 2) {
+      throw new BadRequestException(
+        'At least two tournament teams are required',
+      );
+    }
+
+    const pairings = this.getRoundRobinPairings(tournamentTeams, dto.matchday);
+
+    return this.matchesRepository.manager.transaction(async (manager) => {
+      const matchesRepo = manager.getRepository(Match);
+      const teamsRepo = manager.getRepository(Team);
+      const createdMatches: Match[] = [];
+
+      for (const [index, [homeTeam, awayTeam]] of pairings.entries()) {
+        const match = await matchesRepo.save(
+          matchesRepo.create({
+            tournamentId,
+            matchday: dto.matchday,
+            placeName: dto.placeName,
+            placeUrl: dto.placeUrl ?? null,
+            kickoffAt: new Date(
+              firstKickoffAt.getTime() + dto.intervalMinutes * 60_000 * index,
+            ),
+            stage: dto.stage,
+            status: MatchStatus.PENDING,
+          }),
+        );
+
+        match.teams = await teamsRepo.save([
+          teamsRepo.create({
+            matchId: match.id,
+            tournamentTeamId: homeTeam.id,
+            name: homeTeam.name,
+            imageUrl: homeTeam.imageUrl,
+            goals: 0,
+            result: TeamResult.PENDING,
+          }),
+          teamsRepo.create({
+            matchId: match.id,
+            tournamentTeamId: awayTeam.id,
+            name: awayTeam.name,
+            imageUrl: awayTeam.imageUrl,
+            goals: 0,
+            result: TeamResult.PENDING,
+          }),
+        ]);
+
+        createdMatches.push(match);
+      }
+
+      return createdMatches;
+    });
+  }
+
+  private getRoundRobinPairings(
+    tournamentTeams: TournamentTeam[],
+    matchday: number,
+  ): Array<[TournamentTeam, TournamentTeam]> {
+    const bye = null;
+    const rotation: Array<TournamentTeam | null> =
+      tournamentTeams.length % 2 === 0
+        ? [...tournamentTeams]
+        : [...tournamentTeams, bye];
+    const totalRounds = rotation.length - 1;
+    const roundIndex = (matchday - 1) % totalRounds;
+
+    for (let round = 0; round < roundIndex; round += 1) {
+      const fixed = rotation[0];
+      const rotated = [
+        fixed,
+        rotation[rotation.length - 1],
+        ...rotation.slice(1, rotation.length - 1),
+      ];
+      rotation.splice(0, rotation.length, ...rotated);
+    }
+
+    const pairings: Array<[TournamentTeam, TournamentTeam]> = [];
+    for (let index = 0; index < rotation.length / 2; index += 1) {
+      const homeTeam = rotation[index];
+      const awayTeam = rotation[rotation.length - 1 - index];
+      if (homeTeam && awayTeam) {
+        pairings.push([homeTeam, awayTeam]);
+      }
+    }
+
+    return pairings;
   }
 
   async update(
@@ -120,6 +260,7 @@ export class MatchesService {
   ): Promise<{ success: true }> {
     const match = await this.matchesRepository.findOne({
       where: { id: matchId },
+      relations: { tournament: true },
     });
     if (!match) {
       throw new NotFoundException('Match not found');
@@ -130,6 +271,10 @@ export class MatchesService {
       auth0Id,
     );
     assertTournamentEditor(actor);
+
+    if (match.tournament.type === TournamentType.TEAMS) {
+      return this.upsertTeamTournamentLineup(match, dto);
+    }
 
     const allPlayerIds = [
       ...dto.teamA.map((entry) => entry.playerId),
@@ -292,6 +437,137 @@ export class MatchesService {
         syncTeam(teamA, dto.teamA),
         syncTeam(teamB, dto.teamB),
       ]);
+    });
+
+    return { success: true };
+  }
+
+  private async upsertTeamTournamentLineup(
+    match: Match,
+    dto: UpsertMatchLineupDto,
+  ): Promise<{ success: true }> {
+    const teamATournamentTeamId = dto.teamATournamentTeamId;
+    const teamBTournamentTeamId = dto.teamBTournamentTeamId;
+    const teamAGoalsInput = dto.teamAGoals;
+    const teamBGoalsInput = dto.teamBGoals;
+
+    if (!teamATournamentTeamId || !teamBTournamentTeamId) {
+      throw new BadRequestException('Both tournament teams are required');
+    }
+
+    if (teamATournamentTeamId === teamBTournamentTeamId) {
+      throw new BadRequestException('Tournament teams must be different');
+    }
+
+    if (
+      typeof teamAGoalsInput !== 'number' ||
+      typeof teamBGoalsInput !== 'number' ||
+      !Number.isInteger(teamAGoalsInput) ||
+      !Number.isInteger(teamBGoalsInput) ||
+      teamAGoalsInput < 0 ||
+      teamBGoalsInput < 0
+    ) {
+      throw new BadRequestException('Team goals must be non-negative integers');
+    }
+
+    const teamAGoals = teamAGoalsInput;
+    const teamBGoals = teamBGoalsInput;
+
+    const tournamentTeams = await this.matchesRepository.manager
+      .getRepository(TournamentTeam)
+      .find({
+        where: [{ id: teamATournamentTeamId }, { id: teamBTournamentTeamId }],
+      });
+
+    const teamA = tournamentTeams.find(
+      (team) => team.id === teamATournamentTeamId,
+    );
+    const teamB = tournamentTeams.find(
+      (team) => team.id === teamBTournamentTeamId,
+    );
+
+    if (!teamA || !teamB) {
+      throw new BadRequestException('Some tournament teams do not exist');
+    }
+
+    if (
+      teamA.tournamentId !== match.tournamentId ||
+      teamB.tournamentId !== match.tournamentId
+    ) {
+      throw new BadRequestException(
+        'Tournament teams must belong to the same tournament as the match',
+      );
+    }
+
+    let teamAResult = TeamResult.DRAW;
+    let teamBResult = TeamResult.DRAW;
+    if (teamAGoals > teamBGoals) {
+      teamAResult = TeamResult.WINNER;
+      teamBResult = TeamResult.LOSER;
+    } else if (teamBGoals > teamAGoals) {
+      teamAResult = TeamResult.LOSER;
+      teamBResult = TeamResult.WINNER;
+    }
+
+    await this.matchesRepository.manager.transaction(async (manager) => {
+      const teamsRepo = manager.getRepository(Team);
+      const playerTeamsRepo = manager.getRepository(PlayerTeam);
+      const existingTeams = await teamsRepo.find({
+        where: { matchId: match.id },
+        order: { createdAt: 'ASC' },
+      });
+
+      const matchTeamA =
+        existingTeams.find(
+          (existingTeam) => existingTeam.tournamentTeamId === teamA.id,
+        ) ??
+        existingTeams[0] ??
+        teamsRepo.create({
+          matchId: match.id,
+          result: TeamResult.PENDING,
+        });
+      const matchTeamB =
+        existingTeams.find(
+          (existingTeam) => existingTeam.tournamentTeamId === teamB.id,
+        ) ??
+        existingTeams.find(
+          (existingTeam) => existingTeam.id !== matchTeamA.id,
+        ) ??
+        teamsRepo.create({
+          matchId: match.id,
+          result: TeamResult.PENDING,
+        });
+
+      matchTeamA.tournamentTeamId = teamA.id;
+      matchTeamA.name = teamA.name;
+      matchTeamA.imageUrl = teamA.imageUrl;
+      matchTeamA.goals = teamAGoals;
+      matchTeamA.result = teamAResult;
+      matchTeamA.color = matchTeamA.color ?? null;
+
+      matchTeamB.tournamentTeamId = teamB.id;
+      matchTeamB.name = teamB.name;
+      matchTeamB.imageUrl = teamB.imageUrl;
+      matchTeamB.goals = teamBGoals;
+      matchTeamB.result = teamBResult;
+      matchTeamB.color = matchTeamB.color ?? null;
+
+      const savedTeams = await teamsRepo.save([matchTeamA, matchTeamB]);
+      const savedTeamIds = savedTeams.map((team) => team.id);
+
+      await playerTeamsRepo
+        .createQueryBuilder()
+        .delete()
+        .from(PlayerTeam)
+        .where('"teamId" IN (:...teamIds)', { teamIds: savedTeamIds })
+        .execute();
+
+      const staleTeams = existingTeams.filter(
+        (team) => !savedTeamIds.includes(team.id),
+      );
+      if (staleTeams.length > 0) {
+        await teamsRepo.delete(staleTeams.map((team) => team.id));
+      }
     });
 
     return { success: true };

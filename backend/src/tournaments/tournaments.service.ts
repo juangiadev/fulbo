@@ -15,6 +15,8 @@ import {
   MatchStatus,
   PlayerRole,
   TeamResult,
+  TournamentFormat,
+  TournamentType,
 } from '../../../shared/src/enums';
 import { Repository } from 'typeorm';
 import {
@@ -22,9 +24,11 @@ import {
   Match,
   Player,
   PlayerTeam,
+  Team,
   Tournament,
   TournamentInvite,
   TournamentJoinRequest,
+  TournamentTeam,
   User,
 } from '../database/entities';
 import { JoinRequestStatus } from '../database/entities/tournament-join-request.entity';
@@ -459,6 +463,14 @@ export class TournamentsService {
   async getSummary(tournamentId: string, auth0Id: string) {
     await this.findActorForTournament(tournamentId, auth0Id);
 
+    const tournament = await this.getTournamentOrThrow(tournamentId);
+    if (
+      tournament.type === TournamentType.TEAMS &&
+      tournament.format === TournamentFormat.LIGA
+    ) {
+      return this.getTeamLigaSummary(tournamentId);
+    }
+
     const players = await this.playersRepository.find({
       where: { tournamentId },
     });
@@ -680,6 +692,166 @@ export class TournamentsService {
       leaderPlayerId: leader?.playerId ?? null,
       topScorerPlayerId: topScorer?.playerId ?? null,
     };
+  }
+
+  private async getTeamLigaSummary(tournamentId: string) {
+    const tournamentTeams = await this.matchesRepository.manager
+      .getRepository(TournamentTeam)
+      .find({ where: { tournamentId }, order: { createdAt: 'ASC' } });
+
+    const statsByTeamId = new Map(
+      tournamentTeams.map((team) => [
+        team.id,
+        {
+          playerId: team.id,
+          tournamentTeamId: team.id,
+          displayName: team.name,
+          imageUrl: team.imageUrl,
+          mvp: 0,
+          points: 0,
+          goals: 0,
+          goalsFor: 0,
+          goalsAgainst: 0,
+          win: 0,
+          draw: 0,
+          loose: 0,
+          matchesPlayed: 0,
+          recentForm: [] as Array<{
+            matchId: string;
+            matchday: number;
+            kickoffAt: string;
+            result: TeamResult;
+          }>,
+        },
+      ]),
+    );
+
+    const finishedMatches = await this.matchesRepository.find({
+      where: { tournamentId, status: MatchStatus.FINISHED },
+      relations: { teams: true },
+      order: { kickoffAt: 'DESC', createdAt: 'DESC' },
+    });
+
+    finishedMatches.forEach((match) => {
+      const matchTeams = match.teams
+        .filter((team): team is Team & { tournamentTeamId: string } =>
+          Boolean(team.tournamentTeamId),
+        )
+        .slice(0, 2);
+
+      if (matchTeams.length < 2) {
+        return;
+      }
+
+      const [teamA, teamB] = matchTeams;
+      const teamAStats = statsByTeamId.get(teamA.tournamentTeamId);
+      const teamBStats = statsByTeamId.get(teamB.tournamentTeamId);
+      if (!teamAStats || !teamBStats) {
+        return;
+      }
+
+      const teamAGoals = teamA.goals ?? 0;
+      const teamBGoals = teamB.goals ?? 0;
+      const teamAResult = this.resolveTeamResult(teamAGoals, teamBGoals);
+      const teamBResult = this.resolveTeamResult(teamBGoals, teamAGoals);
+
+      this.applyTeamLigaMatchStats(
+        teamAStats,
+        match,
+        teamAGoals,
+        teamBGoals,
+        teamAResult,
+      );
+      this.applyTeamLigaMatchStats(
+        teamBStats,
+        match,
+        teamBGoals,
+        teamAGoals,
+        teamBResult,
+      );
+    });
+
+    const standings = Array.from(statsByTeamId.values())
+      .sort((a, b) => {
+        if (b.points !== a.points) {
+          return b.points - a.points;
+        }
+        if (b.goalsFor !== a.goalsFor) {
+          return b.goalsFor - a.goalsFor;
+        }
+        if (b.goalsAgainst !== a.goalsAgainst) {
+          return a.goalsAgainst - b.goalsAgainst;
+        }
+        return a.displayName.localeCompare(b.displayName);
+      })
+      .map((row, index) => ({ ...row, position: index + 1 }));
+
+    return {
+      tournamentId,
+      standings,
+      leaderPlayerId: null,
+      topScorerPlayerId: null,
+    };
+  }
+
+  private applyTeamLigaMatchStats(
+    stats: {
+      points: number;
+      goals: number;
+      goalsFor: number;
+      goalsAgainst: number;
+      win: number;
+      draw: number;
+      loose: number;
+      matchesPlayed: number;
+      recentForm: Array<{
+        matchId: string;
+        matchday: number;
+        kickoffAt: string;
+        result: TeamResult;
+      }>;
+    },
+    match: Match,
+    goalsFor: number,
+    goalsAgainst: number,
+    result: TeamResult,
+  ): void {
+    stats.matchesPlayed += 1;
+    stats.goals += goalsFor;
+    stats.goalsFor += goalsFor;
+    stats.goalsAgainst += goalsAgainst;
+
+    if (result === TeamResult.WINNER) {
+      stats.points += 3;
+      stats.win += 1;
+    } else if (result === TeamResult.DRAW) {
+      stats.points += 1;
+      stats.draw += 1;
+    } else if (result === TeamResult.LOSER) {
+      stats.loose += 1;
+    }
+
+    if (stats.recentForm.length < 5) {
+      stats.recentForm.push({
+        matchId: match.id,
+        matchday: match.matchday,
+        kickoffAt: match.kickoffAt.toISOString(),
+        result,
+      });
+    }
+  }
+
+  private resolveTeamResult(
+    goalsFor: number,
+    goalsAgainst: number,
+  ): TeamResult {
+    if (goalsFor > goalsAgainst) {
+      return TeamResult.WINNER;
+    }
+    if (goalsFor < goalsAgainst) {
+      return TeamResult.LOSER;
+    }
+    return TeamResult.DRAW;
   }
 
   private async getUserFromAuth0(auth0Id: string): Promise<User> {

@@ -4,6 +4,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
   Matches,
   Min,
@@ -41,15 +42,33 @@ export class UpsertMatchLineupDto {
   @Matches(/^#[0-9a-fA-F]{6}$/)
   teamBColor?: string;
 
-  @IsArray()
-  @ArrayUnique((entry: LineupEntryDto) => entry.playerId)
-  @ValidateNested({ each: true })
-  @Type(() => LineupEntryDto)
-  teamA: LineupEntryDto[];
+  @IsOptional()
+  @IsUUID()
+  teamATournamentTeamId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  teamBTournamentTeamId?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  teamAGoals?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  teamBGoals?: number;
 
   @IsArray()
   @ArrayUnique((entry: LineupEntryDto) => entry.playerId)
   @ValidateNested({ each: true })
   @Type(() => LineupEntryDto)
-  teamB: LineupEntryDto[];
+  teamA: LineupEntryDto[] = [];
+
+  @IsArray()
+  @ArrayUnique((entry: LineupEntryDto) => entry.playerId)
+  @ValidateNested({ each: true })
+  @Type(() => LineupEntryDto)
+  teamB: LineupEntryDto[] = [];
 }

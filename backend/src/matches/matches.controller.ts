@@ -12,6 +12,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthUser } from '../auth/auth.types';
 import { CreateMatchDto } from './dto/create-match.dto';
+import { CreateMatchdayFixtureDto } from './dto/create-matchday-fixture.dto';
 import { UpsertMatchLineupDto } from './dto/upsert-match-lineup.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
 import { VoteMatchMvpDto } from './dto/vote-match-mvp.dto';
@@ -34,6 +35,19 @@ export class MatchesController {
     @Body() dto: CreateMatchDto,
   ) {
     return this.matchesService.create(tournamentId, user.sub, dto);
+  }
+
+  @Post('tournaments/:tournamentId/matches/generate-matchday')
+  generateMatchdayFixture(
+    @Param('tournamentId') tournamentId: string,
+    @CurrentUser() user: AuthUser,
+    @Body() dto: CreateMatchdayFixtureDto,
+  ) {
+    return this.matchesService.generateMatchdayFixture(
+      tournamentId,
+      user.sub,
+      dto,
+    );
   }
 
   @Patch('matches/:matchId')

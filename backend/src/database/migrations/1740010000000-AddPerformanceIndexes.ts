@@ -23,9 +23,7 @@ export class AddPerformanceIndexes1740010000000 implements MigrationInterface {
     await queryRunner.query(
       'DROP INDEX IF EXISTS "idx_matches_tournamentId_kickoffAt"',
     );
-    await queryRunner.query(
-      'DROP INDEX IF EXISTS "idx_player_teams_teamId"',
-    );
+    await queryRunner.query('DROP INDEX IF EXISTS "idx_player_teams_teamId"');
     await queryRunner.query('DROP INDEX IF EXISTS "idx_teams_matchId"');
   }
 }

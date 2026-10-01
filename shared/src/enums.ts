@@ -14,6 +14,16 @@ export enum TournamentVisibility {
   PRIVATE = 'PRIVATE',
 }
 
+export enum TournamentType {
+  USER = 'USER',
+  TEAMS = 'TEAMS',
+}
+
+export enum TournamentFormat {
+  LIGA = 'LIGA',
+  COPA = 'COPA',
+}
+
 export enum TeamResult {
   WINNER = 'WINNER',
   LOSER = 'LOSER',

@@ -1,11 +1,23 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
-import { DisplayPreference, PlayerRole } from '../../../shared/src/enums';
+import { validate } from 'class-validator';
+import {
+  DisplayPreference,
+  PlayerRole,
+  MatchStatus,
+  TeamResult,
+  TournamentFormat,
+  TournamentType,
+} from '../../../shared/src/enums';
 import {
   DEFAULT_PLAYER_ABILITY,
+  Match,
   Player,
+  Team,
   Tournament,
+  TournamentTeam,
   User,
 } from '../database/entities';
+import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { TournamentsService } from './tournaments.service';
 
 type TransactionManager = {
@@ -22,6 +34,7 @@ type MockRepository = {
   find: jest.Mock;
   findOne: jest.Mock;
   manager: {
+    getRepository: jest.Mock;
     transaction: jest.MockedFunction<
       (callback: TransactionCallback) => Promise<unknown>
     >;
@@ -36,6 +49,7 @@ const createRepositoryMock = (): MockRepository => ({
   find: jest.fn(),
   findOne: jest.fn(),
   manager: {
+    getRepository: jest.fn(),
     transaction: jest.fn(),
   },
   save: jest.fn((value: unknown) => Promise.resolve(value)),
@@ -94,34 +108,103 @@ describe('TournamentsService', () => {
     );
   });
 
-  it('creates the tournament owner with the default ability', async () => {
-    const user = {
-      id: 'user-1',
-      auth0Id: 'auth0|owner',
-      name: 'Owner',
-      nickname: null,
-      imageUrl: null,
-      favoriteTeamSlug: null,
-      displayPreference: DisplayPreference.IMAGE,
-    } as User;
-    const tournament = { id: 'tournament-1', name: 'League' } as Tournament;
+  describe('create tournament domain fields', () => {
+    const createOwner = (): User =>
+      ({
+        id: 'user-1',
+        auth0Id: 'auth0|owner',
+        name: 'Owner',
+        nickname: null,
+        imageUrl: null,
+        favoriteTeamSlug: null,
+        displayPreference: DisplayPreference.IMAGE,
+      }) as User;
 
-    usersRepository.findOne.mockResolvedValue(user);
-    tournamentsRepository.save.mockResolvedValue(tournament);
-    playersRepository.save.mockImplementation((player) =>
-      Promise.resolve(player),
-    );
+    it('keeps omitted type and format default-safe for current user tournaments', async () => {
+      const user = createOwner();
+      const tournament = { id: 'tournament-1', name: 'League' } as Tournament;
 
-    await service.create('auth0|owner', { name: 'League' });
+      usersRepository.findOne.mockResolvedValue(user);
+      tournamentsRepository.save.mockResolvedValue(tournament);
+      playersRepository.save.mockImplementation((player) =>
+        Promise.resolve(player),
+      );
 
-    expect(playersRepository.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        userId: user.id,
-        tournamentId: tournament.id,
-        role: PlayerRole.OWNER,
-        ability: DEFAULT_PLAYER_ABILITY,
-      }),
-    );
+      await service.create('auth0|owner', { name: 'League' });
+
+      expect(tournamentsRepository.create).toHaveBeenCalledWith({
+        name: 'League',
+      });
+      expect(playersRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: user.id,
+          tournamentId: tournament.id,
+          role: PlayerRole.OWNER,
+          ability: DEFAULT_PLAYER_ABILITY,
+        }),
+      );
+    });
+
+    it('passes explicit team type and format through to persistence', async () => {
+      const user = createOwner();
+      const tournament = {
+        id: 'tournament-1',
+        name: 'Cup',
+        type: TournamentType.TEAMS,
+        format: TournamentFormat.COPA,
+      } as Tournament;
+
+      usersRepository.findOne.mockResolvedValue(user);
+      tournamentsRepository.save.mockResolvedValue(tournament);
+      playersRepository.save.mockImplementation((player) =>
+        Promise.resolve(player),
+      );
+
+      await service.create('auth0|owner', {
+        name: 'Cup',
+        type: TournamentType.TEAMS,
+        format: TournamentFormat.COPA,
+      });
+
+      expect(tournamentsRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Cup',
+          type: TournamentType.TEAMS,
+          format: TournamentFormat.COPA,
+        }),
+      );
+    });
+
+    it('accepts user tournaments without a team format', async () => {
+      const dto = new CreateTournamentDto();
+      dto.name = 'League';
+      dto.type = TournamentType.USER;
+
+      await expect(validate(dto)).resolves.toHaveLength(0);
+    });
+
+    it('requires team tournaments to declare a valid format', async () => {
+      const missingFormatDto = new CreateTournamentDto();
+      missingFormatDto.name = 'Cup';
+      missingFormatDto.type = TournamentType.TEAMS;
+
+      await expect(validate(missingFormatDto)).resolves.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ property: 'format' }),
+        ]),
+      );
+
+      const invalidFormatDto = new CreateTournamentDto();
+      invalidFormatDto.name = 'Cup';
+      invalidFormatDto.type = TournamentType.TEAMS;
+      invalidFormatDto.format = 'GROUPS' as TournamentFormat;
+
+      await expect(validate(invalidFormatDto)).resolves.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ property: 'format' }),
+        ]),
+      );
+    });
   });
 
   it('rejects imports from the same tournament', async () => {
@@ -275,6 +358,91 @@ describe('TournamentsService', () => {
       tournamentId: 'target-1',
       userId: null,
       name: 'Guest clone',
+    });
+  });
+
+  it('builds Liga standings from tournament teams and total goals', async () => {
+    jest
+      .spyOn(service, 'findActorForTournament')
+      .mockResolvedValue(
+        createPlayer({ role: PlayerRole.OWNER, tournamentId: 'tournament-1' }),
+      );
+
+    tournamentsRepository.findOne.mockResolvedValue({
+      id: 'tournament-1',
+      type: TournamentType.TEAMS,
+      format: TournamentFormat.LIGA,
+    } as Tournament);
+
+    const tournamentTeams = [
+      {
+        id: 'team-a',
+        tournamentId: 'tournament-1',
+        name: 'Equipo A',
+        imageUrl: null,
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      },
+      {
+        id: 'team-b',
+        tournamentId: 'tournament-1',
+        name: 'Equipo B',
+        imageUrl: null,
+        createdAt: new Date('2026-01-02T00:00:00.000Z'),
+      },
+    ] as TournamentTeam[];
+
+    matchesRepository.manager.getRepository.mockReturnValue({
+      find: jest.fn().mockResolvedValue(tournamentTeams),
+    });
+    matchesRepository.find.mockResolvedValue([
+      {
+        id: 'match-1',
+        matchday: 1,
+        kickoffAt: new Date('2026-02-01T00:00:00.000Z'),
+        status: MatchStatus.FINISHED,
+        teams: [
+          { tournamentTeamId: 'team-a', goals: 3 } as Team,
+          { tournamentTeamId: 'team-b', goals: 1 } as Team,
+        ],
+      } as Match,
+    ]);
+
+    await expect(
+      service.getSummary('tournament-1', 'auth0|owner'),
+    ).resolves.toMatchObject({
+      tournamentId: 'tournament-1',
+      leaderPlayerId: null,
+      topScorerPlayerId: null,
+      standings: [
+        {
+          tournamentTeamId: 'team-a',
+          displayName: 'Equipo A',
+          points: 3,
+          goals: 3,
+          goalsFor: 3,
+          goalsAgainst: 1,
+          win: 1,
+          draw: 0,
+          loose: 0,
+          matchesPlayed: 1,
+          position: 1,
+          recentForm: [expect.objectContaining({ result: TeamResult.WINNER })],
+        },
+        {
+          tournamentTeamId: 'team-b',
+          displayName: 'Equipo B',
+          points: 0,
+          goals: 1,
+          goalsFor: 1,
+          goalsAgainst: 3,
+          win: 0,
+          draw: 0,
+          loose: 1,
+          matchesPlayed: 1,
+          position: 2,
+          recentForm: [expect.objectContaining({ result: TeamResult.LOSER })],
+        },
+      ],
     });
   });
 

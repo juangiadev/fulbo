@@ -11,6 +11,7 @@ import {
 import { TeamResult } from '../../../../shared/src/enums';
 import { Match } from './match.entity';
 import { PlayerTeam } from './player-team.entity';
+import { TournamentTeam } from './tournament-team.entity';
 
 @Entity({ name: 'teams' })
 export class Team {
@@ -20,11 +21,17 @@ export class Team {
   @Column('uuid')
   matchId: string;
 
+  @Column('uuid', { nullable: true })
+  tournamentTeamId: string | null;
+
   @Column()
   name: string;
 
   @Column({ type: 'varchar', nullable: true })
   imageUrl: string | null;
+
+  @Column({ type: 'int', nullable: true })
+  goals: number | null;
 
   @Column({
     type: 'enum',
@@ -45,6 +52,10 @@ export class Team {
   @ManyToOne(() => Match, (match) => match.teams, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'matchId' })
   match: Match;
+
+  @ManyToOne(() => TournamentTeam, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'tournamentTeamId' })
+  tournamentTeam: TournamentTeam | null;
 
   @OneToMany(() => PlayerTeam, (playerTeam) => playerTeam.team)
   playerTeams: PlayerTeam[];
