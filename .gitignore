@@ -22,3 +22,5 @@ yarn-debug.log*
 # Misc
 **/*.local
 .atl/
+
+odd/
