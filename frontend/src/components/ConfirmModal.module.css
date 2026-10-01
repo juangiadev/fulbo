@@ -1,36 +1,170 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(3px);
+  z-index: 80;
   display: grid;
-  place-items: center;
-  z-index: 50;
+  place-items: end center;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(155, 214, 174, 0.16), transparent 22rem),
+    rgba(2, 10, 6, 0.68);
+  backdrop-filter: blur(10px);
 }
 
 .modal {
-  width: min(420px, 92vw);
-  border: 1px solid var(--secondary);
-  border-radius: 14px;
-  background: linear-gradient(180deg, #133c28, #0f2f20);
-  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.35);
-  padding: 1.2rem;
   display: grid;
-  gap: 0.8rem;
+  width: min(100%, 460px);
+  gap: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 24px;
+  padding: 1.1rem;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(232, 198, 92, 0.16), transparent 12rem),
+    linear-gradient(145deg, rgba(25, 76, 49, 0.98), rgba(7, 31, 18, 0.98));
+  box-shadow:
+    0 28px 90px rgba(0, 0, 0, 0.46),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.iconWrap {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border: 1px solid rgba(255, 180, 168, 0.3);
+  border-radius: 16px;
+  background: rgba(255, 180, 168, 0.1);
+  color: #ffb4a8;
+  box-shadow: 0 0 0 6px rgba(255, 180, 168, 0.035);
+}
+
+.eyebrow {
+  margin: 0;
+  color: #e8c65c;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .modal h3 {
-  margin: 0;
+  margin: 0.15rem 0 0;
+  color: #f4fbf6;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.35rem, 5vw, 1.85rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
 }
 
 .message {
   margin: 0;
-  color: var(--text-soft);
-  line-height: 1.4;
+  color: #b8cdbf;
+  font-size: 0.98rem;
+  line-height: 1.45;
 }
 
 .actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.6rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+  padding-top: 0.25rem;
+}
+
+.cancelButton,
+.confirmButton {
+  display: inline-flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.cancelButton {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.055);
+  color: #d8e8de;
+}
+
+.confirmButton {
+  border: 1px solid rgba(255, 180, 168, 0.55);
+  background: linear-gradient(135deg, #ffb4a8, #e8c65c);
+  color: #1d2015;
+  box-shadow: 0 12px 28px rgba(255, 180, 168, 0.16);
+}
+
+.cancelButton:hover:not(:disabled),
+.confirmButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.cancelButton:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.085);
+}
+
+.cancelButton:focus-visible,
+.confirmButton:focus-visible {
+  outline: 3px solid #e8c65c;
+  outline-offset: 4px;
+}
+
+.cancelButton:disabled,
+.confirmButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+}
+
+.spinner {
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (min-width: 560px) {
+  .backdrop {
+    place-items: center;
+  }
+
+  .modal {
+    padding: 1.25rem;
+  }
+
+  .actions {
+    grid-template-columns: 0.85fr 1.15fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cancelButton,
+  .confirmButton {
+    transition: none;
+  }
+
+  .spinner {
+    animation: none;
+  }
 }

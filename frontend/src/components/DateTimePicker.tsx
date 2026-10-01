@@ -147,6 +147,7 @@ export function DateTimePicker({ label, value, onChange }: DateTimePickerProps) 
     return cells;
   }, [visibleMonthDate]);
 
+  const today = new Date();
   const selectedHour = selectedDate ? pad(selectedDate.getHours()) : '20';
   const selectedMinute = selectedDate ? pad(selectedDate.getMinutes()) : '00';
 
@@ -249,10 +250,15 @@ export function DateTimePicker({ label, value, onChange }: DateTimePickerProps) 
                 selectedDate?.getFullYear() === visibleMonthDate.getFullYear() &&
                 selectedDate?.getMonth() === visibleMonthDate.getMonth() &&
                 selectedDate?.getDate() === day;
+              const isToday =
+                today.getFullYear() === visibleMonthDate.getFullYear() &&
+                today.getMonth() === visibleMonthDate.getMonth() &&
+                today.getDate() === day;
 
               return (
                 <button
-                  className={`${styles.dayButton} ${isSelected ? styles.dayButtonSelected : ''}`}
+                  aria-current={isToday ? 'date' : undefined}
+                  className={`${styles.dayButton} ${isToday ? styles.dayButtonToday : ''} ${isSelected ? styles.dayButtonSelected : ''}`}
                   key={day}
                   onClick={() => setDatePart(day)}
                   type="button"

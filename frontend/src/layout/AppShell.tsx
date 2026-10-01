@@ -1,6 +1,6 @@
 import { LogOut, UserRound } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAppContext } from '../state/AppContext';
 import styles from './AppShell.module.css';
 
@@ -14,6 +14,7 @@ function FulboLogo() {
 
 export function AppShell() {
   const { currentUser, logout } = useAppContext();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const avatarButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -92,7 +93,7 @@ export function AppShell() {
       </header>
 
       <main className={styles.pageWrap}>
-        <Outlet />
+        <Outlet key={location.pathname} />
       </main>
     </div>
   );

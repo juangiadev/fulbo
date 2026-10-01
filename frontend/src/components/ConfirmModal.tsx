@@ -1,4 +1,4 @@
-import buttonStyles from '../styles/Button.module.css';
+import { AlertTriangle, LoaderCircle } from 'lucide-react';
 import styles from './ConfirmModal.module.css';
 
 interface ConfirmModalProps {
@@ -28,11 +28,21 @@ export function ConfirmModal({
         className={styles.modal}
         role="dialog"
       >
-        <h3 id="confirm-modal-title">{title}</h3>
+        <div className={styles.header}>
+          <span aria-hidden="true" className={styles.iconWrap}>
+            <AlertTriangle size={24} strokeWidth={1.8} />
+          </span>
+          <div>
+            <p className={styles.eyebrow}>Confirmar acción</p>
+            <h3 id="confirm-modal-title">{title}</h3>
+          </div>
+        </div>
+
         <p className={styles.message}>{message}</p>
+
         <div className={styles.actions}>
           <button
-            className={buttonStyles.ghost}
+            className={styles.cancelButton}
             disabled={isConfirming}
             onClick={onCancel}
             type="button"
@@ -40,14 +50,15 @@ export function ConfirmModal({
             {cancelText}
           </button>
           <button
-            className={buttonStyles.primary}
+            className={styles.confirmButton}
             disabled={isConfirming}
             onClick={() => {
               void onConfirm();
             }}
             type="button"
           >
-            {confirmText}
+            <span>{isConfirming ? 'Eliminando...' : confirmText}</span>
+            {isConfirming ? <LoaderCircle aria-hidden="true" className={styles.spinner} size={18} /> : null}
           </button>
         </div>
       </div>
