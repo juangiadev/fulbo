@@ -18,8 +18,10 @@ import { sileo } from 'sileo';
 import { apiClient } from '../../api/client';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { ContentSpinner } from '../../components/ContentSpinner';
+import { DateTimePicker } from '../../components/DateTimePicker';
 import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
 import { useAppContext } from '../../state/AppContext';
+import { formatTime24 } from '../../utils/dateFormat';
 import styles from './TournamentMatchesPage.module.css';
 
 const matchDateFormatter = new Intl.DateTimeFormat('es-AR', {
@@ -29,18 +31,14 @@ const matchDateFormatter = new Intl.DateTimeFormat('es-AR', {
   year: 'numeric',
 });
 
-const matchTimeFormatter = new Intl.DateTimeFormat('es-AR', {
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-});
-
 export function TournamentMatchesPage() {
   const { tournamentId } = useParams();
   const { data } = useAppContext();
   const [matches, setMatches] = useState<MatchContract[]>([]);
   const [deletingMatchId, setDeletingMatchId] = useState<string | null>(null);
   const [confirmingMatchId, setConfirmingMatchId] = useState<string | null>(null);
+  const [deletingMatchday, setDeletingMatchday] = useState<number | null>(null);
+  const [confirmingMatchday, setConfirmingMatchday] = useState<number | null>(null);
   const [showFixtureForm, setShowFixtureForm] = useState(false);
   const [isGeneratingFixture, setIsGeneratingFixture] = useState(false);
   const [fixtureForm, setFixtureForm] = useState({
@@ -60,6 +58,7 @@ export function TournamentMatchesPage() {
     permissions.canManageMatches &&
     tournament?.type === TournamentType.TEAMS &&
     tournament.format === TournamentFormat.LIGA;
+  const shouldGroupMatchesByMatchday = tournament?.format === TournamentFormat.LIGA;
 
   const loadMatches = useCallback(async () => {
     if (!tournamentId) {
@@ -91,6 +90,33 @@ export function TournamentMatchesPage() {
           new Date(b.kickoffAt).getTime() - new Date(a.kickoffAt).getTime(),
       ),
     [matches],
+  );
+  const matchdayGroups = useMemo(() => {
+    if (!shouldGroupMatchesByMatchday) {
+      return [{ matchday: 0, matches: orderedMatches }];
+    }
+
+    return orderedMatches.reduce<Array<{ matchday: number; matches: MatchContract[] }>>(
+      (groups, match) => {
+        const currentGroup = groups[groups.length - 1];
+
+        if (currentGroup?.matchday === match.matchday) {
+          currentGroup.matches.push(match);
+          return groups;
+        }
+
+        groups.push({ matchday: match.matchday, matches: [match] });
+        return groups;
+      },
+      [],
+    );
+  }, [orderedMatches, shouldGroupMatchesByMatchday]);
+  const confirmingMatchdayGroup = useMemo(
+    () =>
+      confirmingMatchday === null
+        ? null
+        : matchdayGroups.find((group) => group.matchday === confirmingMatchday) ?? null,
+    [confirmingMatchday, matchdayGroups],
   );
   const finishedMatches = matches.filter(
     (match) => match.status === MatchStatus.FINISHED,
@@ -239,20 +265,18 @@ export function TournamentMatchesPage() {
                 value={fixtureForm.matchday}
               />
             </label>
-            <label>
-              <span>Primer horario</span>
-              <input
-                onChange={(event) =>
+            <div className={styles.dateField}>
+              <DateTimePicker
+                label="Primer horario"
+                onChange={(value) =>
                   setFixtureForm((current) => ({
                     ...current,
-                    firstKickoffAt: event.target.value,
+                    firstKickoffAt: value,
                   }))
                 }
-                required
-                type="datetime-local"
                 value={fixtureForm.firstKickoffAt}
               />
-            </label>
+            </div>
             <label>
               <span>Intervalo en minutos</span>
               <input
@@ -368,105 +392,145 @@ export function TournamentMatchesPage() {
             ) : null}
           </div>
         ) : (
-          <div className={styles.matchesList}>
-            {orderedMatches.map((match, index) => {
-              const kickoffDate = new Date(match.kickoffAt);
-              const isFinished = match.status === MatchStatus.FINISHED;
-              const matchTitleId = `match-${match.id}`;
-
-              return (
-                <article
-                  aria-labelledby={matchTitleId}
-                  className={styles.matchCard}
-                  key={match.id}
-                >
-                  <div className={styles.cardTopline}>
-                    <span>PARTIDO {(index + 1).toString().padStart(2, '0')}</span>
-                    <span className={isFinished ? styles.finishedBadge : styles.pendingBadge}>
-                      {isFinished ? 'Finalizado' : 'Pendiente'}
-                    </span>
-                  </div>
-
-                  <div className={styles.cardBody}>
-                    <div className={styles.matchIdentity}>
-                      <span aria-hidden="true" className={styles.matchdayNumber}>
-                        {match.matchday.toString().padStart(2, '0')}
-                      </span>
-                      <div>
-                        <p className={styles.matchdayLabel}>Fecha</p>
-                        <h3 id={matchTitleId}>Fecha {match.matchday}</h3>
-                        <p className={styles.stage}>Cancha: {match.stage}</p>
-                      </div>
+          <div className={styles.matchdayGroups}>
+            {matchdayGroups.map((group) => (
+              <section
+                aria-label={shouldGroupMatchesByMatchday ? undefined : 'Partidos'}
+                aria-labelledby={
+                  shouldGroupMatchesByMatchday ? `matchday-${group.matchday}-title` : undefined
+                }
+                className={styles.matchdayGroup}
+                key={group.matchday}
+              >
+                {shouldGroupMatchesByMatchday ? (
+                  <div className={styles.matchdayHeader}>
+                    <div>
+                      <p className={styles.eyebrow}>Fecha</p>
+                      <h3 id={`matchday-${group.matchday}-title`}>Fecha {group.matchday}</h3>
                     </div>
-
-                    <dl className={styles.matchDetails}>
-                      <div>
-                        <dt>
-                          <CalendarDays aria-hidden="true" size={18} />
-                          Día
-                        </dt>
-                        <dd>
-                          <time dateTime={match.kickoffAt}>
-                            {matchDateFormatter.format(kickoffDate)}
-                          </time>
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>
-                          <Clock3 aria-hidden="true" size={18} />
-                          Hora
-                        </dt>
-                        <dd>
-                          <time dateTime={match.kickoffAt}>
-                            {matchTimeFormatter.format(kickoffDate)} hs
-                          </time>
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>
-                          <MapPin aria-hidden="true" size={18} />
-                          Lugar
-                        </dt>
-                        <dd>{match.placeName}</dd>
-                      </div>
-                    </dl>
+                    <div className={styles.matchdayHeaderActions}>
+                      <span>
+                        {group.matches.length}{' '}
+                        {group.matches.length === 1 ? 'partido' : 'partidos'}
+                      </span>
+                      {permissions.canDeleteMatches ? (
+                        <button
+                          aria-label={`Eliminar todos los partidos de la fecha ${group.matchday}`}
+                          className={styles.deleteButton}
+                          disabled={deletingMatchday === group.matchday}
+                          onClick={() => setConfirmingMatchday(group.matchday)}
+                          type="button"
+                        >
+                          <Trash2 aria-hidden="true" size={17} />
+                          Eliminar fecha
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
+                ) : null}
 
-                  <div className={styles.actions}>
-                    <Link
-                      aria-label={`Ver partido de la fecha ${match.matchday}`}
-                      className={styles.viewButton}
-                      to={`/tournaments/${tournamentId}/partidos/${match.id}`}
-                    >
-                      <span>Ver partido</span>
-                      <ArrowUpRight aria-hidden="true" size={18} />
-                    </Link>
-                    {permissions.canManageMatches ? (
-                      <Link
-                        aria-label={`Editar partido de la fecha ${match.matchday}`}
-                        className={styles.secondaryButton}
-                        to={`/tournaments/${tournamentId}/partidos/${match.id}/edit`}
+                <div className={styles.matchesList}>
+                  {group.matches.map((match, index) => {
+                    const kickoffDate = new Date(match.kickoffAt);
+                    const isFinished = match.status === MatchStatus.FINISHED;
+                    const matchTitleId = `match-${match.id}`;
+
+                    return (
+                      <article
+                        aria-labelledby={matchTitleId}
+                        className={styles.matchCard}
+                        key={match.id}
                       >
-                        <Pencil aria-hidden="true" size={17} />
-                        Editar
-                      </Link>
-                    ) : null}
-                    {permissions.canDeleteMatches ? (
-                      <button
-                        aria-label={`Eliminar partido de la fecha ${match.matchday}`}
-                        className={styles.deleteButton}
-                        disabled={deletingMatchId === match.id}
-                        onClick={() => setConfirmingMatchId(match.id)}
-                        type="button"
-                      >
-                        <Trash2 aria-hidden="true" size={17} />
-                        Eliminar
-                      </button>
-                    ) : null}
-                  </div>
-                </article>
-              );
-            })}
+                        <div className={styles.cardTopline}>
+                          <span>PARTIDO {(index + 1).toString().padStart(2, '0')}</span>
+                          <span className={isFinished ? styles.finishedBadge : styles.pendingBadge}>
+                            {isFinished ? 'Finalizado' : 'Pendiente'}
+                          </span>
+                        </div>
+
+                        <div className={styles.cardBody}>
+                          <div className={styles.matchIdentity}>
+                            <span aria-hidden="true" className={styles.matchdayNumber}>
+                              {match.matchday.toString().padStart(2, '0')}
+                            </span>
+                            <div>
+                              <p className={styles.matchdayLabel}>Fecha</p>
+                              <h3 id={matchTitleId}>Fecha {match.matchday}</h3>
+                              <p className={styles.stage}>Cancha: {match.stage}</p>
+                            </div>
+                          </div>
+
+                          <dl className={styles.matchDetails}>
+                            <div>
+                              <dt>
+                                <CalendarDays aria-hidden="true" size={18} />
+                                Día
+                              </dt>
+                              <dd>
+                                <time dateTime={match.kickoffAt}>
+                                  {matchDateFormatter.format(kickoffDate)}
+                                </time>
+                              </dd>
+                            </div>
+                            <div>
+                              <dt>
+                                <Clock3 aria-hidden="true" size={18} />
+                                Hora
+                              </dt>
+                              <dd>
+                                <time dateTime={match.kickoffAt}>
+                                  {formatTime24(kickoffDate)} hs
+                                </time>
+                              </dd>
+                            </div>
+                            <div>
+                              <dt>
+                                <MapPin aria-hidden="true" size={18} />
+                                Lugar
+                              </dt>
+                              <dd>{match.placeName}</dd>
+                            </div>
+                          </dl>
+                        </div>
+
+                        <div className={styles.actions}>
+                          <Link
+                            aria-label={`Ver partido de la fecha ${match.matchday}`}
+                            className={styles.viewButton}
+                            to={`/tournaments/${tournamentId}/partidos/${match.id}`}
+                          >
+                            <span>Ver partido</span>
+                            <ArrowUpRight aria-hidden="true" size={18} />
+                          </Link>
+                          {permissions.canManageMatches ? (
+                            <Link
+                              aria-label={`Editar partido de la fecha ${match.matchday}`}
+                              className={styles.secondaryButton}
+                              to={`/tournaments/${tournamentId}/partidos/${match.id}/edit`}
+                            >
+                              <Pencil aria-hidden="true" size={17} />
+                              Editar
+                            </Link>
+                          ) : null}
+                          {permissions.canDeleteMatches ? (
+                            <button
+                              aria-label={`Eliminar partido de la fecha ${match.matchday}`}
+                              className={styles.deleteButton}
+                              disabled={deletingMatchId === match.id}
+                              onClick={() => setConfirmingMatchId(match.id)}
+                              type="button"
+                            >
+                              <Trash2 aria-hidden="true" size={17} />
+                              Eliminar
+                            </button>
+                          ) : null}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
           </div>
         )}
       </section>
@@ -498,6 +562,36 @@ export function TournamentMatchesPage() {
             }
           }}
           title="Confirmar eliminación"
+        />
+      ) : null}
+
+      {confirmingMatchdayGroup ? (
+        <ConfirmModal
+          confirmText="Eliminar fecha"
+          isConfirming={deletingMatchday === confirmingMatchdayGroup.matchday}
+          message={`Esta acción elimina los ${confirmingMatchdayGroup.matches.length} partidos de la fecha ${confirmingMatchdayGroup.matchday} y sus tablas de jugadores/goles.`}
+          onCancel={() => setConfirmingMatchday(null)}
+          onConfirm={async () => {
+            setDeletingMatchday(confirmingMatchdayGroup.matchday);
+            try {
+              await sileo.promise(
+                Promise.all(
+                  confirmingMatchdayGroup.matches.map((match) => apiClient.removeMatch(match.id)),
+                ),
+                {
+                  loading: { title: 'Eliminando fecha...' },
+                  success: { title: 'Fecha eliminada' },
+                  error: { title: 'No se pudo eliminar la fecha' },
+                },
+              );
+              const refreshed = await apiClient.getMatches(tournamentId);
+              setMatches(refreshed);
+            } finally {
+              setDeletingMatchday(null);
+              setConfirmingMatchday(null);
+            }
+          }}
+          title={`Eliminar fecha ${confirmingMatchdayGroup.matchday}`}
         />
       ) : null}
     </section>

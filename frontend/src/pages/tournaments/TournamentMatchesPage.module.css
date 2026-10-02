@@ -250,7 +250,8 @@
   gap: 0.9rem;
 }
 
-.fixtureGrid label {
+.fixtureGrid label,
+.dateField > div {
   display: grid;
   gap: 0.4rem;
   color: #b8ccbf;
@@ -258,7 +259,8 @@
   font-weight: 700;
 }
 
-.fixtureGrid input {
+.fixtureGrid input,
+.dateField > div > button {
   min-height: 46px;
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -269,7 +271,8 @@
   font: inherit;
 }
 
-.fixtureGrid input:focus {
+.fixtureGrid input:focus,
+.dateField > div > button:focus-visible {
   border-color: rgba(232, 198, 92, 0.62);
   outline: none;
   box-shadow: 0 0 0 3px rgba(232, 198, 92, 0.12);
@@ -322,6 +325,54 @@
   border-radius: 999px;
   color: #b5ccbd;
   font-size: 0.78rem;
+}
+
+.matchdayGroups {
+  display: grid;
+  gap: 1.35rem;
+}
+
+.matchdayGroup {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.matchdayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid rgba(232, 198, 92, 0.18);
+  border-radius: 18px;
+  padding: 0.9rem 1rem;
+  background:
+    radial-gradient(circle at 96% 12%, rgba(232, 198, 92, 0.09), transparent 14rem),
+    rgba(255, 255, 255, 0.035);
+}
+
+.matchdayHeader h3 {
+  margin-top: 0.2rem;
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  letter-spacing: -0.025em;
+}
+
+.matchdayHeaderActions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.matchdayHeaderActions > span {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  color: #b5ccbd;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 .matchesList {
@@ -686,6 +737,17 @@
 
   .sectionHeading {
     align-items: flex-start;
+  }
+
+  .matchdayHeader,
+  .matchdayHeaderActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .matchdayHeaderActions > span,
+  .matchdayHeaderActions .deleteButton {
+    width: 100%;
   }
 
   .matchDetails {
