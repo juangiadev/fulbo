@@ -14,6 +14,7 @@ import { MatchPlayersTableReadonly } from '../../components/MatchPlayersTableRea
 import { apiClient } from '../../api/client';
 import { useAppContext } from '../../state/AppContext';
 import buttonStyles from '../../styles/Button.module.css';
+import { formatDateTime24 } from '../../utils/dateFormat';
 import styles from './TournamentMatchDetailPage.module.css';
 
 function splitTeams(teams: TeamContract[]): { teamA: TeamContract | null; teamB: TeamContract | null } {
@@ -270,7 +271,7 @@ export function TournamentMatchDetailsPage() {
             </a>
           ) : null}
         </div>
-        <p className={styles.meta}>Fecha y hora: {new Date(selectedMatch.kickoffAt).toLocaleString('es-AR')}</p>
+        <p className={styles.meta}>Fecha y hora: {formatDateTime24(selectedMatch.kickoffAt)} hs</p>
         <p className={styles.meta}>Estado: {selectedMatch.status === MatchStatus.PENDING ? 'Pendiente' : 'Finalizado'}</p>
       </article>
 

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { formatDateTime24 } from '../utils/dateFormat';
 import styles from './DateTimePicker.module.css';
 
 interface DateTimePickerProps {
@@ -152,13 +153,7 @@ export function DateTimePicker({ label, value, onChange }: DateTimePickerProps) 
   const selectedMinute = selectedDate ? pad(selectedDate.getMinutes()) : '00';
 
   const displayValue = selectedDate
-    ? selectedDate.toLocaleString('es-AR', {
-        weekday: 'short',
-        day: '2-digit',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
+    ? formatDateTime24(selectedDate)
     : 'Seleccionar fecha y hora';
 
   const setDatePart = (day: number) => {

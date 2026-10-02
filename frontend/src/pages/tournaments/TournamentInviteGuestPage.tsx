@@ -17,6 +17,7 @@ import { sileo } from 'sileo';
 import { apiClient } from '../../api/client';
 import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
 import { useAppContext } from '../../state/AppContext';
+import { formatDateTime24 } from '../../utils/dateFormat';
 import styles from './TournamentInviteGuestPage.module.css';
 
 const GUEST_NAME_MAX_LENGTH = 120;
@@ -143,7 +144,7 @@ export function TournamentInviteGuestPage() {
               </div>
               <small>
                 {tournamentCodeExpiresAt
-                  ? `Vence el ${new Date(tournamentCodeExpiresAt).toLocaleString('es-AR')}`
+                  ? `Vence el ${formatDateTime24(tournamentCodeExpiresAt)} hs`
                   : 'Generá un código para empezar a recibir solicitudes.'}
               </small>
             </div>

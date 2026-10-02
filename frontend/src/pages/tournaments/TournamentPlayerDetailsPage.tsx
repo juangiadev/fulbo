@@ -23,6 +23,7 @@ import { apiClient } from '../../api/client';
 import { PlayerAvatar } from '../../components/PlayerAvatar';
 import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
 import { useAppContext } from '../../state/AppContext';
+import { formatDateTime24 } from '../../utils/dateFormat';
 import styles from './TournamentPlayerDetailsPage.module.css';
 
 const ROLE_LABELS: Record<PlayerRole, string> = {
@@ -343,7 +344,7 @@ export function TournamentPlayerDetailsPage() {
             <div className={styles.codeActions}>
               <p>
                 {claimCodeExpiresAt
-                  ? `Vence el ${new Date(claimCodeExpiresAt).toLocaleString('es-AR')}`
+                  ? `Vence el ${formatDateTime24(claimCodeExpiresAt)} hs`
                   : 'Los códigos tienen una vigencia de siete días.'}
               </p>
               <button
