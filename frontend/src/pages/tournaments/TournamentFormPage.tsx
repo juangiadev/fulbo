@@ -88,7 +88,11 @@ export function TournamentFormPage() {
                   });
                 } else {
                   await sileo.promise(
-                    createTournament({ name: trimmedName, type: selectedType, format: selectedFormat }),
+                    createTournament({
+                      name: trimmedName,
+                      type: selectedType,
+                      ...(selectedType === TournamentType.TEAMS ? { format: selectedFormat } : {}),
+                    }),
                     {
                       loading: { title: 'Creando torneo...' },
                       success: { title: 'Torneo creado' },

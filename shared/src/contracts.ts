@@ -64,7 +64,7 @@ export interface TournamentContract {
   name: string;
   visibility: TournamentVisibility;
   type: TournamentType;
-  format: TournamentFormat;
+  format: TournamentFormat | null;
   imageUrl: string | null;
   leaderBannerImageUrl?: string | null;
   scorerBannerImageUrl?: string | null;
@@ -77,7 +77,7 @@ export interface TournamentContract {
 export interface CreateTournamentInput {
   name: string;
   type?: TournamentType;
-  format?: TournamentFormat;
+  format?: TournamentFormat | null;
 }
 
 export interface ImportTournamentPlayersRequest {
@@ -113,6 +113,7 @@ export interface TournamentSummaryContract {
   tournamentId: string;
   standings: StandingRowContract[];
   leaderPlayerId: string | null;
+  leaderTeamId?: string | null;
   topScorerPlayerId: string | null;
 }
 

@@ -40,9 +40,9 @@ export class Tournament {
   @Column({
     type: 'enum',
     enum: TournamentFormat,
-    default: TournamentFormat.LIGA,
+    nullable: true,
   })
-  format: TournamentFormat;
+  format: TournamentFormat | null;
 
   @Column({ type: 'varchar', nullable: true })
   imageUrl: string | null;

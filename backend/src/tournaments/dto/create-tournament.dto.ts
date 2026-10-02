@@ -39,10 +39,11 @@ export class CreateTournamentDto {
 
   @ValidateIf(
     (dto: CreateTournamentDto) =>
-      dto.type === TournamentType.TEAMS || dto.format !== undefined,
+      dto.type === TournamentType.TEAMS ||
+      (dto.format !== undefined && dto.format !== null),
   )
   @IsEnum(TournamentFormat, {
     message: 'format must be one of the following values: LIGA, COPA',
   })
-  format?: TournamentFormat;
+  format?: TournamentFormat | null;
 }

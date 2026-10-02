@@ -120,7 +120,7 @@ describe('TournamentsService', () => {
         displayPreference: DisplayPreference.IMAGE,
       }) as User;
 
-    it('keeps omitted type and format default-safe for current user tournaments', async () => {
+    it('normalizes omitted type and format to a user tournament without format', async () => {
       const user = createOwner();
       const tournament = { id: 'tournament-1', name: 'League' } as Tournament;
 
@@ -134,6 +134,8 @@ describe('TournamentsService', () => {
 
       expect(tournamentsRepository.create).toHaveBeenCalledWith({
         name: 'League',
+        type: TournamentType.USER,
+        format: null,
       });
       expect(playersRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -141,6 +143,31 @@ describe('TournamentsService', () => {
           tournamentId: tournament.id,
           role: PlayerRole.OWNER,
           ability: DEFAULT_PLAYER_ABILITY,
+        }),
+      );
+    });
+
+    it('clears format for user tournaments even when clients send one', async () => {
+      const user = createOwner();
+      const tournament = { id: 'tournament-1', name: 'League' } as Tournament;
+
+      usersRepository.findOne.mockResolvedValue(user);
+      tournamentsRepository.save.mockResolvedValue(tournament);
+      playersRepository.save.mockImplementation((player) =>
+        Promise.resolve(player),
+      );
+
+      await service.create('auth0|owner', {
+        name: 'League',
+        type: TournamentType.USER,
+        format: TournamentFormat.COPA,
+      });
+
+      expect(tournamentsRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'League',
+          type: TournamentType.USER,
+          format: null,
         }),
       );
     });
@@ -175,10 +202,14 @@ describe('TournamentsService', () => {
       );
     });
 
-    it('accepts user tournaments without a team format', async () => {
+    it('accepts user tournaments without a team format or with null format', async () => {
       const dto = new CreateTournamentDto();
       dto.name = 'League';
       dto.type = TournamentType.USER;
+
+      await expect(validate(dto)).resolves.toHaveLength(0);
+
+      dto.format = null;
 
       await expect(validate(dto)).resolves.toHaveLength(0);
     });
@@ -189,6 +220,17 @@ describe('TournamentsService', () => {
       missingFormatDto.type = TournamentType.TEAMS;
 
       await expect(validate(missingFormatDto)).resolves.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ property: 'format' }),
+        ]),
+      );
+
+      const nullFormatDto = new CreateTournamentDto();
+      nullFormatDto.name = 'Cup';
+      nullFormatDto.type = TournamentType.TEAMS;
+      nullFormatDto.format = null;
+
+      await expect(validate(nullFormatDto)).resolves.toEqual(
         expect.arrayContaining([
           expect.objectContaining({ property: 'format' }),
         ]),
@@ -361,6 +403,32 @@ describe('TournamentsService', () => {
     });
   });
 
+  it('returns a null leaderTeamId for user tournament summaries without standings', async () => {
+    jest
+      .spyOn(service, 'findActorForTournament')
+      .mockResolvedValue(
+        createPlayer({ role: PlayerRole.OWNER, tournamentId: 'tournament-1' }),
+      );
+
+    tournamentsRepository.findOne.mockResolvedValue({
+      id: 'tournament-1',
+      type: TournamentType.USER,
+      format: null,
+    } as Tournament);
+    playersRepository.find.mockResolvedValue([]);
+    matchesRepository.find.mockResolvedValue([]);
+
+    await expect(
+      service.getSummary('tournament-1', 'auth0|owner'),
+    ).resolves.toEqual({
+      tournamentId: 'tournament-1',
+      standings: [],
+      leaderPlayerId: null,
+      leaderTeamId: null,
+      topScorerPlayerId: null,
+    });
+  });
+
   it('builds Liga standings from tournament teams and total goals', async () => {
     jest
       .spyOn(service, 'findActorForTournament')
@@ -412,6 +480,7 @@ describe('TournamentsService', () => {
     ).resolves.toMatchObject({
       tournamentId: 'tournament-1',
       leaderPlayerId: null,
+      leaderTeamId: 'team-a',
       topScorerPlayerId: null,
       standings: [
         {

@@ -65,8 +65,17 @@ export class TournamentsService {
       );
     }
 
+    const type = dto.type ?? TournamentType.USER;
+    if (type === TournamentType.TEAMS && !dto.format) {
+      throw new BadRequestException('Team tournaments require a format');
+    }
+
     const tournament = await this.tournamentsRepository.save(
-      this.tournamentsRepository.create(dto),
+      this.tournamentsRepository.create({
+        ...dto,
+        type,
+        format: type === TournamentType.TEAMS ? dto.format : null,
+      }),
     );
 
     await this.playersRepository.save(
@@ -487,6 +496,7 @@ export class TournamentsService {
         tournamentId,
         standings: [],
         leaderPlayerId: null,
+        leaderTeamId: null,
         topScorerPlayerId: null,
       };
     }
@@ -690,6 +700,7 @@ export class TournamentsService {
       tournamentId,
       standings,
       leaderPlayerId: leader?.playerId ?? null,
+      leaderTeamId: null,
       topScorerPlayerId: topScorer?.playerId ?? null,
     };
   }
@@ -790,6 +801,7 @@ export class TournamentsService {
       tournamentId,
       standings,
       leaderPlayerId: null,
+      leaderTeamId: standings[0]?.playerId ?? null,
       topScorerPlayerId: null,
     };
   }

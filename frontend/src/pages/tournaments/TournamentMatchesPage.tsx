@@ -58,7 +58,9 @@ export function TournamentMatchesPage() {
     permissions.canManageMatches &&
     tournament?.type === TournamentType.TEAMS &&
     tournament.format === TournamentFormat.LIGA;
-  const shouldGroupMatchesByMatchday = tournament?.format === TournamentFormat.LIGA;
+  const shouldGroupMatchesByMatchday =
+    tournament?.type === TournamentType.TEAMS &&
+    tournament.format === TournamentFormat.LIGA;
 
   const loadMatches = useCallback(async () => {
     if (!tournamentId) {
