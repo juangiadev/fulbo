@@ -1,5 +1,5 @@
 import type { PlayerContract } from '@shared/contracts';
-import { DisplayPreference, PlayerRole } from '@shared/enums';
+import { DisplayPreference, PlayerRole, TournamentFormat, TournamentType } from '@shared/enums';
 import { FAVORITE_TEAMS } from '@shared/favorite-teams';
 import {
   Activity,
@@ -23,7 +23,10 @@ import { sileo } from 'sileo';
 import { apiClient } from '../../api/client';
 import { PlayerAvatar, type PlayerAvatarPlayer } from '../../components/PlayerAvatar';
 import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
-import { canEditTournamentPlayer } from '../../permissions/tournamentPermissions';
+import {
+  canEditTeamRosterPlayer,
+  canEditTournamentPlayer,
+} from '../../permissions/tournamentPermissions';
 import { useAppContext } from '../../state/AppContext';
 import styles from './TournamentPlayerEditPage.module.css';
 
@@ -45,11 +48,12 @@ export function TournamentPlayerEditPage() {
   const navigate = useNavigate();
   const { tournamentId, playerId } = useParams();
   const { currentUser, data, loadTournaments } = useAppContext();
-  const [players, setPlayers] = useState<PlayerContract[]>([]);
+  const [player, setPlayer] = useState<PlayerContract | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadError, setHasLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actorRosterPlayer, setActorRosterPlayer] = useState<PlayerContract | null>(null);
 
   const [name, setName] = useState('');
   const [nickname, setNickname] = useState('');
@@ -77,16 +81,30 @@ export function TournamentPlayerEditPage() {
       }
     });
 
-    void apiClient
-      .getPlayers(tournamentId)
-      .then((nextPlayers) => {
-        if (!cancelled) {
-          setPlayers(nextPlayers);
-        }
-      })
+    if (!playerId) {
+      return;
+    }
+
+    void (async () => {
+      const nextPlayer = await apiClient.getPlayer(tournamentId, playerId);
+      const nextIsLigaRosterPlayer = Boolean(
+        nextPlayer.tournamentTeamId &&
+          tournament?.type === TournamentType.TEAMS &&
+          tournament.format === TournamentFormat.LIGA,
+      );
+      const nextActorRosterPlayer = nextIsLigaRosterPlayer
+        ? (await apiClient.getPlayers(tournamentId)).find((item) => item.userId === currentUser.id) ?? null
+        : null;
+
+      if (!cancelled) {
+        setPlayer(nextPlayer);
+        setActorRosterPlayer(nextActorRosterPlayer);
+      }
+    })()
       .catch(() => {
         if (!cancelled) {
           setHasLoadError(true);
+          setActorRosterPlayer(null);
         }
       })
       .finally(() => {
@@ -98,23 +116,39 @@ export function TournamentPlayerEditPage() {
     return () => {
       cancelled = true;
     };
-  }, [reloadKey, tournamentId]);
+  }, [currentUser.id, playerId, reloadKey, tournament?.format, tournament?.type, tournamentId]);
 
-  const player = players.find((item) => item.id === playerId);
   const isSelf = player?.userId === currentUser.id;
-  const canEditThisPlayer = player
-    ? canEditTournamentPlayer({
-        actorRole: permissions.role,
-        actorUserId: currentUser.id,
-        targetRole: player.role,
-        targetUserId: player.userId,
-      })
-    : false;
-  const canEditPrivateFields = permissions.canViewPlayerPrivateDetails && canEditThisPlayer;
-  const canChangeRole = Boolean(
-    player?.userId && canEditPrivateFields && !(permissions.isOwner && isSelf),
+  const isLigaRosterPlayer = Boolean(
+    player?.tournamentTeamId &&
+      tournament?.type === TournamentType.TEAMS &&
+      tournament.format === TournamentFormat.LIGA,
   );
-  const canAssignOwner = Boolean(permissions.isOwner && !isSelf && player?.userId);
+  const returnPath = isLigaRosterPlayer
+    ? `/tournaments/${tournamentId}/teams/${player?.tournamentTeamId}/edit`
+    : `/tournaments/${tournamentId}/players`;
+  const returnLabel = isLigaRosterPlayer ? 'Volver al equipo' : 'Volver al plantel';
+  const canEditThisPlayer = player
+    ? isLigaRosterPlayer
+      ? canEditTeamRosterPlayer({
+          actorRole: permissions.role,
+          actorTournamentTeamId: actorRosterPlayer?.tournamentTeamId ?? null,
+          targetTournamentTeamId: player.tournamentTeamId,
+        })
+      : canEditTournamentPlayer({
+          actorRole: permissions.role,
+          actorUserId: currentUser.id,
+          targetRole: player.role,
+          targetUserId: player.userId,
+        })
+    : false;
+  const canEditPrivateFields = isLigaRosterPlayer
+    ? canEditThisPlayer
+    : permissions.canViewPlayerPrivateDetails && canEditThisPlayer;
+  const canChangeRole = Boolean(
+    !isLigaRosterPlayer && player?.userId && canEditPrivateFields && !(permissions.isOwner && isSelf),
+  );
+  const canAssignOwner = Boolean(!isLigaRosterPlayer && permissions.isOwner && !isSelf && player?.userId);
 
   useEffect(() => {
     if (!player) {
@@ -139,9 +173,9 @@ export function TournamentPlayerEditPage() {
   if (isLoading) {
     return (
       <section className={styles.page}>
-        <Link className={styles.backLink} to={`/tournaments/${tournamentId}/players`}>
+        <Link className={styles.backLink} to={returnPath}>
           <ArrowLeft aria-hidden="true" size={18} />
-          Volver al plantel
+          {returnLabel}
         </Link>
         <div aria-live="polite" className={styles.loadingState} role="status">
           <span aria-hidden="true" className={styles.loadingAvatar} />
@@ -154,9 +188,9 @@ export function TournamentPlayerEditPage() {
   if (hasLoadError) {
     return (
       <section className={styles.page}>
-        <Link className={styles.backLink} to={`/tournaments/${tournamentId}/players`}>
+        <Link className={styles.backLink} to={returnPath}>
           <ArrowLeft aria-hidden="true" size={18} />
-          Volver al plantel
+          {returnLabel}
         </Link>
         <div className={styles.stateCard}>
           <Users aria-hidden="true" size={31} strokeWidth={1.6} />
@@ -171,7 +205,7 @@ export function TournamentPlayerEditPage() {
   }
 
   if (!player || !canEditThisPlayer) {
-    return <Navigate replace to={`/tournaments/${tournamentId}/players`} />;
+    return <Navigate replace to={returnPath} />;
   }
 
   const trimmedName = name.trim();
@@ -203,9 +237,9 @@ export function TournamentPlayerEditPage() {
     <section className={styles.page}>
       <div aria-hidden="true" className={styles.pitchDecoration} />
 
-      <Link className={styles.backLink} to={`/tournaments/${tournamentId}/players`}>
+      <Link className={styles.backLink} to={returnPath}>
         <ArrowLeft aria-hidden="true" size={18} />
-        Volver al plantel
+        {returnLabel}
       </Link>
 
       <header className={styles.hero}>
@@ -253,7 +287,7 @@ export function TournamentPlayerEditPage() {
             });
 
             await loadTournaments();
-            navigate(`/tournaments/${tournamentId}/players`, { replace: true });
+            navigate(returnPath, { replace: true });
           } finally {
             setIsSubmitting(false);
           }
@@ -480,7 +514,7 @@ export function TournamentPlayerEditPage() {
             <button
               className={styles.cancelButton}
               disabled={isSubmitting}
-              onClick={() => navigate(`/tournaments/${tournamentId}/players`)}
+              onClick={() => navigate(returnPath)}
               type="button"
             >
               Cancelar

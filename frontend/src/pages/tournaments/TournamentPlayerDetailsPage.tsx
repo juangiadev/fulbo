@@ -43,7 +43,7 @@ const codeStorageKey = (playerId: string) => `fulbo:last-claim-code:${playerId}`
 export function TournamentPlayerDetailsPage() {
   const { tournamentId, playerId } = useParams();
   const { data } = useAppContext();
-  const [players, setPlayers] = useState<PlayerContract[]>([]);
+  const [player, setPlayer] = useState<PlayerContract | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadError, setHasLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -67,11 +67,15 @@ export function TournamentPlayerDetailsPage() {
       }
     });
 
+    if (!playerId) {
+      return;
+    }
+
     void apiClient
-      .getPlayers(tournamentId)
-      .then((nextPlayers) => {
+      .getPlayer(tournamentId, playerId)
+      .then((nextPlayer) => {
         if (!cancelled) {
-          setPlayers(nextPlayers);
+          setPlayer(nextPlayer);
         }
       })
       .catch(() => {
@@ -88,9 +92,7 @@ export function TournamentPlayerDetailsPage() {
     return () => {
       cancelled = true;
     };
-  }, [reloadKey, tournamentId]);
-
-  const player = players.find((item) => item.id === playerId);
+  }, [playerId, reloadKey, tournamentId]);
   const favoriteTeam = FAVORITE_TEAMS.find((team) => team.slug === player?.favoriteTeamSlug);
   const favoriteTeamName = favoriteTeam?.name ?? 'Sin equipo favorito';
   const displayPreferenceLabel =

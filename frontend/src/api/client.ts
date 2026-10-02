@@ -1,6 +1,8 @@
 import type {
   CreateMatchPayload,
   CreateMatchdayFixturePayload,
+  CreateRosterPlayerInput,
+  CreateRosterPlayerResult,
   CreateTournamentTeamInput,
   MatchContract,
   MatchMvpVotingContract,
@@ -214,6 +216,27 @@ export const apiClient = {
   getTeamsByMatch: (matchId: string) => request<TeamContract[]>(`/matches/${matchId}/teams`),
   getTournamentTeams: (tournamentId: string) =>
     request<TournamentTeamContract[]>(`/tournaments/${tournamentId}/teams`),
+  getTournamentTeamRoster: (teamId: string) =>
+    request<PlayerContract[]>(`/tournament-teams/${teamId}/roster`),
+  createTournamentTeamRosterPlayer: (teamId: string, input: CreateRosterPlayerInput) =>
+    request<CreateRosterPlayerResult>(`/tournament-teams/${teamId}/roster`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+  updateTournamentTeamRosterPlayer: (teamId: string, playerId: string, input: Partial<PlayerContract>) =>
+    request<PlayerContract>(`/tournament-teams/${teamId}/roster/${playerId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    }),
+  updateTournamentTeamRosterPlayerAdmin: (teamId: string, playerId: string, input: { isTeamAdmin: boolean }) =>
+    request<PlayerContract>(`/tournament-teams/${teamId}/roster/${playerId}/team-admin`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    }),
+  removeTournamentTeamRosterPlayer: (teamId: string, playerId: string) =>
+    request<{ success: true }>(`/tournament-teams/${teamId}/roster/${playerId}`, {
+      method: 'DELETE',
+    }),
   createTournamentTeam: (tournamentId: string, input: CreateTournamentTeamInput) =>
     request<TournamentTeamContract>(`/tournaments/${tournamentId}/teams`, {
       method: 'POST',
@@ -272,6 +295,8 @@ export const apiClient = {
       method: 'DELETE',
     }),
   getPlayers: (tournamentId: string) => request<PlayerContract[]>(`/tournaments/${tournamentId}/players`),
+  getPlayer: (tournamentId: string, playerId: string) =>
+    request<PlayerContract>(`/tournaments/${tournamentId}/players/${playerId}`),
   createGuestPlayer: (
     tournamentId: string,
     input: { name: string; nickname?: string },

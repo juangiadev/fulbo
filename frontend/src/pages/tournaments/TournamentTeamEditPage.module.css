@@ -65,7 +65,9 @@
 .stateCard button:focus-visible,
 .formCard input:focus-visible,
 .cancelButton:focus-visible,
-.saveButton:focus-visible {
+.saveButton:focus-visible,
+.rosterInfoAction:focus-visible,
+.rosterIconAction:focus-visible {
   outline: 3px solid var(--secondary);
   outline-offset: 4px;
 }
@@ -189,7 +191,8 @@
   grid-column: auto;
 }
 
-.fieldsGrid input {
+.fieldsGrid input,
+.fieldsGrid select {
   width: 100%;
   min-height: 50px;
   border: 1px solid rgba(255, 255, 255, 0.22);
@@ -203,17 +206,29 @@
   font-weight: 400;
 }
 
+.fieldsGrid select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 2.75rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23e8c65c' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-position: right 0.85rem center;
+  background-repeat: no-repeat;
+}
+
 .fieldsGrid input::placeholder {
   color: #718c79;
 }
 
-.fieldsGrid input:focus-visible {
+.fieldsGrid input:focus-visible,
+.fieldsGrid select:focus-visible {
   border-color: #e8c65c;
   outline-color: #e8c65c;
   box-shadow: 0 0 0 4px rgba(232, 198, 92, 0.08);
 }
 
-.fieldsGrid input:disabled {
+.fieldsGrid input:disabled,
+.fieldsGrid select:disabled {
+  cursor: not-allowed;
   opacity: 0.55;
 }
 
@@ -323,6 +338,99 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.55rem;
+}
+
+.rosterCardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 1rem;
+}
+
+.rosterPlayerCard {
+  display: grid;
+  min-width: 0;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.025));
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.13);
+}
+
+.rosterPlayerIdentity {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.rosterAvatarWrap {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #1b5134, #0c301e);
+  box-shadow: 0 0 0 5px rgba(155, 214, 174, 0.035);
+}
+
+.rosterAvatarWrap:has(.previewImage) {
+  overflow: hidden;
+}
+
+.rosterPlayerIdentity h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.rosterCardActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rosterInfoAction {
+  display: flex;
+  min-height: 42px;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-radius: 11px;
+  padding: 0.55rem 0.7rem;
+  background: rgba(155, 214, 174, 0.07);
+  color: #dcebe1;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.rosterIconAction {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.035);
+  color: #c9dbcf;
+  cursor: pointer;
+}
+
+.rosterIconAction:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.rosterDeleteAction {
+  border-color: rgba(252, 165, 165, 0.25);
+  color: #fecaca;
 }
 
 .cancelButton,

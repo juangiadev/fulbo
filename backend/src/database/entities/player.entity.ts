@@ -13,6 +13,7 @@ import {
 import { DisplayPreference, PlayerRole } from '../../../../shared/src/enums';
 import { PlayerTeam } from './player-team.entity';
 import { Tournament } from './tournament.entity';
+import { TournamentTeam } from './tournament-team.entity';
 import { User } from './user.entity';
 
 export const DEFAULT_PLAYER_ABILITY = 5;
@@ -42,6 +43,12 @@ export class Player {
 
   @Column({ type: 'varchar', nullable: true })
   favoriteTeamSlug: string | null;
+
+  @Column('uuid', { nullable: true })
+  tournamentTeamId: string | null;
+
+  @Column({ type: 'boolean', default: false })
+  isTeamAdmin: boolean;
 
   @Column({
     type: 'enum',
@@ -90,6 +97,13 @@ export class Player {
   })
   @JoinColumn({ name: 'tournamentId' })
   tournament: Tournament;
+
+  @ManyToOne(() => TournamentTeam, (team) => team.players, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'tournamentTeamId' })
+  tournamentTeam: TournamentTeam | null;
 
   @OneToMany(() => PlayerTeam, (playerTeam) => playerTeam.player)
   playerTeams: PlayerTeam[];

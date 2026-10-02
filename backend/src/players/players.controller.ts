@@ -31,6 +31,15 @@ export class PlayersController {
     return this.playersService.findByTournament(tournamentId, user.sub);
   }
 
+  @Get(':playerId')
+  findOne(
+    @Param('tournamentId') tournamentId: string,
+    @Param('playerId') playerId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.playersService.findOne(tournamentId, playerId, user.sub);
+  }
+
   @Post()
   create(
     @Param('tournamentId') tournamentId: string,

@@ -50,6 +50,8 @@ export interface PlayerContract {
   nickname: string | null;
   imageUrl: string | null;
   favoriteTeamSlug: string | null;
+  tournamentTeamId: string | null;
+  isTeamAdmin: boolean;
   displayPreference: DisplayPreference;
   role: PlayerRole;
   ability: number | null;
@@ -202,6 +204,25 @@ export interface CreateTournamentTeamInput {
 export interface UpdateTournamentTeamInput {
   name?: string;
   imageUrl?: string | null;
+}
+
+export interface CreateRosterPlayerInput {
+  name: string;
+  nickname?: string;
+  imageUrl?: string;
+  favoriteTeamSlug?: string;
+  ability?: number;
+  injury?: string;
+  misses?: number;
+}
+
+export interface UpdateRosterTeamAdminInput {
+  isTeamAdmin: boolean;
+}
+
+export interface CreateRosterPlayerResult {
+  player: PlayerContract;
+  claimCode: string;
 }
 
 export interface TeamContract {

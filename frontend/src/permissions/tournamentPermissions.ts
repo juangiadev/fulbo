@@ -25,6 +25,12 @@ interface PlayerEditAccessInput {
   targetUserId: string | null;
 }
 
+interface TeamRosterTeamAccessInput {
+  actorRole: PlayerRole | null;
+  actorTournamentTeamId: string | null;
+  targetTournamentTeamId: string | null;
+}
+
 export function getTournamentPermissions(role: PlayerRole | null): TournamentPermissions {
   const safeRole = role ?? PlayerRole.USER;
   const isOwner = safeRole === PlayerRole.OWNER;
@@ -64,4 +70,37 @@ export function canEditTournamentPlayer({
   }
 
   return actorRole === PlayerRole.ADMIN && targetRole === PlayerRole.USER;
+}
+
+export function canViewTeamRoster({
+  actorRole,
+  actorTournamentTeamId,
+  targetTournamentTeamId,
+}: TeamRosterTeamAccessInput): boolean {
+  if (actorRole === PlayerRole.OWNER) {
+    return true;
+  }
+
+  return Boolean(
+    actorTournamentTeamId &&
+      targetTournamentTeamId &&
+      actorTournamentTeamId === targetTournamentTeamId,
+  );
+}
+
+export function canEditTeamRosterPlayer({
+  actorRole,
+  actorTournamentTeamId,
+  targetTournamentTeamId,
+}: TeamRosterTeamAccessInput): boolean {
+  if (actorRole === PlayerRole.OWNER) {
+    return true;
+  }
+
+  return Boolean(
+    actorRole === PlayerRole.ADMIN &&
+      actorTournamentTeamId &&
+      targetTournamentTeamId &&
+      actorTournamentTeamId === targetTournamentTeamId,
+  );
 }

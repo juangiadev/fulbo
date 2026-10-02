@@ -5,9 +5,11 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Player } from './player.entity';
 import { Tournament } from './tournament.entity';
 
 @Entity({ name: 'tournament_teams' })
@@ -36,4 +38,7 @@ export class TournamentTeam {
   })
   @JoinColumn({ name: 'tournamentId' })
   tournament: Tournament;
+
+  @OneToMany(() => Player, (player) => player.tournamentTeam)
+  players: Player[];
 }

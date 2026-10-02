@@ -1,12 +1,13 @@
-import type { TournamentTeamContract } from '@shared/contracts';
-import { TournamentType } from '@shared/enums';
-import { ArrowLeft, Pencil, Plus, ShieldAlert, Trash2, Users } from 'lucide-react';
+import type { PlayerContract, TournamentTeamContract } from '@shared/contracts';
+import { TournamentFormat, TournamentType } from '@shared/enums';
+import { ArrowLeft, Eye, Pencil, Plus, ShieldAlert, Trash2, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
 import { apiClient } from '../../api/client';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
+import { canEditTeamRosterPlayer, canViewTeamRoster } from '../../permissions/tournamentPermissions';
 import { useAppContext } from '../../state/AppContext';
 import styles from './TournamentTeamsPage.module.css';
 
@@ -14,8 +15,9 @@ const TEAM_NAME_MAX_LENGTH = 120;
 
 export function TournamentTeamsPage() {
   const { tournamentId } = useParams();
-  const { data } = useAppContext();
+  const { currentUser, data } = useAppContext();
   const [teams, setTeams] = useState<TournamentTeamContract[]>([]);
+  const [players, setPlayers] = useState<PlayerContract[]>([]);
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -41,11 +43,14 @@ export function TournamentTeamsPage() {
       }
     });
 
-    void apiClient
-      .getTournamentTeams(tournamentId)
-      .then((nextTeams) => {
+    void Promise.all([
+      apiClient.getTournamentTeams(tournamentId),
+      tournament.format === TournamentFormat.LIGA ? apiClient.getPlayers(tournamentId) : Promise.resolve([]),
+    ])
+      .then(([nextTeams, nextPlayers]) => {
         if (!cancelled) {
           setTeams(nextTeams);
+          setPlayers(nextPlayers);
         }
       })
       .catch(() => {
@@ -62,13 +67,14 @@ export function TournamentTeamsPage() {
     return () => {
       cancelled = true;
     };
-  }, [reloadKey, tournament?.type, tournamentId]);
+  }, [reloadKey, tournament?.format, tournament?.type, tournamentId]);
 
   if (!tournamentId || !tournament || tournament.type !== TournamentType.TEAMS) {
     return <Navigate replace to={tournamentId ? `/tournaments/${tournamentId}` : '/tournaments'} />;
   }
 
   const confirmingTeam = teams.find((team) => team.id === confirmingTeamId);
+  const myRosterPlayer = players.find((player) => player.userId === currentUser.id) ?? null;
 
   return (
     <section className={styles.page}>
@@ -167,41 +173,70 @@ export function TournamentTeamsPage() {
           </div>
         ) : (
           <div className={styles.teamGrid}>
-            {teams.map((team) => (
-              <article className={styles.teamCard} key={team.id}>
-                <div className={styles.teamIdentity}>
-                  <span className={styles.badge}>
-                    {team.imageUrl ? (
-                      <img alt="" className={styles.teamImage} src={team.imageUrl} />
-                    ) : (
-                      team.name.slice(0, 1).toUpperCase()
-                    )}
-                  </span>
-                  <div>
-                    <h3>{team.name}</h3>
-                    <p>Creado el {new Date(team.createdAt).toLocaleDateString('es-AR')}</p>
-                  </div>
-                </div>
+            {teams.map((team) => {
+              const isLigaTournament = tournament.format === TournamentFormat.LIGA;
+              const canViewRoster = isLigaTournament
+                ? canViewTeamRoster({
+                    actorRole: permissions.role,
+                    actorTournamentTeamId: myRosterPlayer?.tournamentTeamId ?? null,
+                    targetTournamentTeamId: team.id,
+                  })
+                : permissions.canManagePlayers;
+              const canEditRoster = isLigaTournament
+                ? canEditTeamRosterPlayer({
+                    actorRole: permissions.role,
+                    actorTournamentTeamId: myRosterPlayer?.tournamentTeamId ?? null,
+                    targetTournamentTeamId: team.id,
+                  })
+                : permissions.canManagePlayers;
+              const canDeleteTeam = permissions.isOwner;
 
-                {permissions.canManagePlayers ? (
-                  <div className={styles.teamActions}>
-                    <Link to={`/tournaments/${tournamentId}/teams/${team.id}/edit`}>
-                      <Pencil aria-hidden="true" size={16} />
-                      Editar
-                    </Link>
-                    <button
-                      className={styles.dangerButton}
-                      disabled={deletingTeamId === team.id}
-                      onClick={() => setConfirmingTeamId(team.id)}
-                      type="button"
-                    >
-                      <Trash2 aria-hidden="true" size={16} />
-                      Eliminar
-                    </button>
+              return (
+                <article className={styles.teamCard} key={team.id}>
+                  <div className={styles.teamIdentity}>
+                    <span className={styles.badge}>
+                      {team.imageUrl ? (
+                        <img alt="" className={styles.teamImage} src={team.imageUrl} />
+                      ) : (
+                        team.name.slice(0, 1).toUpperCase()
+                      )}
+                    </span>
+                    <div>
+                      <h3>{team.name}</h3>
+                      <p>Creado el {new Date(team.createdAt).toLocaleDateString('es-AR')}</p>
+                    </div>
                   </div>
-                ) : null}
-              </article>
-            ))}
+
+                  {canViewRoster || canEditRoster || canDeleteTeam ? (
+                    <div className={styles.teamActions}>
+                      {canViewRoster ? (
+                        <Link to={`/tournaments/${tournamentId}/teams/${team.id}`}>
+                          <Eye aria-hidden="true" size={16} />
+                          Ver
+                        </Link>
+                      ) : null}
+                      {canEditRoster ? (
+                        <Link to={`/tournaments/${tournamentId}/teams/${team.id}/edit`}>
+                          <Pencil aria-hidden="true" size={16} />
+                          Editar
+                        </Link>
+                      ) : null}
+                      {canDeleteTeam ? (
+                        <button
+                          className={styles.dangerButton}
+                          disabled={deletingTeamId === team.id}
+                          onClick={() => setConfirmingTeamId(team.id)}
+                          type="button"
+                        >
+                          <Trash2 aria-hidden="true" size={16} />
+                          Eliminar
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
           </div>
         )}
       </section>

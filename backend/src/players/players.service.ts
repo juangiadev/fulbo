@@ -6,7 +6,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createHash, randomBytes } from 'node:crypto';
-import { DisplayPreference, PlayerRole } from '../../../shared/src/enums';
+import {
+  DisplayPreference,
+  PlayerRole,
+  TournamentFormat,
+  TournamentType,
+} from '../../../shared/src/enums';
 import { Repository } from 'typeorm';
 import {
   assertTournamentEditor,
@@ -47,9 +52,39 @@ export class PlayersService {
       auth0Id,
     );
 
-    if ([PlayerRole.OWNER, PlayerRole.ADMIN].includes(actor.role)) {
+    const ligaTournament = await this.findLigaRosterTournament(tournamentId);
+
+    if (actor.role === PlayerRole.OWNER) {
       return this.playersRepository.find({
         where: { tournamentId },
+        relations: { user: true },
+        order: { createdAt: 'ASC' },
+      });
+    }
+
+    if (actor.role === PlayerRole.ADMIN) {
+      if (ligaTournament) {
+        if (!actor.tournamentTeamId) {
+          return [];
+        }
+
+        return this.playersRepository.find({
+          where: { tournamentId, tournamentTeamId: actor.tournamentTeamId },
+          relations: { user: true },
+          order: { createdAt: 'ASC' },
+        });
+      }
+
+      return this.playersRepository.find({
+        where: { tournamentId },
+        relations: { user: true },
+        order: { createdAt: 'ASC' },
+      });
+    }
+
+    if (ligaTournament && actor.tournamentTeamId) {
+      return this.playersRepository.find({
+        where: { tournamentId, tournamentTeamId: actor.tournamentTeamId },
         relations: { user: true },
         order: { createdAt: 'ASC' },
       });
@@ -61,6 +96,47 @@ export class PlayersService {
     });
 
     return ownPlayer ? [ownPlayer] : [];
+  }
+
+  async findOne(
+    tournamentId: string,
+    playerId: string,
+    auth0Id: string,
+  ): Promise<Player> {
+    const actor = await this.tournamentsService.findActorForTournament(
+      tournamentId,
+      auth0Id,
+    );
+    const target = await this.playersRepository.findOne({
+      where: { id: playerId, tournamentId },
+      relations: { user: true },
+    });
+
+    if (!target) {
+      throw new NotFoundException('Player not found');
+    }
+
+    const ligaRosterTournament = target.tournamentTeamId
+      ? await this.findLigaRosterTournament(target.tournamentId)
+      : null;
+
+    if (ligaRosterTournament) {
+      if (!this.canOpenLigaRosterPlayer(actor, target)) {
+        throw new ForbiddenException('You are not allowed to view this player');
+      }
+
+      return target;
+    }
+
+    if (
+      actor.role === PlayerRole.OWNER ||
+      actor.role === PlayerRole.ADMIN ||
+      actor.id === target.id
+    ) {
+      return target;
+    }
+
+    throw new ForbiddenException('You are not allowed to view this player');
   }
 
   async create(
@@ -164,6 +240,16 @@ export class PlayersService {
       throw new NotFoundException('Player not found');
     }
 
+    const ligaRosterTournament = target.tournamentTeamId
+      ? await this.findLigaRosterTournament(target.tournamentId)
+      : null;
+
+    if (ligaRosterTournament) {
+      const safeDto = this.buildLigaRosterUpdateDto(actor, target, dto);
+      Object.assign(target, safeDto);
+      return this.playersRepository.save(target);
+    }
+
     if (!canEditPlayer(actor, target)) {
       throw new ForbiddenException('You are not allowed to edit this player');
     }
@@ -237,6 +323,8 @@ export class PlayersService {
     if (!player) {
       throw new NotFoundException('Player not found');
     }
+
+    await this.assertCanManageLigaRosterPlayer(actor, player);
 
     if (player.userId) {
       throw new BadRequestException('This player is already linked to a user');
@@ -373,6 +461,8 @@ export class PlayersService {
       throw new NotFoundException('Player not found');
     }
 
+    await this.assertCanManageLigaRosterPlayer(actor, player);
+
     if (player.userId) {
       throw new BadRequestException('Player already linked');
     }
@@ -405,6 +495,8 @@ export class PlayersService {
       throw new NotFoundException('Player not found');
     }
 
+    await this.assertCanManageLigaRosterPlayer(actor, player);
+
     if (player.userId) {
       return { expiresAt: null };
     }
@@ -436,6 +528,89 @@ export class PlayersService {
     assertTournamentOwner(actor);
 
     await this.playersRepository.delete({ id: target.id });
+  }
+
+  private async findLigaRosterTournament(
+    tournamentId: string,
+  ): Promise<Tournament | null> {
+    const tournament = await this.tournamentsRepository.findOne({
+      where: { id: tournamentId },
+    });
+
+    if (
+      tournament?.type === TournamentType.TEAMS &&
+      tournament.format === TournamentFormat.LIGA
+    ) {
+      return tournament;
+    }
+
+    return null;
+  }
+
+  private buildLigaRosterUpdateDto(
+    actor: Player,
+    target: Player,
+    dto: UpdatePlayerDto,
+  ): Partial<Player> {
+    if (this.canManageLigaRosterPlayer(actor, target)) {
+      return this.omitRosterProtectedFields(dto);
+    }
+
+    throw new ForbiddenException('You are not allowed to edit this player');
+  }
+
+  private async assertCanManageLigaRosterPlayer(
+    actor: Player,
+    target: Player,
+  ): Promise<void> {
+    if (!target.tournamentTeamId) {
+      return;
+    }
+
+    const ligaRosterTournament = await this.findLigaRosterTournament(
+      target.tournamentId,
+    );
+    if (!ligaRosterTournament) {
+      return;
+    }
+
+    if (!this.canManageLigaRosterPlayer(actor, target)) {
+      throw new ForbiddenException('You are not allowed to manage this player');
+    }
+  }
+
+  private canManageLigaRosterPlayer(actor: Player, target: Player): boolean {
+    if (actor.role === PlayerRole.OWNER) {
+      return true;
+    }
+
+    return Boolean(
+      actor.role === PlayerRole.ADMIN &&
+      actor.tournamentTeamId &&
+      actor.tournamentTeamId === target.tournamentTeamId,
+    );
+  }
+
+  private canOpenLigaRosterPlayer(actor: Player, target: Player): boolean {
+    return (
+      actor.role === PlayerRole.OWNER ||
+      Boolean(
+        actor.tournamentTeamId &&
+        actor.tournamentTeamId === target.tournamentTeamId,
+      )
+    );
+  }
+
+  private omitRosterProtectedFields(dto: UpdatePlayerDto): Partial<Player> {
+    const safeDto = { ...dto } as Partial<Player>;
+    delete safeDto.userId;
+    delete safeDto.tournamentId;
+    delete safeDto.tournamentTeamId;
+    delete safeDto.isTeamAdmin;
+    delete safeDto.role;
+    delete safeDto.claimCodeHash;
+    delete safeDto.claimCodeExpiresAt;
+    return safeDto;
   }
 
   private fillPlayerProfileFromUser(player: Player, user: User): void {
