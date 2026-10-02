@@ -1,5 +1,5 @@
 import type { PlayerContract, StandingRowContract, TournamentSummaryContract } from '@shared/contracts';
-import { DisplayPreference, TournamentType } from '@shared/enums';
+import { DisplayPreference, TournamentFormat, TournamentType } from '@shared/enums';
 import { FAVORITE_TEAMS } from '@shared/favorite-teams';
 import {
   ArrowLeft,
@@ -29,13 +29,30 @@ interface BannerProps {
   statText: string;
   player: StandingRowContract | undefined;
   imageUrl: string | null | undefined;
+  kicker?: string;
+  emptyName?: string;
+  emptyStatText?: string;
+  emptySubtitle?: string;
+  prepared?: boolean;
+  subtitle?: string;
 }
 
-function Banner({ title, statText, player, imageUrl }: BannerProps) {
-  const playerInitial = player?.displayName.slice(0, 1).toUpperCase() ?? '–';
+function Banner({
+  title,
+  statText,
+  player,
+  imageUrl,
+  kicker = 'Figura del torneo',
+  emptyName = 'Todavía sin datos',
+  emptyStatText = 'Sin actividad registrada',
+  emptySubtitle = 'Completá partidos para descubrir las figuras',
+  prepared = false,
+  subtitle = 'Rendimiento destacado en la competencia',
+}: BannerProps) {
+  const playerInitial = player?.displayName.slice(0, 1).toUpperCase() ?? title.slice(0, 1).toUpperCase();
 
   return (
-    <article className={styles.banner}>
+    <article className={`${styles.banner} ${prepared ? styles.bannerPrepared : ''}`}>
       <div className={styles.bannerCopy}>
         <div className={styles.bannerTopRow}>
           <p className={styles.bannerTitle}>{title}</p>
@@ -43,14 +60,12 @@ function Banner({ title, statText, player, imageUrl }: BannerProps) {
         </div>
 
         <div className={styles.bannerMain}>
-          <p className={styles.bannerKicker}>Figura del torneo</p>
-          <h3 className={styles.bannerName}>{player?.displayName ?? 'Todavía sin datos'}</h3>
-          <p className={styles.bannerSubtitle}>
-            {player ? 'Rendimiento destacado en la competencia' : 'Completá partidos para descubrir las figuras'}
-          </p>
+          <p className={styles.bannerKicker}>{kicker}</p>
+          <h3 className={styles.bannerName}>{player?.displayName ?? emptyName}</h3>
+          <p className={styles.bannerSubtitle}>{player ? subtitle : emptySubtitle}</p>
         </div>
 
-        <span className={styles.bannerStat}>{player ? statText : 'Sin actividad registrada'}</span>
+        <span className={styles.bannerStat}>{player ? statText : emptyStatText}</span>
       </div>
 
       <div className={styles.bannerVisual}>
@@ -108,7 +123,9 @@ export function TournamentDetailsPage() {
   const trimmedName = name.trim();
   const leaderBannerImageUrl = leaderBannerImageUrlDraft ?? tournament?.leaderBannerImageUrl ?? '';
   const scorerBannerImageUrl = scorerBannerImageUrlDraft ?? tournament?.scorerBannerImageUrl ?? '';
+  const isTeamLigaTournament = tournament?.type === TournamentType.TEAMS && tournament.format === TournamentFormat.LIGA;
   const leader = summary?.standings.find((row) => row.playerId === summary.leaderPlayerId);
+  const leaderTeam = summary?.standings.find((row) => row.playerId === summary.leaderTeamId);
   const topScorer = summary?.standings.find((row) => row.playerId === summary.topScorerPlayerId);
   const roleLabel = permissions.isOwner ? 'Organizador' : permissions.isAdmin ? 'Administrador' : 'Jugador';
 
@@ -228,7 +245,11 @@ export function TournamentDetailsPage() {
               <p className={styles.eyebrow}>Configuración</p>
               <h2 id="editor-title">Editar presentación</h2>
             </div>
-            <span>Los banners personalizados reemplazan la imagen del jugador.</span>
+            <span>
+              {isTeamLigaTournament
+                ? 'Las tarjetas destacadas de Liga usan los datos de equipos.'
+                : 'Los banners personalizados reemplazan la imagen del jugador.'}
+            </span>
           </div>
 
           <form
@@ -270,26 +291,30 @@ export function TournamentDetailsPage() {
                 value={name}
               />
             </label>
-            <label>
-              Banner del puntero
-              <input
-                disabled={isSavingTournament}
-                onChange={(event) => setLeaderBannerImageUrlDraft(event.target.value)}
-                placeholder="https://..."
-                type="url"
-                value={leaderBannerImageUrl}
-              />
-            </label>
-            <label>
-              Banner del pichichi
-              <input
-                disabled={isSavingTournament}
-                onChange={(event) => setScorerBannerImageUrlDraft(event.target.value)}
-                placeholder="https://..."
-                type="url"
-                value={scorerBannerImageUrl}
-              />
-            </label>
+            {!isTeamLigaTournament ? (
+              <>
+                <label>
+                  Banner del puntero
+                  <input
+                    disabled={isSavingTournament}
+                    onChange={(event) => setLeaderBannerImageUrlDraft(event.target.value)}
+                    placeholder="https://..."
+                    type="url"
+                    value={leaderBannerImageUrl}
+                  />
+                </label>
+                <label>
+                  Banner del pichichi
+                  <input
+                    disabled={isSavingTournament}
+                    onChange={(event) => setScorerBannerImageUrlDraft(event.target.value)}
+                    placeholder="https://..."
+                    type="url"
+                    value={scorerBannerImageUrl}
+                  />
+                </label>
+              </>
+            ) : null}
             <div className={styles.editActions}>
               <button
                 className={styles.cancelButton}
@@ -378,9 +403,11 @@ export function TournamentDetailsPage() {
         <div className={styles.sectionHeading}>
           <div>
             <p className={styles.eyebrow}>Figuras</p>
-            <h2 id="highlights-title">Los que marcan la diferencia</h2>
+            <h2 id="highlights-title">
+              {isTeamLigaTournament ? 'La Liga en primer plano' : 'Los que marcan la diferencia'}
+            </h2>
           </div>
-          <p>El presente de la tabla y el gol.</p>
+          <p>{isTeamLigaTournament ? 'El presente de la tabla y lo que viene.' : 'El presente de la tabla y el gol.'}</p>
         </div>
 
         <div aria-busy={isLoadingBanners} className={styles.bannerGrid}>
@@ -395,6 +422,30 @@ export function TournamentDetailsPage() {
               <span className={styles.srOnly} role="status">
                 Cargando figuras del torneo...
               </span>
+            </>
+          ) : isTeamLigaTournament ? (
+            <>
+              <Banner
+                emptyName="Liga sin puntero"
+                emptySubtitle="Cargá resultados de Liga para ver al equipo que manda."
+                imageUrl={leaderTeam?.imageUrl}
+                kicker="Tabla de equipos"
+                player={leaderTeam}
+                statText={leaderTeam ? `${leaderTeam.points} puntos · ${leaderTeam.matchesPlayed} PJ` : 'Sin actividad registrada'}
+                subtitle={`${leaderTeam?.position ?? '–'}º en la tabla con ${leaderTeam?.points ?? 0} puntos`}
+                title="Equipo puntero"
+              />
+              <Banner
+                emptyName="Goleador"
+                emptyStatText="Preparado para planteles"
+                emptySubtitle="Va a aparecer cuando sumemos jugadores a los equipos; no contamos goles de equipo como goleador individual."
+                imageUrl={null}
+                kicker="Próximamente"
+                player={undefined}
+                prepared
+                statText="Preparado para planteles"
+                title="Goleador"
+              />
             </>
           ) : (
             <>

@@ -574,6 +574,23 @@
   font-weight: 700;
 }
 
+.bannerPrepared .bannerCopy {
+  background:
+    radial-gradient(circle at 0 100%, rgba(155, 214, 174, 0.13), transparent 14rem),
+    linear-gradient(135deg, rgba(5, 25, 14, 0.25), rgba(5, 25, 14, 0.65));
+}
+
+.bannerPrepared .bannerTitle {
+  border-color: rgba(155, 214, 174, 0.36);
+  color: #bdecc9;
+}
+
+.bannerPrepared .bannerVisual {
+  background:
+    radial-gradient(circle at 50% 45%, rgba(155, 214, 174, 0.19), transparent 7rem),
+    #123b26;
+}
+
 .bannerVisual {
   position: relative;
   min-width: 0;
