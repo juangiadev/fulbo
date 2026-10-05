@@ -3,7 +3,7 @@ import type {
   PlayerRecentMatchResultContract,
   TournamentSummaryContract,
 } from '@shared/contracts';
-import { TeamResult, TournamentType } from '@shared/enums';
+import { TeamResult, TournamentFormat, TournamentType } from '@shared/enums';
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { ContentSpinner } from '../../components/ContentSpinner';
@@ -22,6 +22,7 @@ export function TournamentTablePage() {
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
   const isTeamTournament = tournament?.type === TournamentType.TEAMS;
+  const isTeamLigaTournament = isTeamTournament && tournament?.format === TournamentFormat.LIGA;
   const topScoringTeamRow = isTeamTournament
     ? summary?.standings.reduce<(typeof summary.standings)[number] | null>((best, current) => {
         const currentGoals = current.goalsFor ?? current.goals;
@@ -172,6 +173,51 @@ export function TournamentTablePage() {
           </table>
         )}
       </div>
+
+      {isTeamLigaTournament && !isLoading ? (
+        <section aria-labelledby="scorer-ranking-title" className={styles.scorerSection}>
+          <div className={styles.scorerHeader}>
+            <h3 id="scorer-ranking-title">Tabla de goleadores</h3>
+            <p>Ranking individual por goles y partidos jugados.</p>
+          </div>
+          {summary?.scorerRanking.length ? (
+            <div className={styles.tableWrap}>
+              <table className={`${styles.table} ${styles.scorerTable}`}>
+                <thead>
+                  <tr>
+                    <th>Posicion</th>
+                    <th>Jugador</th>
+                    <th>Goles</th>
+                    <th>PJ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {summary.scorerRanking.map((row) => (
+                    <tr key={row.playerId}>
+                      <td>{row.position}</td>
+                      <td>
+                        <div className={styles.playerCell}>
+                          {row.imageUrl ? <img alt="" className={styles.avatar} src={row.imageUrl} /> : null}
+                          <span className={styles.playerName}>{row.name}</span>
+                          {summary.topScorerPlayerId === row.playerId ? (
+                            <img alt="Goleador" className={styles.topScorerIcon} src="/pelota-gol.png" />
+                          ) : null}
+                        </div>
+                      </td>
+                      <td>{row.goals}</td>
+                      <td>{row.matchesPlayed}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className={styles.emptyRanking} role="status">
+              Todavía no hay goleadores. Cargá partidos finalizados con participantes para armar el ranking.
+            </div>
+          )}
+        </section>
+      ) : null}
     </section>
   );
 }

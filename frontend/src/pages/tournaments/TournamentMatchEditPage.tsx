@@ -1,5 +1,5 @@
 import type { MatchContract, PlayerContract, TournamentTeamContract } from '@shared/contracts';
-import { MatchStatus, TournamentType } from '@shared/enums';
+import { MatchStatus, TournamentFormat, TournamentType } from '@shared/enums';
 import {
   ArrowLeft,
   CalendarClock,
@@ -18,6 +18,7 @@ import { sileo } from 'sileo';
 import { apiClient } from '../../api/client';
 import { ContentSpinner } from '../../components/ContentSpinner';
 import { DateTimePicker } from '../../components/DateTimePicker';
+import { LigaTeamMatchScorerEditor } from '../../components/LigaTeamMatchScorerEditor';
 import {
   MatchPlayersTableBuilder,
   type MatchPlayersTableBuilderRef,
@@ -61,6 +62,7 @@ export function TournamentMatchEditPage() {
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
   const permissions = useTournamentPermissions(tournamentId);
   const isTeamTournament = tournament?.type === TournamentType.TEAMS;
+  const isLigaTeamTournament = isTeamTournament && tournament?.format === TournamentFormat.LIGA;
 
   const handleTeamSummaryChange = useCallback(
     (summary: {
@@ -353,14 +355,24 @@ export function TournamentMatchEditPage() {
                   {isTeamTournament ? 'Equipos y resultado' : 'Jugadores y goles'}
                 </h2>
                 <p>
-                  {isTeamTournament
-                    ? 'Elegí los equipos registrados y actualizá el resultado total.'
-                    : 'Organizá los equipos, ajustá sus colores y registrá el resultado.'}
+                  {isLigaTeamTournament
+                    ? 'Elegí los participantes del plantel y cargá sus goles; el total se calcula solo.'
+                    : isTeamTournament
+                      ? 'Elegí los equipos registrados y actualizá el resultado total.'
+                      : 'Organizá los equipos, ajustá sus colores y registrá el resultado.'}
                 </p>
               </div>
             </div>
 
-            {isTeamTournament ? (
+            {isLigaTeamTournament ? (
+              <LigaTeamMatchScorerEditor
+                canEdit={permissions.canEditTournament}
+                matchId={selectedMatch.id}
+                onSummaryChange={handleTeamSummaryChange}
+                ref={teamResultRef}
+                tournamentTeams={tournamentTeams}
+              />
+            ) : isTeamTournament ? (
               <TeamMatchResultEditor
                 canEdit={permissions.canEditTournament}
                 matchId={selectedMatch.id}

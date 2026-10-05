@@ -1,4 +1,4 @@
-import { MatchStatus, TournamentType } from '@shared/enums';
+import { MatchStatus, TournamentFormat, TournamentType } from '@shared/enums';
 import type {
   MatchContract,
   MatchMvpVotingContract,
@@ -49,6 +49,7 @@ export function TournamentMatchDetailsPage() {
 
   const tournament = data.tournaments.find((item) => item.id === tournamentId);
   const isTeamTournament = tournament?.type === TournamentType.TEAMS;
+  const isLigaTeamTournament = isTeamTournament && tournament?.format === TournamentFormat.LIGA;
 
   useEffect(() => {
     if (!tournamentId) {
@@ -214,6 +215,8 @@ export function TournamentMatchDetailsPage() {
         );
 
     return {
+      teamA,
+      teamB,
       teamAName: teamA?.name ?? 'Team A',
       teamBName: teamB?.name ?? 'Team B',
       teamAColor: teamA?.color ?? '#0b2818',
@@ -222,6 +225,23 @@ export function TournamentMatchDetailsPage() {
       teamBGoals,
     };
   }, [isTeamTournament, teams]);
+
+  const ligaScorers = useMemo(() => {
+    const mapRows = (team: TeamContract | null) =>
+      ((team?.playerTeams as PlayerTeamContract[] | undefined) ?? []).map((row) => {
+        const player = players.find((item) => item.id === row.playerId);
+        return {
+          id: row.id,
+          name: player?.nickname ?? player?.name ?? 'Jugador sin plantel actual',
+          goals: row.goals,
+        };
+      });
+
+    return {
+      teamA: mapRows(resultSummary.teamA),
+      teamB: mapRows(resultSummary.teamB),
+    };
+  }, [players, resultSummary.teamA, resultSummary.teamB]);
 
   if (!tournamentId || !matchId || !tournament || tournament.membershipStatus === 'PENDING') {
     return <Navigate replace to="/tournaments" />;
@@ -293,6 +313,39 @@ export function TournamentMatchDetailsPage() {
           </tbody>
         </table>
       </div>
+
+      {isLigaTeamTournament ? (
+        <article className={styles.card}>
+          <h3 className={styles.mvpTitle}>Participantes y goles</h3>
+          <div className={styles.resultTableWrap}>
+            <table className={styles.resultTable}>
+              <thead>
+                <tr>
+                  <th>{resultSummary.teamAName}</th>
+                  <th>{resultSummary.teamBName}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: Math.max(ligaScorers.teamA.length, ligaScorers.teamB.length, 1) }, (_, index) => {
+                  const teamAPlayer = ligaScorers.teamA[index];
+                  const teamBPlayer = ligaScorers.teamB[index];
+                  return (
+                    <tr key={`${teamAPlayer?.id ?? 'empty-a'}-${teamBPlayer?.id ?? 'empty-b'}-${index}`}>
+                      <td>
+                        {teamAPlayer ? `${teamAPlayer.name} · ${teamAPlayer.goals} goles` : '—'}
+                      </td>
+                      <td>
+                        {teamBPlayer ? `${teamBPlayer.name} · ${teamBPlayer.goals} goles` : '—'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className={styles.meta}>Los jugadores con 0 goles cuentan como participaciones.</p>
+        </article>
+      ) : null}
 
       {!isTeamTournament && selectedMatch.status === MatchStatus.FINISHED ? (
         <article className={styles.card}>

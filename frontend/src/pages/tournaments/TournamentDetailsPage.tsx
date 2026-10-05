@@ -1,4 +1,4 @@
-import type { PlayerContract, StandingRowContract, TournamentSummaryContract } from '@shared/contracts';
+import type { PlayerContract, TournamentSummaryContract } from '@shared/contracts';
 import { DisplayPreference, TournamentFormat, TournamentType } from '@shared/enums';
 import { FAVORITE_TEAMS } from '@shared/favorite-teams';
 import {
@@ -24,10 +24,15 @@ import styles from './TournamentDetailsPage.module.css';
 
 const TOURNAMENT_NAME_MAX_LENGTH = 150;
 
+interface BannerPlayer {
+  displayName: string;
+  position: number;
+}
+
 interface BannerProps {
   title: string;
   statText: string;
-  player: StandingRowContract | undefined;
+  player: BannerPlayer | undefined;
   imageUrl: string | null | undefined;
   kicker?: string;
   emptyName?: string;
@@ -126,7 +131,11 @@ export function TournamentDetailsPage() {
   const isTeamLigaTournament = tournament?.type === TournamentType.TEAMS && tournament.format === TournamentFormat.LIGA;
   const leader = summary?.standings.find((row) => row.playerId === summary.leaderPlayerId);
   const leaderTeam = summary?.standings.find((row) => row.playerId === summary.leaderTeamId);
-  const topScorer = summary?.standings.find((row) => row.playerId === summary.topScorerPlayerId);
+  const topScorerRow = summary?.scorerRanking.find((row) => row.playerId === summary.topScorerPlayerId);
+  const topScorerStanding = summary?.standings.find((row) => row.playerId === summary.topScorerPlayerId);
+  const topScorer = isTeamLigaTournament && topScorerRow
+    ? { displayName: topScorerRow.name, position: topScorerRow.position }
+    : topScorerStanding;
   const roleLabel = permissions.isOwner ? 'Organizador' : permissions.isAdmin ? 'Administrador' : 'Jugador';
 
   const resolvePlayerBannerImage = (playerId: string | null | undefined): string | null => {
@@ -157,7 +166,7 @@ export function TournamentDetailsPage() {
   };
 
   const leaderAutoImage = resolvePlayerBannerImage(summary?.leaderPlayerId);
-  const scorerAutoImage = resolvePlayerBannerImage(summary?.topScorerPlayerId);
+  const scorerAutoImage = isTeamLigaTournament ? (topScorerRow?.imageUrl ?? null) : resolvePlayerBannerImage(summary?.topScorerPlayerId);
 
   if (!tournamentId) {
     return <Navigate replace to="/tournaments" />;
@@ -436,14 +445,14 @@ export function TournamentDetailsPage() {
                 title="Equipo puntero"
               />
               <Banner
-                emptyName="Goleador"
-                emptyStatText="Preparado para planteles"
-                emptySubtitle="Va a aparecer cuando sumemos jugadores a los equipos; no contamos goles de equipo como goleador individual."
-                imageUrl={null}
-                kicker="Próximamente"
-                player={undefined}
-                prepared
-                statText="Preparado para planteles"
+                emptyName="Liga sin goleador"
+                emptyStatText="Sin goles registrados"
+                emptySubtitle="Cargá participantes y goles para ver al pichichi de la Liga."
+                imageUrl={scorerAutoImage}
+                kicker="Pichichi de Liga"
+                player={topScorer}
+                statText={topScorerRow ? `${topScorerRow.goals} goles · ${topScorerRow.matchesPlayed} PJ` : 'Sin goles registrados'}
+                subtitle={topScorerRow ? `${topScorerRow.matchesPlayed} partidos jugados` : undefined}
                 title="Goleador"
               />
             </>
@@ -457,8 +466,8 @@ export function TournamentDetailsPage() {
               />
               <Banner
                 imageUrl={tournament.scorerBannerImageUrl || scorerAutoImage}
-                player={topScorer}
-                statText={topScorer ? `${topScorer.goals} goles` : 'Sin actividad registrada'}
+                player={topScorerStanding}
+                statText={topScorerStanding ? `${topScorerStanding.goals} goles` : 'Sin actividad registrada'}
                 title="Pichichi"
               />
             </>
