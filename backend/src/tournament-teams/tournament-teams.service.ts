@@ -223,7 +223,10 @@ export class TournamentTeamsService {
       throw new ForbiddenException('Owner player cannot be removed');
     }
 
-    await this.playersRepository.delete({ id: target.id });
+    target.tournamentTeamId = null;
+    target.isTeamAdmin = false;
+
+    await this.playersRepository.save(target);
   }
 
   private get playersRepository(): Repository<Player> {

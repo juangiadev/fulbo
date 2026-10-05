@@ -213,6 +213,30 @@ describe('TournamentTeamsService roster operations', () => {
     expect(player.isTeamAdmin).toBe(true);
   });
 
+  it('unassigns a removed Liga roster player without deleting historical scorer rows', async () => {
+    const rosterPlayer = {
+      id: 'player-1',
+      tournamentId: 'tournament-1',
+      tournamentTeamId: 'team-1',
+      role: PlayerRole.USER,
+      isTeamAdmin: true,
+    } as Player;
+    playersRepository.findOne.mockResolvedValue(rosterPlayer);
+
+    await expect(
+      service.removeRosterPlayer('team-1', 'player-1', 'auth0|owner'),
+    ).resolves.toBeUndefined();
+
+    expect(playersRepository.delete).not.toHaveBeenCalled();
+    expect(playersRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'player-1',
+        tournamentTeamId: null,
+        isTeamAdmin: false,
+      }),
+    );
+  });
+
   it('allows same-team tournament admins to update roster player fields', async () => {
     const tournamentAdmin = {
       id: 'admin-player',

@@ -448,8 +448,6 @@ export class MatchesService {
   ): Promise<{ success: true }> {
     const teamATournamentTeamId = dto.teamATournamentTeamId;
     const teamBTournamentTeamId = dto.teamBTournamentTeamId;
-    const teamAGoalsInput = dto.teamAGoals;
-    const teamBGoalsInput = dto.teamBGoals;
 
     if (!teamATournamentTeamId || !teamBTournamentTeamId) {
       throw new BadRequestException('Both tournament teams are required');
@@ -458,20 +456,6 @@ export class MatchesService {
     if (teamATournamentTeamId === teamBTournamentTeamId) {
       throw new BadRequestException('Tournament teams must be different');
     }
-
-    if (
-      typeof teamAGoalsInput !== 'number' ||
-      typeof teamBGoalsInput !== 'number' ||
-      !Number.isInteger(teamAGoalsInput) ||
-      !Number.isInteger(teamBGoalsInput) ||
-      teamAGoalsInput < 0 ||
-      teamBGoalsInput < 0
-    ) {
-      throw new BadRequestException('Team goals must be non-negative integers');
-    }
-
-    const teamAGoals = teamAGoalsInput;
-    const teamBGoals = teamBGoalsInput;
 
     const tournamentTeams = await this.matchesRepository.manager
       .getRepository(TournamentTeam)
@@ -496,6 +480,34 @@ export class MatchesService {
     ) {
       throw new BadRequestException(
         'Tournament teams must belong to the same tournament as the match',
+      );
+    }
+
+    const isTeamLiga = match.tournament.format === TournamentFormat.LIGA;
+    const teamAEntries = isTeamLiga ? dto.teamA : [];
+    const teamBEntries = isTeamLiga ? dto.teamB : [];
+    let teamAGoals: number;
+    let teamBGoals: number;
+
+    if (isTeamLiga) {
+      this.assertTeamLigaParticipantsSelected(teamAEntries, teamBEntries);
+      const allEntries = [...teamAEntries, ...teamBEntries];
+      this.assertValidPlayerGoalCounts(allEntries);
+      this.assertDistinctPlayerGoalEntries(allEntries);
+      teamAGoals = await this.getValidatedRosterGoalTotal(
+        match.tournamentId,
+        teamA.id,
+        teamAEntries,
+      );
+      teamBGoals = await this.getValidatedRosterGoalTotal(
+        match.tournamentId,
+        teamB.id,
+        teamBEntries,
+      );
+    } else {
+      [teamAGoals, teamBGoals] = this.getValidatedAggregateTeamGoals(
+        dto.teamAGoals,
+        dto.teamBGoals,
       );
     }
 
@@ -555,12 +567,19 @@ export class MatchesService {
       const savedTeams = await teamsRepo.save([matchTeamA, matchTeamB]);
       const savedTeamIds = savedTeams.map((team) => team.id);
 
-      await playerTeamsRepo
-        .createQueryBuilder()
-        .delete()
-        .from(PlayerTeam)
-        .where('"teamId" IN (:...teamIds)', { teamIds: savedTeamIds })
-        .execute();
+      if (isTeamLiga) {
+        await Promise.all([
+          this.syncTeamGoalRows(playerTeamsRepo, savedTeams[0], teamAEntries),
+          this.syncTeamGoalRows(playerTeamsRepo, savedTeams[1], teamBEntries),
+        ]);
+      } else {
+        await playerTeamsRepo
+          .createQueryBuilder()
+          .delete()
+          .from(PlayerTeam)
+          .where('"teamId" IN (:...teamIds)', { teamIds: savedTeamIds })
+          .execute();
+      }
 
       const staleTeams = existingTeams.filter(
         (team) => !savedTeamIds.includes(team.id),
@@ -571,6 +590,136 @@ export class MatchesService {
     });
 
     return { success: true };
+  }
+
+  private getValidatedAggregateTeamGoals(
+    teamAGoalsInput: number | undefined,
+    teamBGoalsInput: number | undefined,
+  ): [number, number] {
+    if (
+      typeof teamAGoalsInput !== 'number' ||
+      typeof teamBGoalsInput !== 'number' ||
+      !Number.isInteger(teamAGoalsInput) ||
+      !Number.isInteger(teamBGoalsInput) ||
+      teamAGoalsInput < 0 ||
+      teamBGoalsInput < 0
+    ) {
+      throw new BadRequestException('Team goals must be non-negative integers');
+    }
+
+    return [teamAGoalsInput, teamBGoalsInput];
+  }
+
+  private assertTeamLigaParticipantsSelected(
+    teamAEntries: Array<{ playerId: string; goals: number }>,
+    teamBEntries: Array<{ playerId: string; goals: number }>,
+  ): void {
+    if (teamAEntries.length === 0 || teamBEntries.length === 0) {
+      throw new BadRequestException(
+        'At least one roster participant is required for each team',
+      );
+    }
+  }
+
+  private async getValidatedRosterGoalTotal(
+    tournamentId: string,
+    tournamentTeamId: string,
+    entries: Array<{ playerId: string; goals: number }>,
+  ): Promise<number> {
+    if (entries.length === 0) {
+      return 0;
+    }
+
+    const players = await this.playersRepository.find({
+      where: entries.map((entry) => ({ id: entry.playerId })),
+    });
+
+    if (players.length !== entries.length) {
+      throw new BadRequestException('Some players do not exist');
+    }
+
+    const playerById = new Map(players.map((player) => [player.id, player]));
+    const invalidEntry = entries.find((entry) => {
+      const player = playerById.get(entry.playerId);
+      return (
+        !player ||
+        player.tournamentId !== tournamentId ||
+        player.tournamentTeamId !== tournamentTeamId
+      );
+    });
+
+    if (invalidEntry) {
+      throw new BadRequestException(
+        'Player goals must belong to the selected tournament team roster',
+      );
+    }
+
+    return entries.reduce((sum, entry) => sum + entry.goals, 0);
+  }
+
+  private assertValidPlayerGoalCounts(
+    entries: Array<{ playerId: string; goals: number }>,
+  ): void {
+    const invalidGoalEntry = entries.find(
+      (entry) => !Number.isInteger(entry.goals) || entry.goals < 0,
+    );
+    if (invalidGoalEntry) {
+      throw new BadRequestException(
+        'Player goals must be non-negative integers',
+      );
+    }
+  }
+
+  private assertDistinctPlayerGoalEntries(
+    entries: Array<{ playerId: string }>,
+  ): void {
+    const playerIds = entries.map((entry) => entry.playerId);
+    if (new Set(playerIds).size !== playerIds.length) {
+      throw new BadRequestException('Player can only appear once per match');
+    }
+  }
+
+  private async syncTeamGoalRows(
+    playerTeamsRepo: Repository<PlayerTeam>,
+    team: Team,
+    entries: Array<{ playerId: string; goals: number }>,
+  ): Promise<void> {
+    if (entries.length === 0) {
+      await playerTeamsRepo
+        .createQueryBuilder()
+        .delete()
+        .from(PlayerTeam)
+        .where('"teamId" = :teamId', { teamId: team.id })
+        .execute();
+      return;
+    }
+
+    await playerTeamsRepo
+      .createQueryBuilder()
+      .insert()
+      .into(PlayerTeam)
+      .values(
+        entries.map((entry) => ({
+          teamId: team.id,
+          playerId: entry.playerId,
+          goals: entry.goals,
+          injury: null,
+        })),
+      )
+      .onConflict(
+        '("playerId", "teamId") DO UPDATE SET "goals" = EXCLUDED."goals", "updatedAt" = now()',
+      )
+      .execute();
+
+    await playerTeamsRepo
+      .createQueryBuilder()
+      .delete()
+      .from(PlayerTeam)
+      .where('"teamId" = :teamId', { teamId: team.id })
+      .andWhere('"playerId" NOT IN (:...playerIds)', {
+        playerIds: entries.map((entry) => entry.playerId),
+      })
+      .execute();
   }
 
   async getMvpVoting(
