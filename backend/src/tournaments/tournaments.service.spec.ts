@@ -12,6 +12,7 @@ import {
   DEFAULT_PLAYER_ABILITY,
   Match,
   Player,
+  PlayerTeam,
   Team,
   Tournament,
   TournamentTeam,
@@ -77,6 +78,24 @@ const createPlayer = (overrides: Partial<Player>): Player =>
     tournament: overrides.tournament as Tournament,
     playerTeams: overrides.playerTeams ?? [],
   }) as Player;
+
+const createPlayerTeam = (overrides: {
+  player: Player;
+  team: Team & { match: Match };
+  goals: number;
+  id?: string;
+}): PlayerTeam =>
+  ({
+    id: overrides.id ?? `${overrides.player.id}-${overrides.team.id}`,
+    playerId: overrides.player.id,
+    teamId: overrides.team.id,
+    goals: overrides.goals,
+    injury: null,
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+    player: overrides.player,
+    team: overrides.team,
+  }) as PlayerTeam;
 
 describe('TournamentsService', () => {
   let service: TournamentsService;
@@ -426,6 +445,7 @@ describe('TournamentsService', () => {
       leaderPlayerId: null,
       leaderTeamId: null,
       topScorerPlayerId: null,
+      scorerRanking: [],
     });
   });
 
@@ -511,6 +531,239 @@ describe('TournamentsService', () => {
           position: 2,
           recentForm: [expect.objectContaining({ result: TeamResult.LOSER })],
         },
+      ],
+    });
+  });
+
+  it('builds Liga scorer ranking from finished historical player appearances', async () => {
+    jest
+      .spyOn(service, 'findActorForTournament')
+      .mockResolvedValue(
+        createPlayer({ role: PlayerRole.OWNER, tournamentId: 'tournament-1' }),
+      );
+
+    tournamentsRepository.findOne.mockResolvedValue({
+      id: 'tournament-1',
+      type: TournamentType.TEAMS,
+      format: TournamentFormat.LIGA,
+    } as Tournament);
+
+    const tournamentTeams = [
+      {
+        id: 'team-a',
+        tournamentId: 'tournament-1',
+        name: 'Equipo A',
+        imageUrl: null,
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      },
+      {
+        id: 'team-b',
+        tournamentId: 'tournament-1',
+        name: 'Equipo B',
+        imageUrl: null,
+        createdAt: new Date('2026-01-02T00:00:00.000Z'),
+      },
+    ] as TournamentTeam[];
+
+    const activeScorer = createPlayer({
+      id: 'player-active',
+      name: 'Zeta Active',
+      imageUrl: 'https://example.test/zeta.png',
+      tournamentId: 'tournament-1',
+      tournamentTeamId: 'team-a',
+    });
+    const historicalScorer = createPlayer({
+      id: 'player-historical',
+      name: 'Alpha Historical',
+      imageUrl: 'https://example.test/alpha.png',
+      tournamentId: 'tournament-1',
+      tournamentTeamId: null,
+    });
+    const zeroGoalParticipant = createPlayer({
+      id: 'player-zero',
+      name: 'Zero Participant',
+      tournamentId: 'tournament-1',
+      tournamentTeamId: 'team-b',
+    });
+    const unfinishedOnly = createPlayer({
+      id: 'player-unfinished',
+      name: 'Unfinished Goals',
+      tournamentId: 'tournament-1',
+    });
+
+    const finishedMatchOne = {
+      id: 'match-1',
+      matchday: 1,
+      kickoffAt: new Date('2026-02-01T00:00:00.000Z'),
+      status: MatchStatus.FINISHED,
+      tournamentId: 'tournament-1',
+    } as Match;
+    const finishedMatchTwo = {
+      id: 'match-2',
+      matchday: 2,
+      kickoffAt: new Date('2026-02-08T00:00:00.000Z'),
+      status: MatchStatus.FINISHED,
+      tournamentId: 'tournament-1',
+    } as Match;
+    const pendingMatch = {
+      id: 'match-3',
+      matchday: 3,
+      kickoffAt: new Date('2026-02-15T00:00:00.000Z'),
+      status: MatchStatus.PENDING,
+      tournamentId: 'tournament-1',
+    } as Match;
+
+    const teamAOne = {
+      id: 'team-a-match-1',
+      matchId: finishedMatchOne.id,
+      tournamentTeamId: 'team-a',
+      goals: 3,
+      match: finishedMatchOne,
+    } as Team & { match: Match };
+    const teamBOne = {
+      id: 'team-b-match-1',
+      matchId: finishedMatchOne.id,
+      tournamentTeamId: 'team-b',
+      goals: 1,
+      match: finishedMatchOne,
+    } as Team & { match: Match };
+    const teamATwo = {
+      id: 'team-a-match-2',
+      matchId: finishedMatchTwo.id,
+      tournamentTeamId: 'team-a',
+      goals: 1,
+      match: finishedMatchTwo,
+    } as Team & { match: Match };
+    const teamAUnfinished = {
+      id: 'team-a-match-3',
+      matchId: pendingMatch.id,
+      tournamentTeamId: 'team-a',
+      goals: 9,
+      match: pendingMatch,
+    } as Team & { match: Match };
+
+    matchesRepository.manager.getRepository.mockReturnValue({
+      find: jest.fn().mockResolvedValue(tournamentTeams),
+    });
+    matchesRepository.find.mockResolvedValue([
+      {
+        ...finishedMatchOne,
+        teams: [teamAOne, teamBOne],
+      },
+      {
+        ...finishedMatchTwo,
+        teams: [teamATwo, { ...teamBOne, id: 'team-b-match-2', goals: 0 }],
+      },
+    ]);
+    playerTeamsRepository.find.mockResolvedValue([
+      createPlayerTeam({ player: activeScorer, team: teamAOne, goals: 2 }),
+      createPlayerTeam({ player: activeScorer, team: teamATwo, goals: 1 }),
+      createPlayerTeam({
+        player: historicalScorer,
+        team: teamBOne,
+        goals: 3,
+      }),
+      createPlayerTeam({
+        player: zeroGoalParticipant,
+        team: teamBOne,
+        goals: 0,
+      }),
+      createPlayerTeam({
+        player: unfinishedOnly,
+        team: teamAUnfinished,
+        goals: 9,
+      }),
+    ]);
+
+    await expect(
+      service.getSummary('tournament-1', 'auth0|owner'),
+    ).resolves.toMatchObject({
+      tournamentId: 'tournament-1',
+      topScorerPlayerId: 'player-historical',
+      scorerRanking: [
+        {
+          position: 1,
+          playerId: 'player-historical',
+          name: 'Alpha Historical',
+          imageUrl: 'https://example.test/alpha.png',
+          goals: 3,
+          matchesPlayed: 1,
+        },
+        {
+          position: 2,
+          playerId: 'player-active',
+          name: 'Zeta Active',
+          imageUrl: 'https://example.test/zeta.png',
+          goals: 3,
+          matchesPlayed: 2,
+        },
+      ],
+    });
+  });
+
+  it('orders Liga scorer ties by player name and id deterministically', async () => {
+    jest
+      .spyOn(service, 'findActorForTournament')
+      .mockResolvedValue(
+        createPlayer({ role: PlayerRole.OWNER, tournamentId: 'tournament-1' }),
+      );
+
+    tournamentsRepository.findOne.mockResolvedValue({
+      id: 'tournament-1',
+      type: TournamentType.TEAMS,
+      format: TournamentFormat.LIGA,
+    } as Tournament);
+
+    matchesRepository.manager.getRepository.mockReturnValue({
+      find: jest.fn().mockResolvedValue([]),
+    });
+    matchesRepository.find.mockResolvedValue([]);
+
+    const match = {
+      id: 'match-1',
+      matchday: 1,
+      kickoffAt: new Date('2026-02-01T00:00:00.000Z'),
+      status: MatchStatus.FINISHED,
+      tournamentId: 'tournament-1',
+    } as Match;
+    const team = {
+      id: 'team-match-1',
+      matchId: match.id,
+      tournamentTeamId: 'team-a',
+      goals: 6,
+      match,
+    } as Team & { match: Match };
+
+    const beta = createPlayer({
+      id: 'player-beta',
+      name: 'Beta',
+      tournamentId: 'tournament-1',
+    });
+    const alphaLaterId = createPlayer({
+      id: 'player-z-alpha',
+      name: 'Alpha',
+      tournamentId: 'tournament-1',
+    });
+    const alphaEarlierId = createPlayer({
+      id: 'player-a-alpha',
+      name: 'Alpha',
+      tournamentId: 'tournament-1',
+    });
+
+    playerTeamsRepository.find.mockResolvedValue([
+      createPlayerTeam({ player: beta, team, goals: 2 }),
+      createPlayerTeam({ player: alphaLaterId, team, goals: 2 }),
+      createPlayerTeam({ player: alphaEarlierId, team, goals: 2 }),
+    ]);
+
+    await expect(
+      service.getSummary('tournament-1', 'auth0|owner'),
+    ).resolves.toMatchObject({
+      topScorerPlayerId: 'player-a-alpha',
+      scorerRanking: [
+        expect.objectContaining({ position: 1, playerId: 'player-a-alpha' }),
+        expect.objectContaining({ position: 2, playerId: 'player-z-alpha' }),
+        expect.objectContaining({ position: 3, playerId: 'player-beta' }),
       ],
     });
   });

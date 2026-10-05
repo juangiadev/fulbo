@@ -498,6 +498,7 @@ export class TournamentsService {
         leaderPlayerId: null,
         leaderTeamId: null,
         topScorerPlayerId: null,
+        scorerRanking: [],
       };
     }
 
@@ -702,6 +703,7 @@ export class TournamentsService {
       leaderPlayerId: leader?.playerId ?? null,
       leaderTeamId: null,
       topScorerPlayerId: topScorer?.playerId ?? null,
+      scorerRanking: [],
     };
   }
 
@@ -797,13 +799,90 @@ export class TournamentsService {
       })
       .map((row, index) => ({ ...row, position: index + 1 }));
 
+    const scorerRanking = await this.getTeamLigaScorerRanking(tournamentId);
+
     return {
       tournamentId,
       standings,
       leaderPlayerId: null,
       leaderTeamId: standings[0]?.playerId ?? null,
-      topScorerPlayerId: null,
+      topScorerPlayerId: scorerRanking[0]?.playerId ?? null,
+      scorerRanking,
     };
+  }
+
+  private async getTeamLigaScorerRanking(tournamentId: string) {
+    const scorerRows =
+      (await this.playerTeamsRepository.find({
+        where: {
+          team: {
+            match: {
+              tournamentId,
+              status: MatchStatus.FINISHED,
+            },
+          },
+        },
+        relations: {
+          player: true,
+          team: {
+            match: true,
+          },
+        },
+      })) ?? [];
+
+    const scorersByPlayerId = new Map<
+      string,
+      {
+        playerId: string;
+        name: string;
+        imageUrl: string | null;
+        goals: number;
+        matchesPlayed: number;
+      }
+    >();
+
+    scorerRows.forEach((row) => {
+      const player = row.player;
+      const match = row.team?.match;
+      if (
+        !player ||
+        match?.tournamentId !== tournamentId ||
+        match.status !== MatchStatus.FINISHED
+      ) {
+        return;
+      }
+
+      const existing = scorersByPlayerId.get(row.playerId) ?? {
+        playerId: row.playerId,
+        name: player.name,
+        imageUrl: player.imageUrl,
+        goals: 0,
+        matchesPlayed: 0,
+      };
+
+      existing.goals += row.goals;
+      existing.matchesPlayed += 1;
+      scorersByPlayerId.set(row.playerId, existing);
+    });
+
+    return Array.from(scorersByPlayerId.values())
+      .filter((row) => row.goals > 0)
+      .sort((a, b) => {
+        if (b.goals !== a.goals) {
+          return b.goals - a.goals;
+        }
+        if (a.matchesPlayed !== b.matchesPlayed) {
+          return a.matchesPlayed - b.matchesPlayed;
+        }
+
+        const nameComparison = a.name.localeCompare(b.name);
+        if (nameComparison !== 0) {
+          return nameComparison;
+        }
+
+        return a.playerId.localeCompare(b.playerId);
+      })
+      .map((row, index) => ({ ...row, position: index + 1 }));
   }
 
   private applyTeamLigaMatchStats(

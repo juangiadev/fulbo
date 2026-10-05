@@ -111,12 +111,22 @@ export interface StandingRowContract {
   recentForm: PlayerRecentMatchResultContract[];
 }
 
+export interface ScorerRankingRowContract {
+  playerId: string;
+  name: string;
+  imageUrl: string | null;
+  goals: number;
+  matchesPlayed: number;
+  position: number;
+}
+
 export interface TournamentSummaryContract {
   tournamentId: string;
   standings: StandingRowContract[];
   leaderPlayerId: string | null;
   leaderTeamId?: string | null;
   topScorerPlayerId: string | null;
+  scorerRanking: ScorerRankingRowContract[];
 }
 
 export interface MatchContract {
