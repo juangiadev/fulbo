@@ -1,0 +1,56 @@
+.emptyState {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: center;
+  padding: clamp(1.4rem, 4vw, 2.25rem);
+  border: 1px solid rgba(232, 198, 92, 0.27);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 95% 10%, rgba(232, 198, 92, 0.1), transparent 18rem),
+    rgba(255, 255, 255, 0.035);
+}
+
+.icon {
+  display: grid;
+  width: 66px;
+  height: 66px;
+  place-items: center;
+  border: 1px solid rgba(232, 198, 92, 0.38);
+  border-radius: 50%;
+  background: rgba(232, 198, 92, 0.08);
+  color: #e8c65c;
+  box-shadow: 0 0 0 8px rgba(232, 198, 92, 0.035);
+}
+
+.eyebrow {
+  margin: 0;
+  color: #9bd6ae;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.emptyState h2 {
+  margin-top: 0.35rem;
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+}
+
+.emptyState div > p:last-child {
+  max-width: 610px;
+  margin: 0.7rem 0 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+@media (max-width: 520px) {
+  .emptyState {
+    grid-template-columns: 1fr;
+  }
+
+  .icon {
+    width: 56px;
+    height: 56px;
+  }
+}
