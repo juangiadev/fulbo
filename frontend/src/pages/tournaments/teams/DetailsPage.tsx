@@ -3,11 +3,11 @@ import { TournamentFormat, TournamentType } from '@shared/enums';
 import { ArrowLeft, CalendarDays, Shield, ShieldAlert, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
-import { apiClient } from '../../api/client';
-import { PlayerAvatar, type PlayerAvatarPlayer } from '../../components/PlayerAvatar';
-import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
-import { useAppContext } from '../../state/AppContext';
-import styles from './TournamentTeamDetailsPage.module.css';
+import { apiClient } from '../../../api/client';
+import { PlayerAvatar, type PlayerAvatarPlayer } from '../../../components/PlayerAvatar';
+import { useTournamentPermissions } from '../../../hooks/useTournamentPermissions';
+import { useAppContext } from '../../../state/AppContext';
+import styles from './DetailsPage.module.css';
 
 const ROSTER_AVATAR_CLASS_NAMES = {
   avatar: styles.playerImage,
@@ -19,7 +19,7 @@ function getTeamInitial(name: string): string {
   return name.trim().slice(0, 1).toUpperCase() || 'E';
 }
 
-export function TournamentTeamDetailsPage() {
+export function DetailsPage() {
   const { tournamentId, teamId } = useParams();
   const { currentUser, data } = useAppContext();
   const [teams, setTeams] = useState<TournamentTeamContract[]>([]);

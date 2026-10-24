@@ -16,11 +16,11 @@ import {
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
-import { apiClient } from '../../api/client';
-import { ConfirmModal } from '../../components/ConfirmModal';
-import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
-import { useAppContext } from '../../state/AppContext';
-import styles from './TournamentDetailsPage.module.css';
+import { apiClient } from '../../../api/client';
+import { ConfirmModal } from '../../../components/ConfirmModal';
+import { useTournamentPermissions } from '../../../hooks/useTournamentPermissions';
+import { useAppContext } from '../../../state/AppContext';
+import styles from './OverviewPage.module.css';
 
 const TOURNAMENT_NAME_MAX_LENGTH = 150;
 
@@ -89,7 +89,7 @@ function Banner({
   );
 }
 
-export function TournamentDetailsPage() {
+export function OverviewPage() {
   const navigate = useNavigate();
   const { tournamentId } = useParams();
   const { data, deleteTournament, updateTournament } = useAppContext();

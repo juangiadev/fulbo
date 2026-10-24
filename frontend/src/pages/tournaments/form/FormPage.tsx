@@ -3,12 +3,12 @@ import { ArrowLeft, ArrowRight, CheckCircle2, LoaderCircle, Trophy } from 'lucid
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
-import { useAppContext } from '../../state/AppContext';
-import styles from './TournamentFormPage.module.css';
+import { useAppContext } from '../../../state/AppContext';
+import styles from './FormPage.module.css';
 
 const TOURNAMENT_NAME_MAX_LENGTH = 150;
 
-export function TournamentFormPage() {
+export function FormPage() {
   const navigate = useNavigate();
   const { tournamentId } = useParams();
   const { createTournament, data, loadTournaments, updateTournament } = useAppContext();

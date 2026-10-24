@@ -11,13 +11,13 @@ import {
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { sileo } from 'sileo';
-import { apiClient } from '../../api/client';
-import { useAppContext } from '../../state/AppContext';
-import styles from './JoinTournamentPage.module.css';
+import { apiClient } from '../../../api/client';
+import { useAppContext } from '../../../state/AppContext';
+import styles from './JoinPage.module.css';
 
 const ACCESS_CODE_LENGTH = 8;
 
-export function JoinTournamentPage() {
+export function JoinPage() {
   const navigate = useNavigate();
   const { loadTournaments } = useAppContext();
   const [tournamentCode, setTournamentCode] = useState('');

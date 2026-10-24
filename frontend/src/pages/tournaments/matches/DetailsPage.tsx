@@ -9,13 +9,13 @@ import type {
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
-import { ContentSpinner } from '../../components/ContentSpinner';
-import { MatchPlayersTableReadonly } from '../../components/MatchPlayersTableReadonly';
-import { apiClient } from '../../api/client';
-import { useAppContext } from '../../state/AppContext';
-import buttonStyles from '../../styles/Button.module.css';
-import { formatDateTime24 } from '../../utils/dateFormat';
-import styles from './TournamentMatchDetailPage.module.css';
+import { ContentSpinner } from '../../../components/ContentSpinner';
+import { MatchPlayersTableReadonly } from '../../../components/MatchPlayersTableReadonly';
+import { apiClient } from '../../../api/client';
+import { useAppContext } from '../../../state/AppContext';
+import buttonStyles from '../../../styles/Button.module.css';
+import { formatDateTime24 } from '../../../utils/dateFormat';
+import styles from './DetailsPage.module.css';
 
 function splitTeams(teams: TeamContract[]): { teamA: TeamContract | null; teamB: TeamContract | null } {
   const byNameA = teams.find((team) => team.name === 'Team A') ?? null;
@@ -34,7 +34,7 @@ function enqueueStateUpdate(callback: () => void): void {
   void Promise.resolve().then(callback);
 }
 
-export function TournamentMatchDetailsPage() {
+export function DetailsPage() {
   const { tournamentId, matchId } = useParams();
   const { data } = useAppContext();
   const [matches, setMatches] = useState<MatchContract[]>([]);

@@ -4,16 +4,16 @@ import { ArrowLeft, Eye, Pencil, Plus, ShieldAlert, Trash2, Users } from 'lucide
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
-import { apiClient } from '../../api/client';
-import { ConfirmModal } from '../../components/ConfirmModal';
-import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
-import { canEditTeamRosterPlayer, canViewTeamRoster } from '../../permissions/tournamentPermissions';
-import { useAppContext } from '../../state/AppContext';
-import styles from './TournamentTeamsPage.module.css';
+import { apiClient } from '../../../api/client';
+import { ConfirmModal } from '../../../components/ConfirmModal';
+import { useTournamentPermissions } from '../../../hooks/useTournamentPermissions';
+import { canEditTeamRosterPlayer, canViewTeamRoster } from '../../../permissions/tournamentPermissions';
+import { useAppContext } from '../../../state/AppContext';
+import styles from './ListPage.module.css';
 
 const TEAM_NAME_MAX_LENGTH = 120;
 
-export function TournamentTeamsPage() {
+export function ListPage() {
   const { tournamentId } = useParams();
   const { currentUser, data } = useAppContext();
   const [teams, setTeams] = useState<TournamentTeamContract[]>([]);

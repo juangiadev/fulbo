@@ -6,14 +6,14 @@ import type {
 import { TeamResult, TournamentFormat, TournamentType } from '@shared/enums';
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
-import { ContentSpinner } from '../../components/ContentSpinner';
-import { PlayerAvatar } from '../../components/PlayerAvatar';
-import { apiClient } from '../../api/client';
-import { useAppContext } from '../../state/AppContext';
-import buttonStyles from '../../styles/Button.module.css';
-import styles from './TournamentTablePage.module.css';
+import { ContentSpinner } from '../../../components/ContentSpinner';
+import { PlayerAvatar } from '../../../components/PlayerAvatar';
+import { apiClient } from '../../../api/client';
+import { useAppContext } from '../../../state/AppContext';
+import buttonStyles from '../../../styles/Button.module.css';
+import styles from './StandingsPage.module.css';
 
-export function TournamentTablePage() {
+export function StandingsPage() {
   const { tournamentId } = useParams();
   const { data } = useAppContext();
   const [summary, setSummary] = useState<TournamentSummaryContract | null>(null);

@@ -14,15 +14,15 @@ import {
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
-import { apiClient } from '../../api/client';
-import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
-import { useAppContext } from '../../state/AppContext';
-import { formatDateTime24 } from '../../utils/dateFormat';
-import styles from './TournamentInviteGuestPage.module.css';
+import { apiClient } from '../../../api/client';
+import { useTournamentPermissions } from '../../../hooks/useTournamentPermissions';
+import { useAppContext } from '../../../state/AppContext';
+import { formatDateTime24 } from '../../../utils/dateFormat';
+import styles from './GuestInvitePage.module.css';
 
 const GUEST_NAME_MAX_LENGTH = 120;
 
-export function TournamentInviteGuestPage() {
+export function GuestInvitePage() {
   const { tournamentId } = useParams();
   const { data } = useAppContext();
   const permissions = useTournamentPermissions(tournamentId);

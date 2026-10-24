@@ -19,12 +19,12 @@ import {
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
-import { apiClient } from '../../api/client';
-import { PlayerAvatar } from '../../components/PlayerAvatar';
-import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
-import { useAppContext } from '../../state/AppContext';
-import { formatDateTime24 } from '../../utils/dateFormat';
-import styles from './TournamentPlayerDetailsPage.module.css';
+import { apiClient } from '../../../api/client';
+import { PlayerAvatar } from '../../../components/PlayerAvatar';
+import { useTournamentPermissions } from '../../../hooks/useTournamentPermissions';
+import { useAppContext } from '../../../state/AppContext';
+import { formatDateTime24 } from '../../../utils/dateFormat';
+import styles from './DetailsPage.module.css';
 
 const ROLE_LABELS: Record<PlayerRole, string> = {
   [PlayerRole.OWNER]: 'Organizador',
@@ -40,7 +40,7 @@ const PLAYER_AVATAR_CLASS_NAMES = {
 
 const codeStorageKey = (playerId: string) => `fulbo:last-claim-code:${playerId}`;
 
-export function TournamentPlayerDetailsPage() {
+export function DetailsPage() {
   const { tournamentId, playerId } = useParams();
   const { data } = useAppContext();
   const [player, setPlayer] = useState<PlayerContract | null>(null);

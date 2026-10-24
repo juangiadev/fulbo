@@ -20,15 +20,17 @@ import {
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
-import { apiClient } from '../../api/client';
-import { PlayerAvatar, type PlayerAvatarPlayer } from '../../components/PlayerAvatar';
-import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
+import { apiClient } from '../../../api/client';
+import { DisplayPreferenceSelect } from '../../../components/DisplayPreferenceSelect';
+import { FavoriteTeamSelect } from '../../../components/FavoriteTeamSelect';
+import { PlayerAvatar, type PlayerAvatarPlayer } from '../../../components/PlayerAvatar';
+import { useTournamentPermissions } from '../../../hooks/useTournamentPermissions';
 import {
   canEditTeamRosterPlayer,
   canEditTournamentPlayer,
-} from '../../permissions/tournamentPermissions';
-import { useAppContext } from '../../state/AppContext';
-import styles from './TournamentPlayerEditPage.module.css';
+} from '../../../permissions/tournamentPermissions';
+import { useAppContext } from '../../../state/AppContext';
+import styles from './EditPage.module.css';
 
 const PLAYER_NAME_MAX_LENGTH = 120;
 
@@ -44,7 +46,7 @@ const PREVIEW_AVATAR_CLASS_NAMES = {
   avatarTeam: styles.previewAvatarTeam,
 };
 
-export function TournamentPlayerEditPage() {
+export function EditPage() {
   const navigate = useNavigate();
   const { tournamentId, playerId } = useParams();
   const { currentUser, data, loadTournaments } = useAppContext();
@@ -357,37 +359,27 @@ export function TournamentPlayerEditPage() {
                 </span>
               </label>
 
-              <label>
-                Equipo favorito
-                <select
-                  aria-describedby="player-team-help"
+              <div className={styles.teamField}>
+                <span>Equipo favorito</span>
+                <FavoriteTeamSelect
+                  describedBy="player-team-help"
                   disabled={isSubmitting}
-                  onChange={(event) => setFavoriteTeamSlug(event.target.value)}
+                  onChange={setFavoriteTeamSlug}
                   value={favoriteTeamSlug}
-                >
-                  <option value="">Sin equipo favorito</option>
-                  {FAVORITE_TEAMS.map((team) => (
-                    <option key={team.slug} value={team.slug}>
-                      {team.name}
-                    </option>
-                  ))}
-                </select>
+                />
                 <span className={styles.fieldHint} id="player-team-help">
                   {teamDescription}
                 </span>
-              </label>
+              </div>
 
-              <label>
-                Preferencia de visualización
-                <select
-                  aria-describedby="player-display-preference-help"
+              <div className={styles.displayField}>
+                <span>Preferencia de visualización</span>
+                <DisplayPreferenceSelect
+                  describedBy="player-display-preference-help"
                   disabled={isSubmitting}
-                  onChange={(event) => setDisplayPreference(event.target.value as DisplayPreference)}
+                  onChange={setDisplayPreference}
                   value={displayPreference}
-                >
-                  <option value={DisplayPreference.IMAGE}>Foto de perfil</option>
-                  <option value={DisplayPreference.FAVORITE_TEAM}>Equipo favorito</option>
-                </select>
+                />
                 <span
                   aria-live="polite"
                   className={styles.fieldHint}
@@ -395,7 +387,7 @@ export function TournamentPlayerEditPage() {
                 >
                   {displayPreferenceDescription}
                 </span>
-              </label>
+              </div>
             </div>
           </section>
 

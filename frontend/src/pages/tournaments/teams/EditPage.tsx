@@ -1,6 +1,5 @@
 import type { PlayerContract, TournamentTeamContract } from '@shared/contracts';
 import { DisplayPreference, TournamentFormat, TournamentType } from '@shared/enums';
-import { FAVORITE_TEAMS } from '@shared/favorite-teams';
 import {
   Activity,
   ArrowLeft,
@@ -22,13 +21,15 @@ import {
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
-import { apiClient } from '../../api/client';
-import { ConfirmModal } from '../../components/ConfirmModal';
-import { PlayerAvatar } from '../../components/PlayerAvatar';
-import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
-import { canEditTeamRosterPlayer, canViewTeamRoster } from '../../permissions/tournamentPermissions';
-import { useAppContext } from '../../state/AppContext';
-import styles from './TournamentTeamEditPage.module.css';
+import { apiClient } from '../../../api/client';
+import { ConfirmModal } from '../../../components/ConfirmModal';
+import { DisplayPreferenceSelect } from '../../../components/DisplayPreferenceSelect';
+import { FavoriteTeamSelect } from '../../../components/FavoriteTeamSelect';
+import { PlayerAvatar } from '../../../components/PlayerAvatar';
+import { useTournamentPermissions } from '../../../hooks/useTournamentPermissions';
+import { canEditTeamRosterPlayer, canViewTeamRoster } from '../../../permissions/tournamentPermissions';
+import { useAppContext } from '../../../state/AppContext';
+import styles from './EditPage.module.css';
 
 const TEAM_NAME_MAX_LENGTH = 120;
 const PLAYER_NAME_MAX_LENGTH = 120;
@@ -67,7 +68,7 @@ function getTeamInitial(name: string): string {
   return name.trim().slice(0, 1).toUpperCase() || 'E';
 }
 
-export function TournamentTeamEditPage() {
+export function EditPage() {
   const navigate = useNavigate();
   const { tournamentId, teamId } = useParams();
   const { currentUser, data } = useAppContext();
@@ -613,34 +614,22 @@ function RosterPlayerFields({
             value={form.imageUrl}
           />
         </label>
-        <label>
-          Equipo favorito
-          <select
+        <div className={styles.teamField}>
+          <span>Equipo favorito</span>
+          <FavoriteTeamSelect
             disabled={disabled}
-            onChange={(event) => onChange({ ...form, favoriteTeamSlug: event.target.value })}
+            onChange={(favoriteTeamSlug) => onChange({ ...form, favoriteTeamSlug })}
             value={form.favoriteTeamSlug}
-          >
-            <option value="">Sin equipo favorito</option>
-            {FAVORITE_TEAMS.map((team) => (
-              <option key={team.slug} value={team.slug}>
-                {team.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Preferencia de visualización
-          <select
+          />
+        </div>
+        <div className={styles.displayField}>
+          <span>Preferencia de visualización</span>
+          <DisplayPreferenceSelect
             disabled={disabled}
-            onChange={(event) =>
-              onChange({ ...form, displayPreference: event.target.value as DisplayPreference })
-            }
+            onChange={(displayPreference) => onChange({ ...form, displayPreference })}
             value={form.displayPreference}
-          >
-            <option value={DisplayPreference.IMAGE}>Foto de perfil</option>
-            <option value={DisplayPreference.FAVORITE_TEAM}>Equipo favorito</option>
-          </select>
-        </label>
+          />
+        </div>
       </div>
 
       {canEditPrivateFields ? (

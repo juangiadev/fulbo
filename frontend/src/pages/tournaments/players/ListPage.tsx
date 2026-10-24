@@ -15,13 +15,13 @@ import {
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
-import { apiClient } from '../../api/client';
-import { ConfirmModal } from '../../components/ConfirmModal';
-import { PlayerAvatar } from '../../components/PlayerAvatar';
-import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
-import { canEditTournamentPlayer } from '../../permissions/tournamentPermissions';
-import { useAppContext } from '../../state/AppContext';
-import styles from './TournamentPlayersPage.module.css';
+import { apiClient } from '../../../api/client';
+import { ConfirmModal } from '../../../components/ConfirmModal';
+import { PlayerAvatar } from '../../../components/PlayerAvatar';
+import { useTournamentPermissions } from '../../../hooks/useTournamentPermissions';
+import { canEditTournamentPlayer } from '../../../permissions/tournamentPermissions';
+import { useAppContext } from '../../../state/AppContext';
+import styles from './ListPage.module.css';
 
 const ROLE_LABELS: Record<PlayerRole, string> = {
   [PlayerRole.OWNER]: 'Organizador',
@@ -35,7 +35,7 @@ const PLAYER_AVATAR_CLASS_NAMES = {
   avatarTeam: styles.avatarTeam,
 };
 
-export function TournamentPlayersPage() {
+export function ListPage() {
   const { tournamentId } = useParams();
   const { currentUser, data } = useAppContext();
   const [players, setPlayers] = useState<PlayerContract[]>([]);

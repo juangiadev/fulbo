@@ -1,12 +1,12 @@
 import type { PlayerContract } from '@shared/contracts';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
-import { apiClient } from '../../api/client';
-import { ContentSpinner } from '../../components/ContentSpinner';
-import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
-import { useAppContext } from '../../state/AppContext';
-import buttonStyles from '../../styles/Button.module.css';
-import styles from './TournamentTierlistPage.module.css';
+import { apiClient } from '../../../api/client';
+import { ContentSpinner } from '../../../components/ContentSpinner';
+import { useTournamentPermissions } from '../../../hooks/useTournamentPermissions';
+import { useAppContext } from '../../../state/AppContext';
+import buttonStyles from '../../../styles/Button.module.css';
+import styles from './TierlistPage.module.css';
 
 const TIER_LEVELS = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0] as const;
 
@@ -20,7 +20,7 @@ function getTierRowBackground(level: number) {
   return `linear-gradient(90deg, hsla(${hue}, 82%, 42%, 0.95) 0%, hsla(${hue}, 74%, 30%, 0.88) 22%, rgba(16, 18, 24, 0.92) 100%)`;
 }
 
-export function TournamentTierlistPage() {
+export function TierlistPage() {
   const { tournamentId } = useParams();
   const { data } = useAppContext();
   const [players, setPlayers] = useState<PlayerContract[]>([]);

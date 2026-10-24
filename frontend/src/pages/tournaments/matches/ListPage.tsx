@@ -15,14 +15,14 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
-import { apiClient } from '../../api/client';
-import { ConfirmModal } from '../../components/ConfirmModal';
-import { ContentSpinner } from '../../components/ContentSpinner';
-import { DateTimePicker } from '../../components/DateTimePicker';
-import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
-import { useAppContext } from '../../state/AppContext';
-import { formatTime24 } from '../../utils/dateFormat';
-import styles from './TournamentMatchesPage.module.css';
+import { apiClient } from '../../../api/client';
+import { ConfirmModal } from '../../../components/ConfirmModal';
+import { ContentSpinner } from '../../../components/ContentSpinner';
+import { DateTimePicker } from '../../../components/DateTimePicker';
+import { useTournamentPermissions } from '../../../hooks/useTournamentPermissions';
+import { useAppContext } from '../../../state/AppContext';
+import { formatTime24 } from '../../../utils/dateFormat';
+import styles from './ListPage.module.css';
 
 const matchDateFormatter = new Intl.DateTimeFormat('es-AR', {
   weekday: 'short',
@@ -31,7 +31,7 @@ const matchDateFormatter = new Intl.DateTimeFormat('es-AR', {
   year: 'numeric',
 });
 
-export function TournamentMatchesPage() {
+export function ListPage() {
   const { tournamentId } = useParams();
   const { data } = useAppContext();
   const [matches, setMatches] = useState<MatchContract[]>([]);

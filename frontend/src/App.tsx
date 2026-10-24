@@ -3,24 +3,24 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppShell } from "./layout/AppShell";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { ProfilePage } from "./pages/profile/ProfilePage";
-import { JoinTournamentPage } from "./pages/tournaments/JoinTournamentPage";
-import { TournamentDetailsPage } from "./pages/tournaments/TournamentDetailsPage";
-import { TournamentFormPage } from "./pages/tournaments/TournamentFormPage";
-import { TournamentInviteGuestPage } from "./pages/tournaments/TournamentInviteGuestPage";
-import { TournamentJoinRequestsPage } from "./pages/tournaments/TournamentJoinRequestsPage";
-import { TournamentMatchDetailsPage } from "./pages/tournaments/TournamentMatchDetailsPage";
-import { TournamentMatchEditPage } from "./pages/tournaments/TournamentMatchEditPage";
-import { TournamentMatchFormPage } from "./pages/tournaments/TournamentMatchFormPage";
-import { TournamentMatchesPage } from "./pages/tournaments/TournamentMatchesPage";
-import { TournamentPlayerDetailsPage } from "./pages/tournaments/TournamentPlayerDetailsPage";
-import { TournamentPlayerEditPage } from "./pages/tournaments/TournamentPlayerEditPage";
-import { TournamentPlayersPage } from "./pages/tournaments/TournamentPlayersPage";
-import { TournamentTablePage } from "./pages/tournaments/TournamentTablePage";
-import { TournamentTeamDetailsPage } from "./pages/tournaments/TournamentTeamDetailsPage";
-import { TournamentTeamEditPage } from "./pages/tournaments/TournamentTeamEditPage";
-import { TournamentTeamsPage } from "./pages/tournaments/TournamentTeamsPage";
-import { TournamentTierlistPage } from "./pages/tournaments/TournamentTierlistPage";
-import { TournamentsPage } from "./pages/tournaments/TournamentsPage";
+import { JoinPage } from "./pages/tournaments/join/JoinPage";
+import { OverviewPage } from "./pages/tournaments/overview/OverviewPage";
+import { FormPage } from "./pages/tournaments/form/FormPage";
+import { GuestInvitePage } from "./pages/tournaments/invitations/GuestInvitePage";
+import { JoinRequestsPage } from "./pages/tournaments/requests/JoinRequestsPage";
+import { DetailsPage as MatchDetailsPage } from "./pages/tournaments/matches/DetailsPage";
+import { EditPage as MatchEditPage } from "./pages/tournaments/matches/EditPage";
+import { FormPage as MatchFormPage } from "./pages/tournaments/matches/FormPage";
+import { ListPage as MatchListPage } from "./pages/tournaments/matches/ListPage";
+import { DetailsPage as PlayerDetailsPage } from "./pages/tournaments/players/DetailsPage";
+import { EditPage as PlayerEditPage } from "./pages/tournaments/players/EditPage";
+import { ListPage as PlayerListPage } from "./pages/tournaments/players/ListPage";
+import { StandingsPage } from "./pages/tournaments/standings/StandingsPage";
+import { DetailsPage as TeamDetailsPage } from "./pages/tournaments/teams/DetailsPage";
+import { EditPage as TeamEditPage } from "./pages/tournaments/teams/EditPage";
+import { ListPage as TeamListPage } from "./pages/tournaments/teams/ListPage";
+import { TierlistPage } from "./pages/tournaments/tierlist/TierlistPage";
+import { HomePage } from "./pages/tournaments/home/HomePage";
 
 function App() {
     const location = useLocation();
@@ -36,78 +36,78 @@ function App() {
                     </ProtectedRoute>
                 }
             >
-                <Route element={<TournamentsPage />} path="/tournaments" />
+                <Route element={<HomePage />} path="/tournaments" />
                 <Route element={<ProfilePage />} path="/profile" />
                 <Route
-                    element={<JoinTournamentPage />}
+                    element={<JoinPage />}
                     path="/tournaments/join"
                 />
                 <Route
-                    element={<TournamentDetailsPage />}
+                    element={<OverviewPage />}
                     path="/tournaments/:tournamentId"
                 />
                 <Route
-                    element={<TournamentMatchesPage />}
+                    element={<MatchListPage />}
                     path="/tournaments/:tournamentId/partidos"
                 />
                 <Route
-                    element={<TournamentMatchDetailsPage />}
+                    element={<MatchDetailsPage />}
                     path="/tournaments/:tournamentId/partidos/:matchId"
                 />
                 <Route
-                    element={<TournamentMatchEditPage />}
+                    element={<MatchEditPage />}
                     path="/tournaments/:tournamentId/partidos/:matchId/edit"
                 />
                 <Route
-                    element={<TournamentMatchFormPage />}
+                    element={<MatchFormPage />}
                     path="/tournaments/:tournamentId/partidos/new"
                 />
                 <Route
-                    element={<TournamentTablePage />}
+                    element={<StandingsPage />}
                     path="/tournaments/:tournamentId/tabla"
                 />
                 <Route
-                    element={<TournamentTierlistPage />}
+                    element={<TierlistPage />}
                     path="/tournaments/:tournamentId/tierlist"
                 />
                 <Route
-                    element={<TournamentFormPage />}
+                    element={<FormPage />}
                     path="/tournaments/new"
                 />
                 <Route
-                    element={<TournamentFormPage />}
+                    element={<FormPage />}
                     path="/tournaments/:tournamentId/edit"
                 />
                 <Route
-                    element={<TournamentPlayersPage />}
+                    element={<PlayerListPage />}
                     path="/tournaments/:tournamentId/players"
                 />
                 <Route
-                    element={<TournamentTeamsPage />}
+                    element={<TeamListPage />}
                     path="/tournaments/:tournamentId/teams"
                 />
                 <Route
-                    element={<TournamentTeamDetailsPage />}
+                    element={<TeamDetailsPage />}
                     path="/tournaments/:tournamentId/teams/:teamId"
                 />
                 <Route
-                    element={<TournamentTeamEditPage />}
+                    element={<TeamEditPage />}
                     path="/tournaments/:tournamentId/teams/:teamId/edit"
                 />
                 <Route
-                    element={<TournamentPlayerDetailsPage />}
+                    element={<PlayerDetailsPage />}
                     path="/tournaments/:tournamentId/players/:playerId"
                 />
                 <Route
-                    element={<TournamentPlayerEditPage />}
+                    element={<PlayerEditPage />}
                     path="/tournaments/:tournamentId/players/:playerId/edit"
                 />
                 <Route
-                    element={<TournamentInviteGuestPage />}
+                    element={<GuestInvitePage />}
                     path="/tournaments/:tournamentId/invite-guest"
                 />
                 <Route
-                    element={<TournamentJoinRequestsPage />}
+                    element={<JoinRequestsPage />}
                     path="/tournaments/:tournamentId/join-requests"
                 />
             </Route>

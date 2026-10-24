@@ -198,7 +198,9 @@
   gap: 1rem;
 }
 
-.fieldsGrid label {
+.fieldsGrid label,
+.teamField,
+.displayField {
   display: grid;
   min-width: 0;
   align-content: start;

@@ -15,23 +15,23 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
-import { apiClient } from '../../api/client';
-import { ContentSpinner } from '../../components/ContentSpinner';
-import { DateTimePicker } from '../../components/DateTimePicker';
-import { LigaTeamMatchScorerEditor } from '../../components/LigaTeamMatchScorerEditor';
+import { apiClient } from '../../../api/client';
+import { ContentSpinner } from '../../../components/ContentSpinner';
+import { DateTimePicker } from '../../../components/DateTimePicker';
+import { LigaTeamMatchScorerEditor } from '../../../components/LigaTeamMatchScorerEditor';
 import {
   MatchPlayersTableBuilder,
   type MatchPlayersTableBuilderRef,
-} from '../../components/MatchPlayersTableBuilder';
+} from '../../../components/MatchPlayersTableBuilder';
 import {
   TeamMatchResultEditor,
   type TeamMatchResultEditorRef,
-} from '../../components/TeamMatchResultEditor';
-import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
-import { useAppContext } from '../../state/AppContext';
-import styles from './TournamentMatchEditPage.module.css';
+} from '../../../components/TeamMatchResultEditor';
+import { useTournamentPermissions } from '../../../hooks/useTournamentPermissions';
+import { useAppContext } from '../../../state/AppContext';
+import styles from './EditPage.module.css';
 
-export function TournamentMatchEditPage() {
+export function EditPage() {
   const navigate = useNavigate();
   const { tournamentId, matchId } = useParams();
   const { data } = useAppContext();

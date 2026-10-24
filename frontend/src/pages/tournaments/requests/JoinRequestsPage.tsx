@@ -14,11 +14,11 @@ import {
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { sileo } from 'sileo';
-import { apiClient } from '../../api/client';
-import { PlayerAvatar } from '../../components/PlayerAvatar';
-import { useTournamentPermissions } from '../../hooks/useTournamentPermissions';
-import { useAppContext } from '../../state/AppContext';
-import styles from './TournamentJoinRequestsPage.module.css';
+import { apiClient } from '../../../api/client';
+import { PlayerAvatar } from '../../../components/PlayerAvatar';
+import { useTournamentPermissions } from '../../../hooks/useTournamentPermissions';
+import { useAppContext } from '../../../state/AppContext';
+import styles from './JoinRequestsPage.module.css';
 
 interface JoinRequestUser {
   id: string;
@@ -56,7 +56,7 @@ async function loadJoinRequestsData(tournamentId: string): Promise<JoinRequestsD
   };
 }
 
-export function TournamentJoinRequestsPage() {
+export function JoinRequestsPage() {
   const { tournamentId } = useParams();
   const { data } = useAppContext();
   const [requests, setRequests] = useState<JoinRequestItem[]>([]);

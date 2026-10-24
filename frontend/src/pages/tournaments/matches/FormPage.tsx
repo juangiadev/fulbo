@@ -23,16 +23,16 @@ import {
   MatchPlayersTableBuilder,
   type MatchPlayersTableBuilderRef,
   type MatchPlayersTableTemplateConfig,
-} from "../../components/MatchPlayersTableBuilder";
+} from "../../../components/MatchPlayersTableBuilder";
 import {
   TeamMatchResultEditor,
   type TeamMatchResultEditorRef,
-} from "../../components/TeamMatchResultEditor";
-import { DateTimePicker } from "../../components/DateTimePicker";
-import { apiClient } from "../../api/client";
-import { useTournamentPermissions } from "../../hooks/useTournamentPermissions";
-import { useAppContext } from "../../state/AppContext";
-import styles from "./TournamentMatchFormPage.module.css";
+} from "../../../components/TeamMatchResultEditor";
+import { DateTimePicker } from "../../../components/DateTimePicker";
+import { apiClient } from "../../../api/client";
+import { useTournamentPermissions } from "../../../hooks/useTournamentPermissions";
+import { useAppContext } from "../../../state/AppContext";
+import styles from "./FormPage.module.css";
 
 interface MatchCreationTemplate {
   sourceLabel: string;
@@ -83,7 +83,7 @@ function buildTemplateFromMatch(
   };
 }
 
-export function TournamentMatchFormPage() {
+export function FormPage() {
   const { tournamentId } = useParams();
   const navigate = useNavigate();
   const { data, loadTournaments } = useAppContext();
