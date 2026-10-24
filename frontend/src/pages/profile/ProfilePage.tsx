@@ -8,8 +8,6 @@ import {
   ArrowLeft,
   ArrowUpRight,
   Camera,
-  Eye,
-  Heart,
   Mail,
   Save,
   ShieldCheck,
@@ -20,6 +18,8 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { sileo } from 'sileo';
 import { apiClient } from '../../api/client';
+import { DisplayPreferenceSelect } from '../../components/DisplayPreferenceSelect';
+import { FavoriteTeamSelect } from '../../components/FavoriteTeamSelect';
 import { PlayerAvatar } from '../../components/PlayerAvatar';
 import { useAppContext } from '../../state/AppContext';
 import styles from './ProfilePage.module.css';
@@ -203,37 +203,15 @@ export function ProfilePage() {
               </span>
             </label>
 
-            <label className={styles.field}>
+            <div className={styles.field}>
               <span>Equipo favorito</span>
-              <span className={styles.inputWrap}>
-                <Heart aria-hidden="true" size={18} />
-                <select
-                  onChange={(event) => setFavoriteTeamSlug(event.target.value)}
-                  value={favoriteTeamSlug}
-                >
-                  <option value="">Sin equipo favorito</option>
-                  {FAVORITE_TEAMS.map((team) => (
-                    <option key={team.slug} value={team.slug}>
-                      {team.name}
-                    </option>
-                  ))}
-                </select>
-              </span>
-            </label>
+              <FavoriteTeamSelect onChange={setFavoriteTeamSlug} value={favoriteTeamSlug} />
+            </div>
 
-            <label className={styles.field}>
+            <div className={styles.field}>
               <span>Mostrar en mi avatar</span>
-              <span className={styles.inputWrap}>
-                <Eye aria-hidden="true" size={18} />
-                <select
-                  onChange={(event) => setDisplayPreference(event.target.value as DisplayPreference)}
-                  value={displayPreference}
-                >
-                  <option value={DisplayPreference.IMAGE}>Mi foto</option>
-                  <option value={DisplayPreference.FAVORITE_TEAM}>Mi equipo favorito</option>
-                </select>
-              </span>
-            </label>
+              <DisplayPreferenceSelect onChange={setDisplayPreference} value={displayPreference} />
+            </div>
 
             <div className={`${styles.accountInfo} ${styles.fullField}`}>
               <Mail aria-hidden="true" size={18} />
