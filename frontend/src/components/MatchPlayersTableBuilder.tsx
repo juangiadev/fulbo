@@ -11,7 +11,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Eye, EyeOff, Shuffle } from "lucide-react";
+import { ArrowLeftRight, Eye, EyeOff, Shuffle, UsersRound } from "lucide-react";
 import { sileo } from "sileo";
 import { apiClient } from "../api/client";
 import {
@@ -157,6 +157,10 @@ export const MatchPlayersTableBuilder = forwardRef<
       selectedPlayerIds.filter((playerId) => loadedPlayerIds.has(playerId)),
     ).size;
   }, [players, selectedPlayerIds]);
+
+  const hasTeamAssignments = rows.some(
+    (row) => row.teamAPlayerId || row.teamBPlayerId,
+  );
 
   const teamAAbilitySum = useMemo(
     () =>
@@ -331,6 +335,45 @@ export const MatchPlayersTableBuilder = forwardRef<
         teamBPlayerId:
           row.teamBPlayerId === playerId ? null : row.teamBPlayerId,
       })),
+    );
+  };
+
+  const swapTeams = () => {
+    if (!canEdit || isLoadingLineup || isSaving) {
+      return;
+    }
+
+    setRows((previousRows) =>
+      previousRows.map((row) => ({
+        ...row,
+        teamAPlayerId: row.teamBPlayerId,
+        teamAGoals: row.teamBGoals,
+        teamBPlayerId: row.teamAPlayerId,
+        teamBGoals: row.teamAGoals,
+      })),
+    );
+  };
+
+  const clearTeamAssignments = () => {
+    if (!canEdit || isLoadingLineup || isSaving) {
+      return;
+    }
+
+    const assignedPlayerIds = rows
+      .flatMap((row) => [row.teamAPlayerId, row.teamBPlayerId])
+      .filter((id): id is string => Boolean(id));
+
+    setRows((previousRows) =>
+      previousRows.map((row) => ({
+        ...row,
+        teamAPlayerId: null,
+        teamAGoals: 0,
+        teamBPlayerId: null,
+        teamBGoals: 0,
+      })),
+    );
+    setAvailablePlayerIds((previous) =>
+      Array.from(new Set([...previous, ...assignedPlayerIds])),
     );
   };
 
@@ -689,17 +732,41 @@ export const MatchPlayersTableBuilder = forwardRef<
                 : "Mostrar habilidades"}
             </button>
             {canEdit ? (
-              <button
-                className={`${buttonStyles.ghost} ${styles.lineupToolButton} ${styles.balanceButton}`}
-                disabled={
-                  selectedPlayerCount === 0 || isLoadingLineup || isSaving
-                }
-                onClick={generateBalancedTeams}
-                type="button"
-              >
-                <Shuffle aria-hidden="true" size={18} />
-                Generar equipos balanceados
-              </button>
+              <>
+                <button
+                  className={`${buttonStyles.ghost} ${styles.lineupToolButton} ${styles.swapTeamsButton}`}
+                  disabled={
+                    !hasTeamAssignments || isLoadingLineup || isSaving
+                  }
+                  onClick={swapTeams}
+                  type="button"
+                >
+                  <ArrowLeftRight aria-hidden="true" size={18} />
+                  Cambiar equipos
+                </button>
+                <button
+                  className={`${buttonStyles.ghost} ${styles.lineupToolButton} ${styles.clearAssignmentsButton}`}
+                  disabled={
+                    !hasTeamAssignments || isLoadingLineup || isSaving
+                  }
+                  onClick={clearTeamAssignments}
+                  type="button"
+                >
+                  <UsersRound aria-hidden="true" size={18} />
+                  Quitar asignaciones
+                </button>
+                <button
+                  className={`${buttonStyles.ghost} ${styles.lineupToolButton} ${styles.balanceButton}`}
+                  disabled={
+                    selectedPlayerCount === 0 || isLoadingLineup || isSaving
+                  }
+                  onClick={generateBalancedTeams}
+                  type="button"
+                >
+                  <Shuffle aria-hidden="true" size={18} />
+                  Generar equipos balanceados
+                </button>
+              </>
             ) : null}
           </div>
 
